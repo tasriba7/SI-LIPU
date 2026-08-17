@@ -12,11 +12,12 @@ Fase 0 (fondasi proyek) — selesai:
 - Endpoint `/api/health` untuk memverifikasi environment variable & koneksi Supabase
 - Siap deploy ke Vercel
 
-Fase 1 (autentikasi admin/petugas desa) — selesai:
-- Halaman `/login` khusus admin/petugas desa (tanpa pendaftaran publik)
-- Dashboard admin `/dashboard` — terproteksi, redirect ke `/login` kalau belum masuk
-- Tabel `profiles` + RLS + trigger otomatis di Supabase (lihat `supabase/migrations/0001_init_profiles.sql`)
-- Akun admin/petugas dibuat **manual** oleh superadmin lewat Supabase Dashboard, bukan lewat form pendaftaran
+Fase 1 (autentikasi perangkat desa) — selesai:
+- Halaman `/login` khusus perangkat desa (tanpa pendaftaran publik)
+- Dashboard `/dashboard` — sidebar navigasi, kartu statistik, grid modul; terproteksi, redirect ke `/login` kalau belum masuk
+- Struktur role sesuai perangkat desa: **Kepala Desa, Sekretaris Desa, Kaur, Kasi, Kadus** (lihat `lib/roles.js`)
+- Tabel `profiles` + RLS + trigger otomatis di Supabase (`supabase/migrations/0001_init_profiles.sql` lalu `0002_perangkat_desa_roles.sql`)
+- Akun perangkat desa dibuat **manual** oleh superadmin lewat Supabase Dashboard, bukan lewat form pendaftaran
 
 ---
 
@@ -53,9 +54,13 @@ Cek koneksi Supabase: buka `http://localhost:3000/api/health` — harus muncul `
 
 5. Aktifkan **Row Level Security (RLS)** di setiap tabel yang dibuat nanti (Table Editor → pilih tabel → Enable RLS), lalu buat policy sesuai kebutuhan.
 
-6. Jalankan migrasi Fase 1: buka **SQL Editor** di Supabase Dashboard → New query → copy-paste isi file `supabase/migrations/0001_init_profiles.sql` → **Run**. Ini membuat tabel `profiles`, RLS, dan trigger otomatis untuk akun staf desa.
+6. Jalankan migrasi Fase 1, **urut sesuai nomor file**: buka **SQL Editor** di Supabase Dashboard → New query → copy-paste isi `supabase/migrations/0001_init_profiles.sql` → **Run**. Lalu New query lagi → copy-paste isi `supabase/migrations/0002_perangkat_desa_roles.sql` → **Run**. Migrasi kedua memperluas role jadi struktur perangkat desa (Kepala Desa, Sekretaris Desa, Kaur, Kasi, Kadus).
 
-7. Buat akun admin pertama: **Authentication → Users → Add user** → isi email & password → centang **"Auto Confirm User"**. Baris profil otomatis dibuat dengan role `admin` (lihat komentar di file migrasi untuk cara mengubah jadi `petugas`).
+7. Buat akun perangkat desa: **Authentication → Users → Add user** → isi email & password → di kolom **User Metadata** (format JSON) isi misalnya:
+   ```json
+   { "nama": "Budi Santoso", "role": "kaur", "jabatan": "Kaur Keuangan" }
+   ```
+   Role yang valid: `kepala_desa`, `sekretaris_desa`, `kaur`, `kasi`, `kadus`. Untuk Kadus, tambahkan juga `"dusun": "Dusun 1"`. Centang **"Auto Confirm User"**, lalu baris profil otomatis terbuat sesuai metadata tadi. Kalau lupa isi metadata, role default jadi `kasi` — bisa diedit belakangan lewat Table Editor → `profiles`.
 
 ---
 
@@ -100,21 +105,28 @@ si-lipu/
 ├── app/
 │   ├── api/health/route.js    # cek koneksi Supabase
 │   ├── dashboard/
-│   │   ├── page.js             # dashboard admin (terproteksi)
+│   │   ├── layout.js           # cek auth + fetch profil, bungkus dgn sidebar
+│   │   ├── page.js             # isi dashboard: stat cards + grid modul
 │   │   └── actions.js          # server action logout
 │   ├── login/
-│   │   ├── page.js             # form login admin/petugas
+│   │   ├── page.js             # form login perangkat desa
 │   │   └── actions.js          # server action login
 │   ├── layout.js               # bungkus semua halaman dengan SplashScreen
 │   └── page.js                  # halaman utama publik
 ├── components/
-│   └── SplashScreen.jsx        # logo tampil duluan saat app dimuat
-├── lib/supabase/
-│   ├── client.js                # Supabase client (browser)
-│   ├── server.js                 # Supabase client (server)
-│   └── middleware.js             # refresh sesi + proteksi /dashboard
+│   ├── SplashScreen.jsx        # logo tampil duluan saat app dimuat
+│   ├── icons.jsx                # ikon SVG inline dashboard
+│   └── dashboard/
+│       └── DashboardShell.jsx  # sidebar + header dashboard (client)
+├── lib/
+│   ├── roles.js                 # label & warna badge per role perangkat desa
+│   └── supabase/
+│       ├── client.js             # Supabase client (browser)
+│       ├── server.js              # Supabase client (server)
+│       └── middleware.js          # refresh sesi + proteksi /dashboard
 ├── supabase/migrations/
-│   └── 0001_init_profiles.sql   # tabel profiles, RLS, trigger akun staf
+│   ├── 0001_init_profiles.sql   # tabel profiles, RLS, trigger akun staf
+│   └── 0002_perangkat_desa_roles.sql  # perluas role jadi struktur perangkat desa
 ├── middleware.js
 ├── public/
 │   └── logo-si-lipu.png
