@@ -1,5 +1,28 @@
 import "../styles/globals.css";
+import { Fraunces, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import SplashScreen from "@/components/SplashScreen";
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-display",
+  weight: ["500", "600", "700"],
+  style: ["normal", "italic"],
+  display: "swap",
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-body",
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
 
 export const metadata = {
   title: "SI-LIPU | Sistem Informasi Layanan Interaktif Pelayanan Umum",
@@ -12,7 +35,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="id">
+    <html
+      lang="id"
+      className={`${fraunces.variable} ${jakarta.variable} ${jetbrainsMono.variable}`}
+    >
       <body>
         <SplashScreen>{children}</SplashScreen>
       </body>

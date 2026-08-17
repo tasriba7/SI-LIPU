@@ -6,6 +6,14 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        // Fraunces: serif berkarakter untuk judul — kesan "kop surat resmi"
+        // tanpa terasa kaku, cocok untuk portal layanan pemerintahan desa.
+        display: ["var(--font-display)", "Georgia", "serif"],
+        // Plus Jakarta Sans: sans modern, gampang dibaca di layar kecil.
+        sans: ["var(--font-body)", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
+      },
       colors: {
         // Warna diambil dari logo SI-LIPU
         navy: {
@@ -32,11 +40,16 @@ module.exports = {
           "0%, 100%": { transform: "scale(1)" },
           "50%": { transform: "scale(1.04)" },
         },
+        fadeUp: {
+          "0%": { opacity: "0", transform: "translateY(12px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.6s ease-out forwards",
         fadeOut: "fadeOut 0.5s ease-in forwards",
         pulseSoft: "pulseSoft 1.6s ease-in-out infinite",
+        fadeUp: "fadeUp 0.7s ease-out forwards",
       },
     },
   },
