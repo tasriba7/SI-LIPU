@@ -1,12 +1,22 @@
 # SI-LIPU
 **Sistem Informasi Layanan Interaktif Pelayanan Umum** — aplikasi layanan pemerintahan desa.
 
-Fase 0: fondasi proyek. Sudah tersedia:
+> **Catatan penting:** warga desa **tidak perlu login**. Layanan publik
+> (pengajuan surat, pengaduan, dll.) di fase berikutnya diakses lewat form
+> terbuka. Login hanya untuk **admin/petugas desa** yang mengelola data.
+
+Fase 0 (fondasi proyek) — selesai:
 - Struktur proyek Next.js 15 (App Router)
 - Koneksi Supabase (client, server, middleware refresh sesi) — pakai sistem API key **baru** (Publishable/Secret)
 - Splash screen logo saat aplikasi dimuat
 - Endpoint `/api/health` untuk memverifikasi environment variable & koneksi Supabase
 - Siap deploy ke Vercel
+
+Fase 1 (autentikasi admin/petugas desa) — selesai:
+- Halaman `/login` khusus admin/petugas desa (tanpa pendaftaran publik)
+- Dashboard admin `/dashboard` — terproteksi, redirect ke `/login` kalau belum masuk
+- Tabel `profiles` + RLS + trigger otomatis di Supabase (lihat `supabase/migrations/0001_init_profiles.sql`)
+- Akun admin/petugas dibuat **manual** oleh superadmin lewat Supabase Dashboard, bukan lewat form pendaftaran
 
 ---
 
@@ -41,7 +51,11 @@ Cek koneksi Supabase: buka `http://localhost:3000/api/health` — harus muncul `
 
 > ⚠️ **Penting soal Secret key**: key ini bisa melewati Row Level Security (RLS) dan punya akses penuh ke database. **Jangan pernah** memberi awalan `NEXT_PUBLIC_` padanya, jangan dipakai di Client Component, dan jangan di-commit ke git. Key ini hanya boleh dipakai di kode yang jalan di server (Server Action, Route Handler). Supabase juga memblokir pemakaian Secret key dari browser (dideteksi lewat User-Agent) — jadi kalau salah taruh, biasanya langsung gagal dengan error, bukan diam-diam bocor.
 
-5. Aktifkan **Row Level Security (RLS)** di setiap tabel yang dibuat nanti (Table Editor → pilih tabel → Enable RLS), lalu buat policy sesuai kebutuhan (misalnya: warga hanya bisa lihat pengajuan surat miliknya sendiri, admin desa bisa lihat semua).
+5. Aktifkan **Row Level Security (RLS)** di setiap tabel yang dibuat nanti (Table Editor → pilih tabel → Enable RLS), lalu buat policy sesuai kebutuhan.
+
+6. Jalankan migrasi Fase 1: buka **SQL Editor** di Supabase Dashboard → New query → copy-paste isi file `supabase/migrations/0001_init_profiles.sql` → **Run**. Ini membuat tabel `profiles`, RLS, dan trigger otomatis untuk akun staf desa.
+
+7. Buat akun admin pertama: **Authentication → Users → Add user** → isi email & password → centang **"Auto Confirm User"**. Baris profil otomatis dibuat dengan role `admin` (lihat komentar di file migrasi untuk cara mengubah jadi `petugas`).
 
 ---
 
@@ -84,15 +98,23 @@ Logo sudah otomatis diletakkan di `public/logo-si-lipu.png` di dalam project ini
 ```
 si-lipu/
 ├── app/
-│   ├── api/health/route.js   # cek koneksi Supabase
-│   ├── layout.js              # bungkus semua halaman dengan SplashScreen
-│   └── page.js                 # halaman utama (placeholder Fase 0)
+│   ├── api/health/route.js    # cek koneksi Supabase
+│   ├── dashboard/
+│   │   ├── page.js             # dashboard admin (terproteksi)
+│   │   └── actions.js          # server action logout
+│   ├── login/
+│   │   ├── page.js             # form login admin/petugas
+│   │   └── actions.js          # server action login
+│   ├── layout.js               # bungkus semua halaman dengan SplashScreen
+│   └── page.js                  # halaman utama publik
 ├── components/
-│   └── SplashScreen.jsx       # logo tampil duluan saat app dimuat
+│   └── SplashScreen.jsx        # logo tampil duluan saat app dimuat
 ├── lib/supabase/
-│   ├── client.js               # Supabase client (browser)
-│   ├── server.js                # Supabase client (server)
-│   └── middleware.js           # refresh sesi login
+│   ├── client.js                # Supabase client (browser)
+│   ├── server.js                 # Supabase client (server)
+│   └── middleware.js             # refresh sesi + proteksi /dashboard
+├── supabase/migrations/
+│   └── 0001_init_profiles.sql   # tabel profiles, RLS, trigger akun staf
 ├── middleware.js
 ├── public/
 │   └── logo-si-lipu.png
@@ -101,13 +123,15 @@ si-lipu/
 └── README.md
 ```
 
-## 6. Fase selanjutnya (belum dibuat di Fase 0 ini)
+## 6. Fase selanjutnya (belum dibuat)
 
-Berdasarkan diskusi sebelumnya, kandidat modul untuk desa (Pemdes) yang bisa ditambahkan di fase berikutnya:
-- Autentikasi warga & admin desa (Supabase Auth)
-- Pengajuan surat online (surat keterangan domisili, SKTM, dll.) + tracking status
+Kandidat modul untuk desa (Pemdes) yang bisa ditambahkan di fase berikutnya —
+semuanya diakses **warga tanpa login**, memakai form terbuka + kode tracking
+untuk cek status:
+- Pengajuan surat online (surat keterangan domisili, SKTM, dll.) + tracking status pakai kode unik
 - Pengaduan/aspirasi warga
 - Informasi & pengumuman desa
 - Profil desa & data statistik penduduk
+- Panel admin untuk memproses pengajuan/pengaduan masuk (dashboard sudah ada, tinggal ditambah modulnya)
 
-Beri tahu modul mana yang mau dikerjakan duluan untuk lanjut ke Fase 1.
+Beri tahu modul mana yang mau dikerjakan duluan untuk lanjut ke Fase 2.

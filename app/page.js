@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function HomePage() {
   return (
@@ -15,11 +16,18 @@ export default function HomePage() {
         Sistem Informasi Layanan Interaktif Pelayanan Umum
       </p>
       <p className="max-w-md text-slate-600">
-        Fase 0 selesai: proyek Next.js sudah tersambung ke Supabase, siap
-        di-deploy ke Vercel, dan splash screen logo sudah aktif. Halaman ini
-        adalah placeholder — modul layanan (surat-menyurat, pengaduan, dsb.)
-        akan ditambahkan di fase berikutnya.
+        Fase 1 selesai: login admin/petugas desa sudah aktif. Warga tidak
+        perlu akun — modul layanan publik (pengajuan surat, pengaduan, dsb.)
+        akan ditambahkan di fase berikutnya, bisa diakses langsung tanpa
+        login.
       </p>
+
+      <Link
+        href="/login"
+        className="mt-10 text-xs text-slate-400 underline hover:text-slate-600"
+      >
+        Login admin/petugas desa
+      </Link>
     </main>
   );
 }
