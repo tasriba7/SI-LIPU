@@ -16,11 +16,24 @@ export default function HomePage() {
         Sistem Informasi Layanan Interaktif Pelayanan Umum
       </p>
       <p className="max-w-md text-slate-600">
-        Fase 1 selesai: login admin/petugas desa sudah aktif. Warga tidak
-        perlu akun — modul layanan publik (pengajuan surat, pengaduan, dsb.)
-        akan ditambahkan di fase berikutnya, bisa diakses langsung tanpa
-        login.
+        Layanan warga tanpa perlu akun — ajukan surat langsung lewat form,
+        lalu cek statusnya kapan saja pakai kode tracking.
       </p>
+
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <Link
+          href="/layanan/surat"
+          className="rounded-lg bg-navy px-6 py-2.5 text-sm font-medium text-white transition hover:bg-navy-light"
+        >
+          Ajukan Surat
+        </Link>
+        <Link
+          href="/layanan/surat/cek"
+          className="rounded-lg border border-slate-300 px-6 py-2.5 text-sm font-medium text-slate-600 transition hover:border-navy-light hover:text-navy"
+        >
+          Cek Status Pengajuan
+        </Link>
+      </div>
 
       <Link
         href="/login"

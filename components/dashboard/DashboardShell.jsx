@@ -16,7 +16,7 @@ import {
 import { ROLE_BADGE_CLASS, labelJabatan } from "@/lib/roles";
 
 const MODUL_LAYANAN = [
-  { nama: "Pengajuan Surat", icon: IconMail },
+  { nama: "Pengajuan Surat", icon: IconMail, href: "/dashboard/surat" },
   { nama: "Pengaduan Warga", icon: IconMessage },
   { nama: "Pengumuman Desa", icon: IconMegaphone },
   { nama: "Data Kependudukan", icon: IconUsers },
@@ -94,17 +94,29 @@ export default function DashboardShell({ profile, logoutAction, children }) {
             Modul layanan
           </p>
           <ul className="space-y-1">
-            {MODUL_LAYANAN.map(({ nama, icon: Icon }) => (
-              <li key={nama}>
-                <div className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/40">
-                  <Icon className="h-4 w-4" />
-                  <span className="flex-1">{nama}</span>
-                  <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">
-                    segera
-                  </span>
-                </div>
-              </li>
-            ))}
+            {MODUL_LAYANAN.map(({ nama, icon: Icon, href }) =>
+              href ? (
+                <li key={nama}>
+                  <Link
+                    href={href}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="flex-1">{nama}</span>
+                  </Link>
+                </li>
+              ) : (
+                <li key={nama}>
+                  <div className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/40">
+                    <Icon className="h-4 w-4" />
+                    <span className="flex-1">{nama}</span>
+                    <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">
+                      segera
+                    </span>
+                  </div>
+                </li>
+              )
+            )}
           </ul>
         </nav>
 

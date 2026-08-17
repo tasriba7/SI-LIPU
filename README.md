@@ -19,6 +19,12 @@ Fase 1 (autentikasi perangkat desa) — selesai:
 - Tabel `profiles` + RLS + trigger otomatis di Supabase (`supabase/migrations/0001_init_profiles.sql` lalu `0002_perangkat_desa_roles.sql`)
 - Akun perangkat desa dibuat **manual** oleh superadmin lewat Supabase Dashboard, bukan lewat form pendaftaran
 
+Fase 2, Modul 1 (Pengajuan Surat Online) — selesai:
+- `/layanan/surat` — form publik ajukan surat (domisili, SKTM, dll.), **tanpa login**, hasilnya kode tracking unik (mis. `SRT-AB12CD`)
+- `/layanan/surat/cek` — warga cek status pakai kode tracking lewat RPC terbatas (tidak expose NIK/data pribadi lain ke publik)
+- `/dashboard/surat` — panel admin: daftar pengajuan + filter status, klik kode untuk lihat detail & ubah status/catatan
+- Tabel `pengajuan_surat` + RLS (warga cuma bisa insert, staf login yang bisa lihat & update) + RPC `cek_status_pengajuan_surat` (`supabase/migrations/0003_pengajuan_surat.sql`)
+
 ---
 
 ## 1. Jalankan di lokal
@@ -137,13 +143,12 @@ si-lipu/
 
 ## 6. Fase selanjutnya (belum dibuat)
 
-Kandidat modul untuk desa (Pemdes) yang bisa ditambahkan di fase berikutnya —
-semuanya diakses **warga tanpa login**, memakai form terbuka + kode tracking
-untuk cek status:
-- Pengajuan surat online (surat keterangan domisili, SKTM, dll.) + tracking status pakai kode unik
+Modul yang masih tersisa dari rencana Fase 2 — semuanya diakses **warga
+tanpa login**, memakai form terbuka + kode tracking untuk cek status,
+pola yang sama seperti Modul 1 (Pengajuan Surat) di atas:
 - Pengaduan/aspirasi warga
 - Informasi & pengumuman desa
-- Profil desa & data statistik penduduk
-- Panel admin untuk memproses pengajuan/pengaduan masuk (dashboard sudah ada, tinggal ditambah modulnya)
+- Profil desa & data statistik penduduk (Data Kependudukan)
 
-Beri tahu modul mana yang mau dikerjakan duluan untuk lanjut ke Fase 2.
+Jalankan migrasi `supabase/migrations/0003_pengajuan_surat.sql` di Supabase
+Dashboard (SQL Editor) sebelum mencoba modul Pengajuan Surat di lokal/production.
