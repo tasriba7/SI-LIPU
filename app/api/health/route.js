@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET() {
   const missing = [];
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) missing.push("NEXT_PUBLIC_SUPABASE_URL");
-  if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) missing.push("NEXT_PUBLIC_SUPABASE_ANON_KEY");
+  if (!process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) missing.push("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
 
   if (missing.length > 0) {
     return NextResponse.json(
@@ -25,8 +25,6 @@ export async function GET() {
 
   try {
     const supabase = await createClient();
-    // getSession tidak butuh tabel apapun, cukup untuk membuktikan
-    // client berhasil dibuat & bisa bicara ke project Supabase.
     const { error } = await supabase.auth.getSession();
 
     if (error) {
