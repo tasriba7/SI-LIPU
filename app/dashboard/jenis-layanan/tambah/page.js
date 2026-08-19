@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -32,9 +32,11 @@ export default function TambahJenisLayananPage() {
   const [fields, setFields] = useState([]);
   const [state, formAction] = useFormState(buatJenisLayanan, {});
 
-  if (state?.success) {
-    router.push("/dashboard/jenis-layanan");
-  }
+  useEffect(() => {
+    if (state?.success) {
+      router.push("/dashboard/jenis-layanan");
+    }
+  }, [state, router]);
 
   function tambahField() {
     setFields((prev) => [...prev, fieldKosong()]);
