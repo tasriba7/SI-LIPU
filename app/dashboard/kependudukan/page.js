@@ -63,6 +63,7 @@ export default async function KependudukanPage({ searchParams }) {
               <th className="px-4 py-3 font-medium">Dusun / RT-RW</th>
               <th className="px-4 py-3 font-medium">Tanggal Lahir</th>
               <th className="px-4 py-3 font-medium">No. HP</th>
+              <th className="px-4 py-3 font-medium"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -79,11 +80,19 @@ export default async function KependudukanPage({ searchParams }) {
                     : "-"}
                 </td>
                 <td className="px-4 py-3 text-slate-500">{w.no_hp || "-"}</td>
+                <td className="px-4 py-3 text-right">
+                  <Link
+                    href={`/dashboard/kependudukan/${w.id}/edit`}
+                    className="text-xs font-medium text-navy hover:underline"
+                  >
+                    Edit
+                  </Link>
+                </td>
               </tr>
             ))}
             {(daftar ?? []).length === 0 && (
               <tr>
-                <td colSpan={5} className="px-4 py-10 text-center text-slate-400">
+                <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
                   {cari ? `Tidak ada hasil untuk "${cari}".` : "Belum ada data warga."}
                 </td>
               </tr>
