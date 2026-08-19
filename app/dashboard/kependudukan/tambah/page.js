@@ -174,9 +174,7 @@ export default function TambahWargaPage() {
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy"
           />
           <p className="mt-1 text-xs text-slate-400">
-            Kalau diisi, nomor ini otomatis muncul di form pengajuan layanan
-            apapun saat warga cari data lewat NIK + Tanggal Lahir — tapi
-            tetap bisa diganti warga saat mengajukan.
+            Nomor telepon biasa atau nomor Whatsapp.
           </p>
         </div>
 
