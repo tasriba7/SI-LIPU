@@ -26,8 +26,7 @@ export default function LoginPage() {
           Masuk — Admin Desa
         </h1>
         <p className="mb-6 mt-1 text-center text-sm text-slate-500">
-          Khusus admin/petugas desa. Warga tidak perlu login untuk
-          menggunakan layanan SI-LIPU.
+          Masukkan Username dan Password anda.
         </p>
 
         <form action={formAction} className="space-y-4">
