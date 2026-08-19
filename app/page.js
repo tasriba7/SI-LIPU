@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import VillageSeal from "@/components/VillageSeal";
+import PublicHeader from "@/components/PublicHeader";
 import {
   IconMail,
   IconMegaphone,
@@ -66,26 +67,7 @@ const JAMINAN = [
 export default function HomePage() {
   return (
     <main className="bg-white">
-      {/* Header */}
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <div className="flex items-center gap-2.5">
-          <Image
-            src="/logo-si-lipu.png"
-            alt="Logo SI-LIPU"
-            width={30}
-            height={30}
-          />
-          <span className="font-display text-sm font-semibold tracking-wide text-navy">
-            SI-LIPU
-          </span>
-        </div>
-        <Link
-          href="/login"
-          className="text-xs text-slate-400 transition hover:text-navy"
-        >
-          Masuk sebagai admin/petugas &rarr;
-        </Link>
-      </header>
+      <PublicHeader />
 
       {/* Hero */}
       <section className="relative overflow-hidden bg-navy-dark">
