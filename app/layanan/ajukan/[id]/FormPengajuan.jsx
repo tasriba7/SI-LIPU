@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import Link from "next/link";
 import { cariWargaUntukLayanan, ajukanLayanan } from "./actions";
@@ -101,15 +101,14 @@ export default function FormPengajuan({ jenisLayanan }) {
   const [lookupState, lookupAction] = useFormState(cariWargaUntukLayanan, {});
   const [submitState, submitAction] = useFormState(ajukanLayanan, {});
 
-  function handleLookupResult() {
-    if (lookupState?.found) {
+  // Simpan NIK yang dicoba begitu lookup berhasil — WAJIB di useEffect,
+  // bukan dipanggil langsung saat render (itu penyebab bug "client-side
+  // exception": setState saat render memicu render berulang tanpa henti).
+  useEffect(() => {
+    if (lookupState?.found && tahap === "lookup") {
       setNikDicoba(lookupState.nikDicoba);
     }
-  }
-  // Jalankan sekali tiap kali lookupState berubah dan ditemukan.
-  if (lookupState?.found && tahap === "lookup") {
-    handleLookupResult();
-  }
+  }, [lookupState, tahap]);
 
   function ubahFieldTambahan(key, value) {
     setDataTambahan((prev) => ({ ...prev, [key]: value }));
