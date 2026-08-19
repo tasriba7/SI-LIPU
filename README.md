@@ -19,11 +19,32 @@ Fase 1 (autentikasi perangkat desa) — selesai:
 - Tabel `profiles` + RLS + trigger otomatis di Supabase (`supabase/migrations/0001_init_profiles.sql` lalu `0002_perangkat_desa_roles.sql`)
 - Akun perangkat desa dibuat **manual** oleh superadmin lewat Supabase Dashboard, bukan lewat form pendaftaran
 
-Fase 2, Modul 1 (Pengajuan Surat Online) — selesai:
-- `/layanan/surat` — form publik ajukan surat (domisili, SKTM, dll.), **tanpa login**, hasilnya kode tracking unik (mis. `SRT-AB12CD`)
+Fase 2, Modul 1 (Pengajuan Surat Online — versi awal) — selesai, tapi lihat catatan di bawah:
+- `/layanan/surat` — form publik ajukan surat (domisili, SKTM, dll.), **tanpa login**, hasilnya kode tracking unik (mis. `SRT-AB12CD`). **Halaman ini TETAP dipertahankan untuk kompatibilitas**, tapi BUKAN lagi jalur utama — lihat Modul 2-4 di bawah.
 - `/layanan/surat/cek` — warga cek status pakai kode tracking lewat RPC terbatas (tidak expose NIK/data pribadi lain ke publik)
 - `/dashboard/surat` — panel admin: daftar pengajuan + filter status, klik kode untuk lihat detail & ubah status/catatan
 - Tabel `pengajuan_surat` + RLS (warga cuma bisa insert, staf login yang bisa lihat & update) + RPC `cek_status_pengajuan_surat` (`supabase/migrations/0003_pengajuan_surat.sql`)
+
+Fase 2, Modul 2 (Data Kependudukan) — selesai:
+- Tabel `warga` — master data kependudukan, hanya bisa diakses staf yang login (RLS)
+- `/dashboard/kependudukan` — daftar & pencarian warga; `/dashboard/kependudukan/baru` — tambah data
+- RPC `cari_warga_publik` — lookup **dua faktor (NIK + Tanggal Lahir)** untuk warga publik, TANPA autocomplete, hasil terbatas (nama, dusun, RT/RW saja), dengan rate limiting (`hitung_percobaan_gagal`) dan log audit (`log_pencarian_warga`). Aturan lengkap: `docs/SECURITY.md`.
+- Migrasi: `supabase/migrations/0004_kependudukan.sql`
+
+Fase 2, Modul 3 (Form Builder — "Ajukan Layanan" generik) — selesai:
+- `/dashboard/jenis-layanan` — admin lihat & aktifkan/nonaktifkan jenis layanan; `/dashboard/jenis-layanan/baru` — admin **susun jenis layanan baru sendiri**: nama, kategori, ikon, prefix kode tracking, dan field tambahan dinamis (teks/angka/tanggal/pilihan, wajib/opsional) — **tanpa perlu developer atau deploy ulang**
+- `/layanan` — warga lihat grid semua jenis layanan aktif; `/layanan/ajukan/[id]` — form dinamis (lookup NIK+Tanggal Lahir dulu kalau diaktifkan, lalu field sesuai jenis layanan)
+- `/layanan/cek` — cek status, kompatibel dengan kode tracking dari sistem lama maupun baru
+- `/dashboard/layanan` — inbox admin generik untuk semua jenis layanan
+- Tabel `jenis_layanan_master` + `pengajuan_layanan` + RPC `cek_status_pengajuan_layanan`, sudah diisi data awal (jenis surat yang ada + Pengaduan Warga). Migrasi: `supabase/migrations/0005_form_builder_layanan.sql`
+
+Fase 1c (Sistem Slot Kadus & Ketua RT) — selesai:
+- `/dashboard/posisi` — admin daftarkan wilayah (dusun/RT-RW) sebagai slot kosong
+- `/pendaftaran` — calon Kadus/Ketua RT daftar mandiri, memilih wilayahnya; **otomatis ditolak lewat trigger database** kalau slot itu sudah terisi
+- `/dashboard/pendaftaran` — admin approve (otomatis buat akun Supabase Auth + kunci slot) atau tolak
+- Hanya admin yang bisa "Kosongkan Slot" (di `/dashboard/posisi`) untuk membuka slot itu lagi
+- Migrasi: `supabase/migrations/0006_posisi_dan_pendaftaran.sql`
+- **Kepala Desa/Sekretaris Desa/Kaur/Kasi TETAP dibuat manual oleh admin** lewat Supabase Dashboard (tidak berubah)
 
 ---
 
@@ -60,13 +81,25 @@ Cek koneksi Supabase: buka `http://localhost:3000/api/health` — harus muncul `
 
 5. Aktifkan **Row Level Security (RLS)** di setiap tabel yang dibuat nanti (Table Editor → pilih tabel → Enable RLS), lalu buat policy sesuai kebutuhan.
 
-6. Jalankan migrasi Fase 1, **urut sesuai nomor file**: buka **SQL Editor** di Supabase Dashboard → New query → copy-paste isi `supabase/migrations/0001_init_profiles.sql` → **Run**. Lalu New query lagi → copy-paste isi `supabase/migrations/0002_perangkat_desa_roles.sql` → **Run**. Migrasi kedua memperluas role jadi struktur perangkat desa (Kepala Desa, Sekretaris Desa, Kaur, Kasi, Kadus).
+6. Jalankan migrasi **urut sesuai nomor file** di **SQL Editor** Supabase Dashboard (New query → paste isi file → Run, satu per satu):
+   - `0001_init_profiles.sql`
+   - `0002_perangkat_desa_roles.sql` — memperluas role jadi struktur perangkat desa
+   - `0003_pengajuan_surat.sql` — modul surat versi awal (tetap dipertahankan untuk kompatibilitas)
+   - `0004_kependudukan.sql` — tabel warga + lookup aman NIK+Tanggal Lahir
+   - `0005_form_builder_layanan.sql` — Form Builder (`jenis_layanan_master` + `pengajuan_layanan`)
+   - `0006_posisi_dan_pendaftaran.sql` — sistem slot Kadus/Ketua RT
+
+   ⚠️ Migrasi 0004-0006 BARU (belum pernah dijalankan kalau project Supabase Anda baru
+   pertama kali setup dari repo ini). Kalau Anda sudah pernah menjalankan 0001-0003
+   sebelumnya, tinggal lanjutkan dari 0004.
 
 7. Buat akun perangkat desa: **Authentication → Users → Add user** → isi email & password → di kolom **User Metadata** (format JSON) isi misalnya:
    ```json
    { "nama": "Budi Santoso", "role": "kaur", "jabatan": "Kaur Keuangan" }
    ```
-   Role yang valid: `kepala_desa`, `sekretaris_desa`, `kaur`, `kasi`, `kadus`. Untuk Kadus, tambahkan juga `"dusun": "Dusun 1"`. Centang **"Auto Confirm User"**, lalu baris profil otomatis terbuat sesuai metadata tadi. Kalau lupa isi metadata, role default jadi `kasi` — bisa diedit belakangan lewat Table Editor → `profiles`.
+   Role yang valid: `kepala_desa`, `sekretaris_desa`, `kaur`, `kasi`, `kadus`, `ketua_rt`. Untuk Kadus, tambahkan juga `"dusun": "Dusun 1"`. Centang **"Auto Confirm User"**, lalu baris profil otomatis terbuat sesuai metadata tadi. Kalau lupa isi metadata, role default jadi `kasi` — bisa diedit belakangan lewat Table Editor → `profiles`.
+
+   > Khusus **Kadus & Ketua RT**, cara di atas cuma untuk akun pertama/darurat. Alur normalnya: admin isi wilayah kosong di `/dashboard/posisi`, lalu calon Kadus/RT daftar mandiri di `/pendaftaran`, admin tinggal approve di `/dashboard/pendaftaran` — akun otomatis terbuat, tidak perlu ke Supabase Dashboard.
 
 ---
 
