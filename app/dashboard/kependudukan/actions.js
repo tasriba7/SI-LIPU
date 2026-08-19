@@ -14,6 +14,7 @@ export async function tambahWarga(prevState, formData) {
   const dusun = formData.get("dusun")?.trim() || null;
   const rt = formData.get("rt")?.trim() || null;
   const rw = formData.get("rw")?.trim() || null;
+  const no_hp = formData.get("no_hp")?.trim() || null;
   const status_kawin = formData.get("status_kawin") || null;
   const pekerjaan = formData.get("pekerjaan")?.trim() || null;
   const agama = formData.get("agama") || null;
@@ -37,6 +38,7 @@ export async function tambahWarga(prevState, formData) {
     dusun,
     rt,
     rw,
+    no_hp,
     status_kawin,
     pekerjaan,
     agama,

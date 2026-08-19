@@ -9,7 +9,7 @@ export default async function KependudukanPage({ searchParams }) {
 
   let query = supabase
     .from("warga")
-    .select("id, nik, nama_lengkap, dusun, rt, rw, tanggal_lahir")
+    .select("id, nik, nama_lengkap, dusun, rt, rw, tanggal_lahir, no_hp")
     .order("nama_lengkap")
     .limit(50);
 
@@ -62,6 +62,7 @@ export default async function KependudukanPage({ searchParams }) {
               <th className="px-4 py-3 font-medium">Nama</th>
               <th className="px-4 py-3 font-medium">Dusun / RT-RW</th>
               <th className="px-4 py-3 font-medium">Tanggal Lahir</th>
+              <th className="px-4 py-3 font-medium">No. HP</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
@@ -77,11 +78,12 @@ export default async function KependudukanPage({ searchParams }) {
                     ? new Date(w.tanggal_lahir).toLocaleDateString("id-ID")
                     : "-"}
                 </td>
+                <td className="px-4 py-3 text-slate-500">{w.no_hp || "-"}</td>
               </tr>
             ))}
             {(daftar ?? []).length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-10 text-center text-slate-400">
+                <td colSpan={5} className="px-4 py-10 text-center text-slate-400">
                   {cari ? `Tidak ada hasil untuk "${cari}".` : "Belum ada data warga."}
                 </td>
               </tr>
