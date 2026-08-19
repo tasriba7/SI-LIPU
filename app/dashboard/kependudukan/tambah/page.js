@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -22,9 +23,11 @@ export default function TambahWargaPage() {
   const router = useRouter();
   const [state, formAction] = useFormState(tambahWarga, {});
 
-  if (state?.success) {
-    router.push("/dashboard/kependudukan");
-  }
+  useEffect(() => {
+    if (state?.success) {
+      router.push("/dashboard/kependudukan");
+    }
+  }, [state, router]);
 
   return (
     <div className="max-w-2xl space-y-6">
