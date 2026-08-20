@@ -12,6 +12,8 @@ import {
   IconArrowRight,
 } from "@/components/icons";
 import { getStatistikBeranda, getStatistikBerandaDetail } from "@/lib/statistikBeranda";
+import { getConfigDesa, labelWilayah } from "@/lib/configDesa";
+import { createClient } from "@/lib/supabase/server";
 
 const LAYANAN = [
   {
@@ -68,33 +70,70 @@ const JAMINAN = [
 ];
 
 export default async function HomePage() {
-  const [stats, statsDetail] = await Promise.all([
+  const supabase = await createClient();
+  const [stats, statsDetail, config] = await Promise.all([
     getStatistikBeranda(),
     getStatistikBerandaDetail(),
+    getConfigDesa(supabase),
   ]);
+
+  const wilayah = labelWilayah(config);
 
   return (
     <main className="bg-white">
       <PublicHeader />
 
-      {/* Hero */}
+      {/* Hero — identitas desa. Kalau admin sudah unggah foto lewat
+          /dashboard/pengaturan-desa, foto itu jadi latar; kalau belum, tetap
+          pakai warna navy polos supaya teks tetap kebaca. */}
       <section className="relative overflow-hidden bg-navy-dark">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 py-16 md:grid-cols-[1.1fr_0.9fr] md:py-24">
-          <div className="animate-fadeUp">
+        {config.foto_url && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={config.foto_url}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
+        {/* Lapisan gelap di atas foto supaya teks & tombol tetap kontras/kebaca */}
+        <div className="absolute inset-0 bg-gradient-to-b from-navy-dark/85 via-navy-dark/80 to-navy-dark" />
+
+        <div className="relative mx-auto max-w-6xl px-6 pt-16 text-center md:pt-24">
+          <p className="font-mono text-xs uppercase tracking-[0.25em] text-gold">
+            {config.jenis_wilayah || "Desa"}
+            {wilayah ? ` · ${wilayah}` : ""}
+          </p>
+          <h1 className="mx-auto mt-3 max-w-3xl font-display text-4xl font-bold leading-[1.1] text-white sm:text-6xl">
+            {config.nama_desa || "Portal Layanan Digital Desa"}
+          </h1>
+          {wilayah && (
+            <p className="mt-3 text-sm text-white/70 sm:text-base">{wilayah}</p>
+          )}
+          {config.alamat && (
+            <p className="mt-1 text-xs text-white/50">{config.alamat}</p>
+          )}
+
+          <div className="mx-auto mt-6 w-24 text-gold-light/70">
+            <VillageSeal className="aspect-square" />
+          </div>
+        </div>
+
+        <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 pb-16 pt-10 md:py-16">
+          <div className="animate-fadeUp text-center">
             <p className="font-mono text-xs uppercase tracking-[0.25em] text-gold">
               Portal Layanan Digital Desa
             </p>
-            <h1 className="mt-5 font-display text-4xl font-semibold leading-[1.1] text-white sm:text-5xl">
+            <h2 className="mx-auto mt-5 max-w-2xl font-display text-2xl font-semibold leading-[1.2] text-white sm:text-3xl">
               Satu kali isi form,{" "}
               <em className="italic text-gold-light">tanpa</em> bolak-balik
               kantor desa.
-            </h1>
-            <p className="mt-5 max-w-lg text-base leading-relaxed text-white/70">
+            </h2>
+            <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-white/70">
               SI-LIPU mengurus surat, pengaduan, dan informasi desa langsung
               dari ponsel Anda — tanpa akun, tanpa antre di loket.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/layanan"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-gold px-6 py-3 text-sm font-semibold text-navy-dark transition hover:bg-gold-light"
@@ -110,10 +149,6 @@ export default async function HomePage() {
               </Link>
             </div>
           </div>
-
-          <div className="mx-auto w-56 text-gold-light/80 sm:w-64 md:w-full md:max-w-xs">
-            <VillageSeal className="aspect-square" />
-          </div>
         </div>
 
         {/* Statistik desa singkat — arahkan kursor ke kartu untuk efek zoom */}
@@ -122,7 +157,7 @@ export default async function HomePage() {
         </div>
 
         {/* Garis emas tipis penutup hero, kesan "kop surat" */}
-        <div className="h-1 w-full bg-gradient-to-r from-gold via-gold-light to-gold" />
+        <div className="relative h-1 w-full bg-gradient-to-r from-gold via-gold-light to-gold" />
       </section>
 
       {/* Layanan */}
