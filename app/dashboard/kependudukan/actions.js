@@ -114,3 +114,27 @@ export async function editWarga(prevState, formData) {
   revalidatePath(`/dashboard/kependudukan/${id}/edit`);
   return { success: true };
 }
+
+export async function hapusWarga(prevState, formData) {
+  const id = formData.get("id");
+
+  if (!id) {
+    return { error: "Data warga tidak ditemukan." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("warga").delete().eq("id", id);
+
+  if (error) {
+    if (error.code === "23503") {
+      return {
+        error:
+          "Data warga ini masih terkait dengan data lain (mis. pengajuan surat) dan tidak bisa dihapus.",
+      };
+    }
+    return { error: "Gagal menghapus data warga. Coba lagi." };
+  }
+
+  revalidatePath("/dashboard/kependudukan");
+  return { success: true };
+}
