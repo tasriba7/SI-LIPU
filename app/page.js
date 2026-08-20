@@ -2,13 +2,38 @@ import Image from "next/image";
 import Link from "next/link";
 import VillageSeal from "@/components/VillageSeal";
 import PublicHeader from "@/components/PublicHeader";
+import StatBerandaCards from "@/components/StatBerandaCards";
 import {
   IconMail,
   IconMegaphone,
   IconUsers,
   IconCheck,
   IconArrowRight,
+  IconIdCard,
+  IconClipboardCheck,
 } from "@/components/icons";
+import { getStatistikBeranda } from "@/lib/statistikBeranda";
+
+const STAT_CARDS = [
+  {
+    key: "totalPenduduk",
+    label: "Jumlah Penduduk",
+    icon: IconUsers,
+    accent: "from-seablue via-gold to-seablue",
+  },
+  {
+    key: "totalKepalaKeluarga",
+    label: "Jumlah Kepala Keluarga",
+    icon: IconIdCard,
+    accent: "from-gold via-gold-light to-gold",
+  },
+  {
+    key: "totalAjuanDiproses",
+    label: "Ajuan Sudah Diproses",
+    icon: IconClipboardCheck,
+    accent: "from-emerald-400 via-gold to-emerald-400",
+  },
+];
 
 const LAYANAN = [
   {
@@ -64,7 +89,9 @@ const JAMINAN = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const stats = await getStatistikBeranda();
+
   return (
     <main className="bg-white">
       <PublicHeader />
@@ -106,6 +133,11 @@ export default function HomePage() {
           <div className="mx-auto w-56 text-gold-light/80 sm:w-64 md:w-full md:max-w-xs">
             <VillageSeal className="aspect-square" />
           </div>
+        </div>
+
+        {/* Statistik desa singkat — arahkan kursor ke kartu untuk efek zoom */}
+        <div className="relative mx-auto max-w-6xl px-6 pb-14 md:pb-20">
+          <StatBerandaCards stats={stats} cards={STAT_CARDS} />
         </div>
 
         {/* Garis emas tipis penutup hero, kesan "kop surat" */}
