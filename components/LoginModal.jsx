@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useActionState } from "react";
+import { useEffect, useState, useActionState } from "react";
+import { createPortal } from "react-dom";
 import { useFormStatus } from "react-dom";
 import { login } from "@/app/login/actions";
 import { IconClose } from "@/components/icons";
@@ -29,6 +30,12 @@ function TombolLogin() {
 export default function LoginModal({ open, onClose }) {
   const [state, formAction] = useActionState(login, {});
 
+  // Portal butuh `document`, yang cuma ada di browser (bukan saat SSR).
+  // `mounted` memastikan createPortal baru dipanggil setelah komponen
+  // benar-benar hidup di client, supaya tidak mismatch dengan render server.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     if (!open) return;
 
@@ -46,9 +53,15 @@ export default function LoginModal({ open, onClose }) {
     };
   }, [open, onClose]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  // Di-render lewat portal langsung ke document.body — bukan di tempat
+  // LoginModal dipanggil (yaitu di dalam <header> yang punya backdrop-blur).
+  // Kalau tidak di-portal, `position: fixed` di bawah ini jadi relatif ke
+  // header (bukan ke seluruh viewport), karena elemen dengan backdrop-filter
+  // di CSS modern membuat "containing block" baru untuk descendant fixed —
+  // itu sebabnya popup sebelumnya muncul kepepet kecil di pojok atas.
+  return createPortal(
     // Overlay: scrollable sendiri (overflow-y-auto) supaya kalau tinggi
     // modal + posisi keyboard (di HP) melebihi tinggi layar yang terlihat,
     // kontennya tetap bisa dijangkau lewat scroll — bukan terpotong/hilang
@@ -123,6 +136,7 @@ export default function LoginModal({ open, onClose }) {
           </form>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
