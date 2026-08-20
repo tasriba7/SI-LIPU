@@ -1,6 +1,32 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { IconUsers, IconIdCard, IconClipboardCheck } from "@/components/icons";
+
+// Konfigurasi kartu didefinisikan DI SINI (bukan di page.js) karena
+// referensi komponen ikon (fungsi) tidak boleh dioper dari Server
+// Component ke Client Component lewat props — hanya data serializable
+// (angka, string, dll) yang boleh lewat.
+const STAT_CARDS = [
+  {
+    key: "totalPenduduk",
+    label: "Jumlah Penduduk",
+    icon: IconUsers,
+    accent: "from-seablue via-gold to-seablue",
+  },
+  {
+    key: "totalKepalaKeluarga",
+    label: "Jumlah Kepala Keluarga",
+    icon: IconIdCard,
+    accent: "from-gold via-gold-light to-gold",
+  },
+  {
+    key: "totalAjuanDiproses",
+    label: "Ajuan Sudah Diproses",
+    icon: IconClipboardCheck,
+    accent: "from-emerald-400 via-gold to-emerald-400",
+  },
+];
 
 // Satu kartu statistik: nomor animasi count-up + efek "tilt & spotlight"
 // yang mengikuti posisi kursor, jadi terasa hidup saat kursor diarahkan
@@ -97,10 +123,10 @@ function StatCard({ icon: Icon, label, value, suffix = "", accent }) {
   );
 }
 
-export default function StatBerandaCards({ stats, cards }) {
+export default function StatBerandaCards({ stats }) {
   return (
     <div className="grid gap-5 sm:grid-cols-3">
-      {cards.map((c) => (
+      {STAT_CARDS.map((c) => (
         <StatCard key={c.key} {...c} value={stats[c.key]} />
       ))}
     </div>
