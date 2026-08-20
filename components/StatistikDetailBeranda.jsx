@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import {
   IconBook,
   IconHeartHandshake,
@@ -6,15 +9,58 @@ import {
   IconBriefcase,
 } from "@/components/icons";
 
-// Satu blok tabel rincian: judul + ikon di atas, baris label-bar-jumlah di
-// bawah. Persentase dihitung relatif terhadap total baris di tabel itu
-// sendiri (bukan total penduduk desa), supaya tetap akurat walau ada
-// data warga yang belum lengkap (masuk kelompok "Belum Diisi").
-function TabelKelompok({ icon: Icon, title, subtitle, data }) {
+// Satu baris diagram batang horizontal: label di atas, batang warna di
+// bawah yang panjangnya proporsional terhadap total kategori. Batang
+// "tumbuh" dari 0% ke nilai asli sesaat setelah kartu dimuat (lewat prop
+// `animate`) supaya terasa hidup tanpa jadi ramai.
+function BarisBatang({ label, jumlah, persen, warna, animate }) {
+  const lebar = animate ? Math.max(persen, jumlah > 0 ? 2 : 0) : 0;
+
+  return (
+    <div>
+      <div className="mb-1.5 flex items-baseline justify-between gap-3">
+        <span className="truncate text-sm text-slate-600" title={label}>
+          {label}
+        </span>
+        <span className="shrink-0 whitespace-nowrap">
+          <span className="text-sm font-semibold tabular-nums text-slate-800">
+            {jumlah.toLocaleString("id-ID")}
+          </span>
+          <span className="ml-1.5 text-xs font-medium tabular-nums text-slate-400">
+            {persen.toFixed(0)}%
+          </span>
+        </span>
+      </div>
+      <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-100">
+        <div
+          className={`h-full rounded-full bg-gradient-to-r ${warna} transition-[width] duration-700 ease-out`}
+          style={{ width: `${lebar}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Satu kartu diagram: judul + ikon di atas, daftar BarisBatang di bawah.
+// Persentase dihitung relatif terhadap total baris di kartu itu sendiri
+// (bukan total penduduk desa), supaya tetap akurat walau ada data warga
+// yang belum lengkap (masuk kelompok "Belum Diisi").
+//
+// `warna` = gradient default untuk semua baris di kartu ini.
+// `warnaPerBaris(label)` = opsional, override warna per baris (dipakai di
+// kartu Jenis Kelamin supaya Laki-laki & Perempuan punya warna kontras).
+function TabelKelompok({ icon: Icon, title, subtitle, data, warna, warnaPerBaris }) {
+  const [animate, setAnimate] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setAnimate(true), 100);
+    return () => clearTimeout(t);
+  }, []);
+
   const total = data.reduce((sum, row) => sum + row.jumlah, 0);
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-6">
+    <div className="rounded-2xl border border-slate-200 bg-white p-6 transition hover:border-gold/40 hover:shadow-sm">
       <div className="flex items-center gap-3">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-navy/5 text-navy">
           <Icon className="h-5 w-5" />
@@ -27,41 +73,38 @@ function TabelKelompok({ icon: Icon, title, subtitle, data }) {
         </div>
       </div>
 
-      <div className="mt-5">
+      <div className="mt-6 space-y-4">
         {data.length === 0 ? (
           <p className="py-6 text-center text-sm text-slate-400">
             Data belum tersedia.
           </p>
         ) : (
-          <table className="w-full text-sm">
-            <tbody className="divide-y divide-slate-50">
-              {data.map((row) => {
-                const persen = total > 0 ? (row.jumlah / total) * 100 : 0;
-                return (
-                  <tr key={row.label}>
-                    <td className="py-2 pr-3 align-middle text-slate-600">
-                      {row.label}
-                    </td>
-                    <td className="w-1/3 py-2 pr-3 align-middle">
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                        <div
-                          className="h-full rounded-full bg-gold"
-                          style={{ width: `${Math.max(persen, row.jumlah > 0 ? 3 : 0)}%` }}
-                        />
-                      </div>
-                    </td>
-                    <td className="whitespace-nowrap py-2 text-right font-medium tabular-nums text-slate-800">
-                      {row.jumlah.toLocaleString("id-ID")}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          data.map((row) => {
+            const persen = total > 0 ? (row.jumlah / total) * 100 : 0;
+            return (
+              <BarisBatang
+                key={row.label}
+                label={row.label}
+                jumlah={row.jumlah}
+                persen={persen}
+                animate={animate}
+                warna={warnaPerBaris ? warnaPerBaris(row.label) : warna}
+              />
+            );
+          })
         )}
       </div>
     </div>
   );
+}
+
+// Warna khusus per jenis kelamin supaya perbandingan Laki-laki/Perempuan
+// langsung kebaca sekilas — navy untuk Laki-laki, emas untuk Perempuan,
+// abu-abu netral untuk data yang belum diisi.
+function warnaJenisKelamin(label) {
+  if (label === "Laki-laki") return "from-navy to-navy-light";
+  if (label === "Perempuan") return "from-gold to-gold-light";
+  return "from-slate-400 to-slate-300";
 }
 
 export default function StatistikDetailBeranda({ detail }) {
@@ -101,32 +144,37 @@ export default function StatistikDetailBeranda({ detail }) {
           <TabelKelompok
             icon={IconGenderBalance}
             title="Jenis Kelamin"
-            subtitle="Jumlah penduduk laki-laki dan perempuan"
+            subtitle="Perbandingan penduduk laki-laki dan perempuan"
             data={perJenisKelamin}
+            warnaPerBaris={warnaJenisKelamin}
           />
           <TabelKelompok
             icon={IconHeartHandshake}
             title="Status Pernikahan"
             subtitle="Kawin, belum kawin, cerai hidup, cerai mati"
             data={perStatusKawin}
+            warna="from-gold to-gold-light"
           />
           <TabelKelompok
             icon={IconBook}
             title="Agama"
             subtitle="Jumlah penduduk berdasarkan agama"
             data={perAgama}
+            warna="from-navy to-navy-light"
           />
           <TabelKelompok
             icon={IconCalendarRange}
             title="Rentang Usia"
             subtitle="Kelompok umur penduduk"
             data={perRentangUsia}
+            warna="from-seablue to-navy"
           />
           <TabelKelompok
             icon={IconBriefcase}
             title="Pekerjaan"
             subtitle="8 pekerjaan terbanyak, sisanya digabung di 'Lainnya'"
             data={perPekerjaan}
+            warna="from-navy to-seablue"
           />
         </div>
       </div>
