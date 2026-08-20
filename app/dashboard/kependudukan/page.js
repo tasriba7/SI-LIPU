@@ -31,13 +31,16 @@ export default async function KependudukanPage({ searchParams }) {
             auto-isi data lewat NIK + Tanggal Lahir.
           </p>
         </div>
-        <Link
-          href="/dashboard/kependudukan/tambah"
-          className="flex items-center gap-1.5 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-light"
-        >
-          <IconPlus className="h-4 w-4" />
-          Tambah Warga
-        </Link>
+        <div className="flex items-center gap-2">
+          <ImportWargaButton />
+          <Link
+            href="/dashboard/kependudukan/tambah"
+            className="flex items-center gap-1.5 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-light"
+          >
+            <IconPlus className="h-4 w-4" />
+            Tambah Warga
+          </Link>
+        </div>
       </div>
 
       <form className="flex gap-2">
@@ -121,11 +124,10 @@ export default async function KependudukanPage({ searchParams }) {
           </tbody>
         </table>
       </div>
-
       <p className="text-xs text-slate-400">
         Menampilkan maksimal 50 hasil. Gunakan pencarian untuk mempersempit.
-        Import massal dari Excel belum tersedia — lihat catatan di
-        docs/ROADMAP.md.
+        Untuk menambah banyak data sekaligus, gunakan tombol "Impor Data
+        Penduduk" di atas.
       </p>
     </div>
   );
