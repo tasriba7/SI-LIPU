@@ -128,6 +128,27 @@ export default function TambahWargaPage() {
         </div>
 
         <div>
+          <label className="mb-1 block text-sm text-slate-600">Status dalam Kartu Keluarga</label>
+          <select
+            name="status_dalam_kk"
+            defaultValue=""
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy"
+          >
+            <option value="" disabled>
+              Pilih
+            </option>
+            <option value="Kepala Keluarga">Kepala Keluarga</option>
+            <option value="Istri">Istri</option>
+            <option value="Anak">Anak</option>
+            <option value="Famili Lain">Famili Lain</option>
+            <option value="Lainnya">Lainnya</option>
+          </select>
+          <p className="mt-1 text-xs text-slate-400">
+            Dipakai untuk hitung jumlah kepala keluarga di kartu statistik beranda.
+          </p>
+        </div>
+
+        <div>
           <label className="mb-1 block text-sm text-slate-600">Alamat</label>
           <textarea
             name="alamat"
