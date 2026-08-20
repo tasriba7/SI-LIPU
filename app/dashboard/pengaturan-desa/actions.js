@@ -15,6 +15,8 @@ export async function simpanPengaturanDesa(prevState, formData) {
   const alamat = formData.get("alamat")?.toString().trim();
   const foto = formData.get("foto");
   const hapusFoto = formData.get("hapus_foto") === "1";
+  const logo = formData.get("logo");
+  const hapusLogo = formData.get("hapus_logo") === "1";
 
   if (!nama_desa) {
     return { error: "Nama desa/kelurahan wajib diisi." };
@@ -66,6 +68,39 @@ export async function simpanPengaturanDesa(prevState, formData) {
     dataUpdate.foto_url = publicUrlData.publicUrl;
   } else if (hapusFoto) {
     dataUpdate.foto_url = null;
+  }
+
+  // Logo desa — dipakai di header publik & lambang beranda, terpisah dari
+  // foto latar di atas. Pola upload sama persis, cuma prefix nama file beda.
+  if (logo && typeof logo === "object" && logo.size > 0) {
+    const ekstensi = (logo.name?.split(".").pop() || "").toLowerCase();
+
+    if (!EKSTENSI_DIIZINKAN.includes(ekstensi)) {
+      return { error: "Format logo harus JPG, PNG, atau WEBP." };
+    }
+    if (logo.size > UKURAN_MAKS_MB * 1024 * 1024) {
+      return { error: `Ukuran logo maksimal ${UKURAN_MAKS_MB}MB.` };
+    }
+
+    const namaFile = `logo-${Date.now()}.${ekstensi}`;
+    const { error: errorUpload } = await supabase.storage
+      .from("desa-media")
+      .upload(namaFile, logo, {
+        upsert: true,
+        contentType: logo.type || undefined,
+      });
+
+    if (errorUpload) {
+      return { error: "Gagal mengunggah logo: " + errorUpload.message };
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("desa-media")
+      .getPublicUrl(namaFile);
+
+    dataUpdate.logo_url = publicUrlData.publicUrl;
+  } else if (hapusLogo) {
+    dataUpdate.logo_url = null;
   }
 
   const { error } = await supabase
