@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { editWarga } from "../../actions";
+import { PEKERJAAN_OPTIONS } from "@/lib/pekerjaanOptions";
 
 function TombolSimpan() {
   const { pending } = useFormStatus();
@@ -22,6 +23,16 @@ function TombolSimpan() {
 export default function EditWargaForm({ warga }) {
   const router = useRouter();
   const [state, formAction] = useActionState(editWarga, {});
+
+  // Data lama mungkin masih berupa teks bebas (sebelum kolom ini jadi
+  // dropdown) — kalau nilainya tidak ada di daftar standar, tetap
+  // tampilkan sebagai opsi tambahan supaya data lama tidak hilang/kosong
+  // saat form dibuka.
+  const pekerjaanTersimpan = warga.pekerjaan || "";
+  const pekerjaanOpsiLengkap =
+    pekerjaanTersimpan && !PEKERJAAN_OPTIONS.includes(pekerjaanTersimpan)
+      ? [pekerjaanTersimpan, ...PEKERJAAN_OPTIONS]
+      : PEKERJAAN_OPTIONS;
 
   useEffect(() => {
     if (state?.success) {
@@ -203,12 +214,20 @@ export default function EditWargaForm({ warga }) {
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="mb-1 block text-sm text-slate-600">Pekerjaan</label>
-          <input
-            type="text"
+          <select
             name="pekerjaan"
-            defaultValue={warga.pekerjaan || ""}
+            defaultValue={pekerjaanTersimpan}
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy"
-          />
+          >
+            <option value="" disabled>
+              Pilih
+            </option>
+            {pekerjaanOpsiLengkap.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="mb-1 block text-sm text-slate-600">Agama</label>
