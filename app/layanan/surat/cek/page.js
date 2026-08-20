@@ -4,6 +4,7 @@ import { useFormState, useFormStatus } from "react-dom";
 import Link from "next/link";
 import { cekStatusSurat } from "./actions";
 import { STATUS_LABELS, STATUS_BADGE_CLASS } from "@/lib/statusSurat";
+import PublicHeader from "@/components/PublicHeader";
 
 function TombolCek() {
   const { pending } = useFormStatus();
@@ -22,7 +23,9 @@ export default function CekStatusSuratPage() {
   const [state, formAction] = useFormState(cekStatusSurat, {});
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <main className="min-h-screen bg-slate-50">
+      <PublicHeader />
+      <div className="flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm">
         <h1 className="text-center text-xl font-bold text-navy">
           Cek Status Pengajuan Surat
@@ -87,6 +90,7 @@ export default function CekStatusSuratPage() {
         >
           Kembali ke beranda
         </Link>
+      </div>
       </div>
     </main>
   );
