@@ -119,6 +119,107 @@ export async function editWarga(prevState, formData) {
   return { success: true };
 }
 
+const KOLOM_WAJIB = ["nik", "nama_lengkap", "tanggal_lahir"];
+
+function bersihkanBarisImport(raw, nomorBaris) {
+  const ambil = (k) => {
+    const v = raw?.[k];
+    if (v === undefined || v === null) return null;
+    const s = String(v).trim();
+    return s === "" ? null : s;
+  };
+
+  const baris = {
+    nik: ambil("nik"),
+    no_kk: ambil("no_kk"),
+    nama_lengkap: ambil("nama_lengkap"),
+    tempat_lahir: ambil("tempat_lahir"),
+    tanggal_lahir: ambil("tanggal_lahir"),
+    jenis_kelamin: ambil("jenis_kelamin"),
+    status_kawin: ambil("status_kawin"),
+    status_dalam_kk: ambil("status_dalam_kk"),
+    alamat: ambil("alamat"),
+    dusun: ambil("dusun"),
+    rt: ambil("rt"),
+    rw: ambil("rw"),
+    no_hp: ambil("no_hp"),
+    pekerjaan: ambil("pekerjaan"),
+    agama: ambil("agama"),
+  };
+
+  for (const kolom of KOLOM_WAJIB) {
+    if (!baris[kolom]) {
+      return { error: `Baris ${nomorBaris}: kolom "${kolom}" wajib diisi.` };
+    }
+  }
+  if (!/^\d{16}$/.test(baris.nik)) {
+    return { error: `Baris ${nomorBaris}: NIK "${baris.nik}" harus 16 digit angka.` };
+  }
+  if (Number.isNaN(Date.parse(baris.tanggal_lahir))) {
+    return { error: `Baris ${nomorBaris}: tanggal lahir "${baris.tanggal_lahir}" tidak valid.` };
+  }
+  if (baris.jenis_kelamin && !["L", "P"].includes(baris.jenis_kelamin)) {
+    return { error: `Baris ${nomorBaris}: jenis kelamin harus "L" atau "P".` };
+  }
+
+  return { data: baris };
+}
+
+export async function importWarga(prevState, formData) {
+  let rows;
+  try {
+    rows = JSON.parse(formData.get("rows") || "[]");
+  } catch {
+    return { error: "Data impor tidak terbaca. Coba unggah ulang filenya." };
+  }
+
+  if (!Array.isArray(rows) || rows.length === 0) {
+    return { error: "Tidak ada baris data yang bisa diimpor dari file ini." };
+  }
+  if (rows.length > 500) {
+    return { error: "Maksimal 500 baris per proses impor. Bagi file jadi beberapa bagian." };
+  }
+
+  const supabase = await createClient();
+  const gagal = [];
+  let berhasil = 0;
+  const nikTerlihat = new Set();
+
+  for (let i = 0; i < rows.length; i++) {
+    const nomorBaris = i + 2; // baris 1 = header di file Excel
+    const hasilBersih = bersihkanBarisImport(rows[i], nomorBaris);
+    if (hasilBersih.error) {
+      gagal.push(hasilBersih.error);
+      continue;
+    }
+
+    const baris = hasilBersih.data;
+    if (nikTerlihat.has(baris.nik)) {
+      gagal.push(`Baris ${nomorBaris}: NIK "${baris.nik}" duplikat di dalam file yang diunggah.`);
+      continue;
+    }
+    nikTerlihat.add(baris.nik);
+
+    const { error } = await supabase.from("warga").insert(baris);
+    if (error) {
+      if (error.code === "23505") {
+        gagal.push(`Baris ${nomorBaris}: NIK "${baris.nik}" sudah terdaftar di data kependudukan.`);
+      } else {
+        gagal.push(`Baris ${nomorBaris}: gagal disimpan (${error.message}).`);
+      }
+      continue;
+    }
+    berhasil += 1;
+  }
+
+  revalidatePath("/dashboard/kependudukan");
+  return {
+    success: true,
+    ringkasan: { total: rows.length, berhasil, gagal: gagal.length },
+    daftarGagal: gagal,
+  };
+}
+
 export async function hapusWarga(prevState, formData) {
   const id = formData.get("id");
 
