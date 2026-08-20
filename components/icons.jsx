@@ -136,6 +136,16 @@ export function IconLayers(props) {
   );
 }
 
+export function IconClipboardCheck(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <rect x="5" y="4" width="14" height="17" rx="2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 4h6a1 1 0 011 1v1H8V5a1 1 0 011-1z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M9 13l2 2 4-4" />
+    </svg>
+  );
+}
+
 export function IconUserPlus(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
