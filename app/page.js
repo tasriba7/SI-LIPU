@@ -107,7 +107,9 @@ export default async function HomePage() {
             {wilayah ? ` · ${wilayah}` : ""}
           </p>
           <h1 className="mx-auto mt-3 max-w-3xl font-display text-4xl font-bold leading-[1.1] text-white sm:text-6xl">
-            {config.nama_desa || "Portal Layanan Digital Desa"}
+            {config.nama_desa
+              ? `${config.jenis_wilayah || "Desa"} ${config.nama_desa}`
+              : "Portal Layanan Digital Desa"}
           </h1>
           {wilayah && (
             <p className="mt-3 text-sm text-white/70 sm:text-base">{wilayah}</p>
@@ -116,7 +118,7 @@ export default async function HomePage() {
             <p className="mt-1 text-xs text-white/50">{config.alamat}</p>
           )}
 
-          <div className="mx-auto mt-6 w-24 text-gold-light/70">
+          <div className="mx-auto mt-6 w-40 text-gold-light/70 sm:w-48">
             <VillageSeal className="aspect-square" logoUrl={config.logo_url} />
           </div>
         </div>
