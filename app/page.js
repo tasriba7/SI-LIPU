@@ -114,7 +114,7 @@ export default async function HomePage() {
 
         {/* Statistik desa singkat — arahkan kursor ke kartu untuk efek zoom */}
         <div className="relative mx-auto max-w-6xl px-6 pb-14 md:pb-20">
-          <StatBerandaCards stats={stats} cards={STAT_CARDS} />
+          <StatBerandaCards stats={stats} />
         </div>
 
         {/* Garis emas tipis penutup hero, kesan "kop surat" */}
