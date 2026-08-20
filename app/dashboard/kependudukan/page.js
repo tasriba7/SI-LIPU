@@ -2,6 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { IconPlus } from "@/components/icons";
 import TombolHapusWarga from "./TombolHapusWarga";
+import ImportWargaButton from "./ImportWargaButton";
 
 export default async function KependudukanPage({ searchParams }) {
   const sp = await searchParams;
