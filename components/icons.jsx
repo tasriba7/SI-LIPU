@@ -117,6 +117,7 @@ export function IconTrash(props) {
     </svg>
   );
 }
+
 export function IconUpload(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
@@ -134,6 +135,26 @@ export function IconDownload(props) {
     </svg>
   );
 }
+
+export function IconSearch(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <circle cx="11" cy="11" r="7" />
+      <path strokeLinecap="round" d="M21 21l-4.3-4.3" />
+    </svg>
+  );
+}
+
+export function IconFileSpreadsheet(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M14 2v6h6" />
+      <path strokeLinecap="round" d="M8 13h8M8 17h8M8 13v4M12 13v4M16 13v4" />
+    </svg>
+  );
+}
+
 export function IconIdCard(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
