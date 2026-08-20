@@ -64,7 +64,11 @@ kecuali diminta pemilik proyek.
 - [ ] BUMDes
 - [ ] Bantuan sosial
 - [ ] Musrenbang
-- [ ] Profil desa publik (website depan)
+- [x] Profil desa publik (website depan) — **sebagian**: identitas dasar (nama, wilayah
+      administratif, alamat, foto latar beranda) sudah jalan lewat
+      `/dashboard/pengaturan-desa` + tabel `config_desa` (dikerjakan lebih awal dari jadwal
+      karena jadi identitas visual utama beranda, lihat `AI_HANDOFF.md`). Konten profil desa
+      yang lebih lengkap (sejarah, visi-misi, struktur organisasi, dll) belum dikerjakan.
 - (daftar ini akan berkembang — tambahkan sesuai kebutuhan desa)
 
 ---

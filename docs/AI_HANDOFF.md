@@ -61,8 +61,8 @@ aturan jika sistem ini direplikasi ke desa lain.
 ## 3. STATUS TERKINI
 > ⚠️ AI/developer yang mengerjakan WAJIB mengedit bagian ini setiap selesai kerja.
 
-**Terakhir diupdate:** 18 Agustus 2026 (setelah implementasi Kependudukan, Form Builder,
-dan sistem slot Kadus/Ketua RT)
+**Terakhir diupdate:** 20 Agustus 2026 (setelah implementasi Pengaturan Desa +
+identitas dinamis di beranda)
 **Fase sekarang:** Fase 0, 1, 1.5, dan 1c selesai. Fase 2 (Surat) berjalan lewat 2 jalur
 (lama & baru — lihat catatan migrasi di bawah).
 
@@ -86,6 +86,15 @@ dan sistem slot Kadus/Ketua RT)
       terisi, lewat trigger database), admin approve di `/dashboard/pendaftaran` (otomatis
       buat akun Supabase Auth + kunci slot). "Kosongkan Slot" hanya bisa admin.
 - [x] Kredit originator di footer halaman utama
+- [x] **Pengaturan Desa** (`/dashboard/pengaturan-desa`) — tabel singleton
+      `config_desa` (migration 0010), sesuai rencana "tabel konfigurasi"
+      di `docs/BRANDING.md`. Admin isi nama desa/kelurahan, status
+      Desa/Kelurahan, provinsi/kabupaten/kecamatan (dropdown bertingkat dari
+      API wilayah.id, dengan fallback isian manual), alamat kantor desa, dan
+      upload foto latar beranda (Supabase Storage bucket `desa-media`,
+      publik-baca/staf-tulis). Beranda publik (`app/page.js`) sekarang
+      menampilkan identitas ini secara dinamis (nama desa teks besar +
+      wilayah administratif + foto latar), bukan hardcode "Tatakalai".
 
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,
@@ -95,6 +104,11 @@ SENGAJA dibiarkan tetap ada** (bukan dihapus) supaya data lama & link yang sudah
 tetap jalan — tapi jalur BARU untuk warga adalah `/layanan` (generik, Form Builder).
 
 ### Belum dikerjakan / TODO berikutnya
+- [ ] Jalankan migrasi `0010_config_desa.sql` di Supabase project instance ini (belum
+      otomatis — lihat langkah di `supabase/migrations/`), lalu isi Pengaturan Desa pertama
+      kali lewat `/dashboard/pengaturan-desa` (baris `config_desa` default masih kosong).
+- [ ] Pertimbangkan batasi menu "Pengaturan Desa" hanya untuk role `kepala_desa`/
+      `sekretaris_desa` (saat ini semua staf yang login bisa ubah, sama seperti modul lain).
 - [ ] Migrasi data lama dari `pengajuan_surat` ke `pengajuan_layanan` (opsional, kalau admin
       mau riwayat surat lama tergabung di satu inbox)
 - [ ] Import data warga massal dari Excel (saat ini hanya input satu-satu)
