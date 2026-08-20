@@ -4,6 +4,7 @@ import { useFormState, useFormStatus } from "react-dom";
 import Link from "next/link";
 import { ajukanSurat } from "./actions";
 import { JENIS_SURAT } from "@/lib/jenisSurat";
+import PublicHeader from "@/components/PublicHeader";
 
 function TombolKirim() {
   const { pending } = useFormStatus();
@@ -23,7 +24,9 @@ export default function PengajuanSuratPage() {
 
   if (state?.success) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+      <main className="min-h-screen bg-slate-50">
+        <PublicHeader />
+        <div className="flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-sm">
           <h1 className="text-lg font-bold text-navy">Pengajuan terkirim</h1>
           <p className="mt-2 text-sm text-slate-500">
@@ -47,12 +50,15 @@ export default function PengajuanSuratPage() {
             Kembali ke beranda
           </Link>
         </div>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
+    <main className="min-h-screen bg-slate-50">
+      <PublicHeader />
+      <div className="flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-sm">
         <h1 className="text-xl font-bold text-navy">Pengajuan Surat Online</h1>
         <p className="mb-6 mt-1 text-sm text-slate-500">
@@ -168,6 +174,7 @@ export default function PengajuanSuratPage() {
         >
           Kembali ke beranda
         </Link>
+      </div>
       </div>
     </main>
   );
