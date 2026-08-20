@@ -3,6 +3,7 @@ import Link from "next/link";
 import VillageSeal from "@/components/VillageSeal";
 import PublicHeader from "@/components/PublicHeader";
 import StatBerandaCards from "@/components/StatBerandaCards";
+import StatistikDetailBeranda from "@/components/StatistikDetailBeranda";
 import {
   IconMail,
   IconMegaphone,
@@ -10,7 +11,7 @@ import {
   IconCheck,
   IconArrowRight,
 } from "@/components/icons";
-import { getStatistikBeranda } from "@/lib/statistikBeranda";
+import { getStatistikBeranda, getStatistikBerandaDetail } from "@/lib/statistikBeranda";
 
 const LAYANAN = [
   {
@@ -67,7 +68,10 @@ const JAMINAN = [
 ];
 
 export default async function HomePage() {
-  const stats = await getStatistikBeranda();
+  const [stats, statsDetail] = await Promise.all([
+    getStatistikBeranda(),
+    getStatistikBerandaDetail(),
+  ]);
 
   return (
     <main className="bg-white">
@@ -177,8 +181,11 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Statistik kependudukan (agama, status pernikahan, jenis kelamin, usia, pekerjaan) */}
+      <StatistikDetailBeranda detail={statsDetail} />
+
       {/* Cara kerja */}
-      <section className="bg-slate-50 py-16 md:py-24">
+      <section className="bg-white py-16 md:py-24">
         <div className="mx-auto max-w-6xl px-6">
           <p className="font-mono text-xs uppercase tracking-[0.25em] text-seablue">
             Prosesnya
