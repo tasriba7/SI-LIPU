@@ -1,11 +1,11 @@
 import "../styles/globals.css";
-import { Fraunces, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Playfair_Display, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import SplashScreen from "@/components/SplashScreen";
 
-const fraunces = Fraunces({
+const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["500", "600", "700"],
+  weight: ["600", "700", "800"],
   style: ["normal", "italic"],
   display: "swap",
 });
@@ -37,7 +37,7 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="id"
-      className={`${fraunces.variable} ${jakarta.variable} ${jetbrainsMono.variable}`}
+      className={`${playfairDisplay.variable} ${jakarta.variable} ${jetbrainsMono.variable}`}
     >
       <body>
         <SplashScreen>{children}</SplashScreen>
