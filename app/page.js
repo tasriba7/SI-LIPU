@@ -95,8 +95,11 @@ export default async function HomePage() {
             className="absolute inset-0 h-full w-full object-cover"
           />
         )}
-        {/* Lapisan gelap di atas foto supaya teks & tombol tetap kontras/kebaca */}
-        <div className="absolute inset-0 bg-gradient-to-b from-navy-dark/85 via-navy-dark/80 to-navy-dark" />
+        {/* Lapisan gelap di atas foto supaya teks & tombol tetap kontras/kebaca.
+            Angka /XX = persen kegelapan (0 = foto polos tanpa gelap, 100 = navy
+            solid nutup foto total). Naikkan angkanya kalau teks masih kurang
+            kebaca, turunkan kalau foto masih terlalu redup. */}
+        <div className="absolute inset-0 bg-gradient-to-b from-navy-dark/55 via-navy-dark/45 to-navy-dark/70" />
 
         <div className="relative mx-auto max-w-6xl px-6 pt-16 text-center md:pt-24">
           <p className="font-mono text-xs uppercase tracking-[0.25em] text-gold">
