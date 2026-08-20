@@ -10,7 +10,7 @@ export default async function KependudukanPage({ searchParams }) {
 
   let query = supabase
     .from("warga")
-    .select("id, nik, nama_lengkap, dusun, rt, rw, tanggal_lahir, no_hp")
+    .select("id, nik, nama_lengkap, dusun, rt, rw, tanggal_lahir, no_hp, status_dalam_kk")
     .order("nama_lengkap")
     .limit(50);
 
@@ -61,6 +61,7 @@ export default async function KependudukanPage({ searchParams }) {
             <tr>
               <th className="px-4 py-3 font-medium">NIK</th>
               <th className="px-4 py-3 font-medium">Nama</th>
+              <th className="px-4 py-3 font-medium">Status KK</th>
               <th className="px-4 py-3 font-medium">Dusun / RT-RW</th>
               <th className="px-4 py-3 font-medium">Tanggal Lahir</th>
               <th className="px-4 py-3 font-medium">No. HP</th>
@@ -72,6 +73,21 @@ export default async function KependudukanPage({ searchParams }) {
               <tr key={w.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3 font-mono text-slate-600">{w.nik}</td>
                 <td className="px-4 py-3 font-medium text-slate-800">{w.nama_lengkap}</td>
+                <td className="px-4 py-3">
+                  {w.status_dalam_kk ? (
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                        w.status_dalam_kk === "Kepala Keluarga"
+                          ? "bg-gold/15 text-navy"
+                          : "bg-slate-100 text-slate-500"
+                      }`}
+                    >
+                      {w.status_dalam_kk}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-300">-</span>
+                  )}
+                </td>
                 <td className="px-4 py-3 text-slate-500">
                   {w.dusun || "-"} {w.rt ? `· RT ${w.rt}` : ""} {w.rw ? `/RW ${w.rw}` : ""}
                 </td>
@@ -96,7 +112,7 @@ export default async function KependudukanPage({ searchParams }) {
             ))}
             {(daftar ?? []).length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-10 text-center text-slate-400">
+                <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
                   {cari ? `Tidak ada hasil untuk "${cari}".` : "Belum ada data warga."}
                 </td>
               </tr>
