@@ -7,8 +7,8 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        // Fraunces: serif berkarakter untuk judul — kesan "kop surat resmi"
-        // tanpa terasa kaku, cocok untuk portal layanan pemerintahan desa.
+        // Playfair Display: serif klasik berkontras tinggi untuk judul —
+        // kesan resmi/institusional, cocok untuk portal layanan pemerintahan desa.
         display: ["var(--font-display)", "Georgia", "serif"],
         // Plus Jakarta Sans: sans modern, gampang dibaca di layar kecil.
         sans: ["var(--font-body)", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
