@@ -52,13 +52,15 @@ export default function LoginModal({ open, onClose }) {
     // Overlay: scrollable sendiri (overflow-y-auto) supaya kalau tinggi
     // modal + posisi keyboard (di HP) melebihi tinggi layar yang terlihat,
     // kontennya tetap bisa dijangkau lewat scroll — bukan terpotong/hilang
-    // di luar viewport seperti sebelumnya. Wrapper kedua (min-h-full +
-    // items-center) yang melakukan centering, bukan si overlay langsung.
+    // di luar viewport seperti sebelumnya. Wrapper kedua pakai min-h-screen
+    // (satuan vh, bukan min-h-full/persentase) supaya tinggi centering-nya
+    // selalu terhitung pasti oleh browser, tidak bergantung tinggi elemen
+    // induk lain di halaman.
     <div
       className="fixed inset-0 z-50 overflow-y-auto bg-navy-dark/60 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div className="flex min-h-full items-center justify-center px-4 py-8">
+      <div className="flex min-h-screen items-center justify-center px-4 py-8">
         <div
           role="dialog"
           aria-modal="true"
