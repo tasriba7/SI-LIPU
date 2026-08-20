@@ -6,5 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 export async function logout() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/login");
+  // Setelah keluar, arahkan ke beranda publik (bukan /login) — login
+  // sekarang berupa popup yang dibuka dari tombol di beranda, jadi
+  // beranda-lah yang seharusnya tampil, sesuai alur popup login.
+  redirect("/");
 }
