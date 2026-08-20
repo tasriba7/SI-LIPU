@@ -179,7 +179,7 @@ export default function FormPengaturanDesa({ config }) {
               {jenisWilayah} {kecamatanNama && `· Kec. ${kecamatanNama}`}
             </p>
             <h1 className="mt-3 font-display text-3xl font-bold text-white sm:text-5xl">
-              {namaDesa || "Nama Desa/Kelurahan"}
+              {namaDesa ? `${jenisWilayah} ${namaDesa}` : "Nama Desa/Kelurahan"}
             </h1>
             <p className="mt-3 text-sm text-white/70 sm:text-base">
               {[kecamatanNama && `Kec. ${kecamatanNama}`, kabupatenNama && `Kab. ${kabupatenNama}`, provinsiNama && `Prov. ${provinsiNama}`]
