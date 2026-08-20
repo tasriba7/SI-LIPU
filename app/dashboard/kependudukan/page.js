@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { IconPlus } from "@/components/icons";
+import TombolHapusWarga from "./TombolHapusWarga";
 
 export default async function KependudukanPage({ searchParams }) {
   const sp = await searchParams;
@@ -81,12 +82,15 @@ export default async function KependudukanPage({ searchParams }) {
                 </td>
                 <td className="px-4 py-3 text-slate-500">{w.no_hp || "-"}</td>
                 <td className="px-4 py-3 text-right">
-                  <Link
-                    href={`/dashboard/kependudukan/${w.id}/edit`}
-                    className="text-xs font-medium text-navy hover:underline"
-                  >
-                    Edit
-                  </Link>
+                  <div className="flex items-center justify-end gap-3">
+                    <Link
+                      href={`/dashboard/kependudukan/${w.id}/edit`}
+                      className="text-xs font-medium text-navy hover:underline"
+                    >
+                      Edit
+                    </Link>
+                    <TombolHapusWarga id={w.id} nama={w.nama_lengkap} />
+                  </div>
                 </td>
               </tr>
             ))}
