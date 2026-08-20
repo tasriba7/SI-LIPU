@@ -154,3 +154,46 @@ export function IconUserPlus(props) {
     </svg>
   );
 }
+
+export function IconBriefcase(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <rect x="2" y="7" width="20" height="14" rx="2" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M2 13h20" />
+    </svg>
+  );
+}
+
+export function IconHeartHandshake(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 20l-7-6.5A4.2 4.2 0 1112 8a4.2 4.2 0 117 5.5L12 20z" />
+    </svg>
+  );
+}
+
+export function IconCalendarRange(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path strokeLinecap="round" d="M3 10h18M8 3v4M16 3v4" />
+    </svg>
+  );
+}
+
+export function IconBook(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 006.5 22H20V4H6.5A2.5 2.5 0 004 6.5v13z" />
+    </svg>
+  );
+}
+
+export function IconGenderBalance(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <circle cx="8" cy="9" r="4" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16 15v6M13 18h6M8 13v9" />
+    </svg>
+  );
+}
