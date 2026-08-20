@@ -9,31 +9,8 @@ import {
   IconUsers,
   IconCheck,
   IconArrowRight,
-  IconIdCard,
-  IconClipboardCheck,
 } from "@/components/icons";
 import { getStatistikBeranda } from "@/lib/statistikBeranda";
-
-const STAT_CARDS = [
-  {
-    key: "totalPenduduk",
-    label: "Jumlah Penduduk",
-    icon: IconUsers,
-    accent: "from-seablue via-gold to-seablue",
-  },
-  {
-    key: "totalKepalaKeluarga",
-    label: "Jumlah Kepala Keluarga",
-    icon: IconIdCard,
-    accent: "from-gold via-gold-light to-gold",
-  },
-  {
-    key: "totalAjuanDiproses",
-    label: "Ajuan Sudah Diproses",
-    icon: IconClipboardCheck,
-    accent: "from-emerald-400 via-gold to-emerald-400",
-  },
-];
 
 const LAYANAN = [
   {
