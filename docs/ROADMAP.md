@@ -24,7 +24,7 @@ kecuali diminta pemilik proyek.
 > Dikerjakan duluan karena jadi master data modul lain
 - [ ] Form tambah/edit data warga (sederhana, minim kolom wajib di awal)
 - [ ] Daftar warga + pencarian by NIK/nama
-- [ ] Import data warga dari Excel (untuk data awal yang sudah ada di desa)
+- [x] Import data warga dari Excel (untuk data awal yang sudah ada di desa)
 - [ ] Validasi NIK/KK duplikat
 
 ## FASE 1.5 — Menu "Ajukan Layanan" (fondasi, dikerjakan sejak awal, bukan nanti)
