@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { IconMenu, IconClose } from "@/components/icons";
 import LoginButton from "@/components/LoginButton";
+import { createClient } from "@/lib/supabase/client";
+import { DEFAULT_CONFIG_DESA } from "@/lib/configDesa";
 
 // Menu utama header publik. `href` kosong = fitur belum ada kodenya,
 // ditampilkan sebagai label nonaktif "Segera hadir" — supaya warga tahu
@@ -20,14 +21,48 @@ const MENU = [
 
 export default function PublicHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  // Header ini dipakai di banyak halaman publik, sebagian di antaranya
+  // Client Component tanpa akses langsung ke Server Component (lihat
+  // app/layanan/surat/page.js dkk) — jadi identitas desa diambil di sini,
+  // di sisi browser, lewat Supabase client (RLS sudah izinkan publik baca
+  // config_desa, lihat supabase/migrations/0010_config_desa.sql).
+  const [config, setConfig] = useState(DEFAULT_CONFIG_DESA);
+
+  useEffect(() => {
+    let batal = false;
+    const supabase = createClient();
+    supabase
+      .from("config_desa")
+      .select("nama_desa, jenis_wilayah, logo_url")
+      .eq("id", 1)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!batal && data) setConfig((c) => ({ ...c, ...data }));
+      });
+    return () => {
+      batal = true;
+    };
+  }, []);
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-        <Link href="/" className="flex items-center gap-2.5">
-          <Image src="/logo-si-lipu.png" alt="Logo SI-LIPU" width={28} height={28} />
-          <span className="font-display text-sm font-semibold tracking-wide text-navy">
+        <Link href="/" className="flex min-w-0 items-center gap-2.5">
+          {/* Logo desa kalau sudah diunggah admin lewat /dashboard/pengaturan-desa,
+              kalau belum tetap logo aplikasi SI-LIPU sebagai identitas bawaan. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={config.logo_url || "/logo-si-lipu.png"}
+            alt={config.logo_url ? "Logo desa" : "Logo SI-LIPU"}
+            width={28}
+            height={28}
+            className="h-7 w-7 shrink-0 rounded object-contain"
+          />
+          <span className="truncate font-display text-sm font-semibold tracking-wide text-navy">
             SI-LIPU
+            {config.nama_desa && (
+              <span className="uppercase"> - {config.jenis_wilayah || "Desa"} {config.nama_desa}</span>
+            )}
           </span>
         </Link>
 
