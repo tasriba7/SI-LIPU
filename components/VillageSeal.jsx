@@ -6,7 +6,7 @@
 // bisa dipasang di atas latar apa pun.
 const TITIK = Array.from({ length: 48 });
 
-export default function VillageSeal({ className = "" }) {
+export default function VillageSeal({ className = "", logoUrl = null }) {
   return (
     <div className={`relative ${className}`} aria-hidden="true">
       <svg
@@ -51,8 +51,10 @@ export default function VillageSeal({ className = "" }) {
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <div className="flex h-[42%] w-[42%] items-center justify-center rounded-full bg-white/5 ring-1 ring-white/15 backdrop-blur-sm">
+          {/* Logo desa kalau sudah diunggah admin, kalau belum tetap logo
+              aplikasi SI-LIPU sebagai identitas bawaan. */}
           <img
-            src="/logo-si-lipu.png"
+            src={logoUrl || "/logo-si-lipu.png"}
             alt=""
             className="h-3/5 w-3/5 object-contain"
           />
