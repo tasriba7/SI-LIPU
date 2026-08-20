@@ -117,7 +117,7 @@ export default async function HomePage() {
           )}
 
           <div className="mx-auto mt-6 w-24 text-gold-light/70">
-            <VillageSeal className="aspect-square" />
+            <VillageSeal className="aspect-square" logoUrl={config.logo_url} />
           </div>
         </div>
 
