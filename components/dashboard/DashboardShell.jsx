@@ -14,6 +14,7 @@ import {
   IconLayers,
   IconIdCard,
   IconUserPlus,
+  IconSettings,
 } from "@/components/icons";
 import { ROLE_BADGE_CLASS, labelJabatan } from "@/lib/roles";
 
@@ -25,6 +26,10 @@ const MODUL_LAYANAN = [
   { nama: "Pendaftaran Akun", icon: IconUserPlus, href: "/dashboard/pendaftaran" },
   { nama: "Pengajuan Surat (lama)", icon: IconMail, href: "/dashboard/surat" },
   { nama: "Pengumuman Desa", icon: IconMegaphone },
+];
+
+const MODUL_PENGATURAN = [
+  { nama: "Pengaturan Desa", icon: IconSettings, href: "/dashboard/pengaturan-desa" },
 ];
 
 function sapaanWaktu(jam) {
@@ -122,6 +127,23 @@ export default function DashboardShell({ profile, logoutAction, children }) {
                 </li>
               )
             )}
+          </ul>
+
+          <p className="mb-2 mt-6 px-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+            Pengaturan
+          </p>
+          <ul className="space-y-1">
+            {MODUL_PENGATURAN.map(({ nama, icon: Icon, href }) => (
+              <li key={nama}>
+                <Link
+                  href={href}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="flex-1">{nama}</span>
+                </Link>
+              </li>
+            ))}
           </ul>
         </nav>
 
