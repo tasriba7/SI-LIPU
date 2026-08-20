@@ -68,39 +68,46 @@ export default function PublicHeader() {
         </button>
       </div>
 
-      {/* Menu mobile (dropdown) */}
-      {menuOpen && (
-        <nav className="flex flex-col gap-1 border-t border-slate-100 bg-white px-6 py-4 md:hidden">
-          {MENU.map((item) =>
-            item.href ? (
-              <Link
-                key={item.nama}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className="rounded-lg px-2 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
-              >
-                {item.nama}
-              </Link>
-            ) : (
-              <span
-                key={item.nama}
-                className="flex items-center gap-2 px-2 py-2.5 text-sm text-slate-300"
-              >
-                {item.nama}
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-400">
-                  Segera hadir
-                </span>
+      {/* Menu mobile (dropdown). Selalu di-render (bukan {menuOpen && ...})
+          dan hanya disembunyikan lewat class "hidden" — supaya LoginButton
+          di dalamnya (dan LoginModal di baliknya) tidak ikut dibongkar dari
+          DOM saat menu ditutup otomatis ketika tombol Login ditekan. Kalau
+          di-unmount, permintaan buka modal yang terjadi di render yang sama
+          jadi hilang sebelum sempat tampil. */}
+      <nav
+        className={`${
+          menuOpen ? "flex" : "hidden"
+        } flex-col gap-1 border-t border-slate-100 bg-white px-6 py-4 md:hidden`}
+      >
+        {MENU.map((item) =>
+          item.href ? (
+            <Link
+              key={item.nama}
+              href={item.href}
+              onClick={() => setMenuOpen(false)}
+              className="rounded-lg px-2 py-2.5 text-sm text-slate-600 hover:bg-slate-50"
+            >
+              {item.nama}
+            </Link>
+          ) : (
+            <span
+              key={item.nama}
+              className="flex items-center gap-2 px-2 py-2.5 text-sm text-slate-300"
+            >
+              {item.nama}
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] text-slate-400">
+                Segera hadir
               </span>
-            )
-          )}
-          <LoginButton
-            onOpen={() => setMenuOpen(false)}
-            className="mt-2 rounded-lg bg-navy px-4 py-2.5 text-center text-sm font-medium text-white"
-          >
-            Login
-          </LoginButton>
-        </nav>
-      )}
+            </span>
+          )
+        )}
+        <LoginButton
+          onOpen={() => setMenuOpen(false)}
+          className="mt-2 rounded-lg bg-navy px-4 py-2.5 text-center text-sm font-medium text-white"
+        >
+          Login
+        </LoginButton>
+      </nav>
     </header>
   );
 }
