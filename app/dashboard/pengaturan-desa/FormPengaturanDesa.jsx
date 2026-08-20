@@ -54,6 +54,9 @@ export default function FormPengaturanDesa({ config }) {
   const [preview, setPreview] = useState(config.foto_url || null);
   const [hapusFoto, setHapusFoto] = useState(false);
 
+  const [previewLogo, setPreviewLogo] = useState(config.logo_url || null);
+  const [hapusLogo, setHapusLogo] = useState(false);
+
   // Muat daftar provinsi sekali di awal.
   useEffect(() => {
     fetch(`${WILAYAH_API}/provinces.json`)
@@ -141,6 +144,19 @@ export default function FormPengaturanDesa({ config }) {
   function handleHapusFoto() {
     setPreview(null);
     setHapusFoto(true);
+  }
+
+  function handleLogoChange(e) {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPreviewLogo(URL.createObjectURL(file));
+      setHapusLogo(false);
+    }
+  }
+
+  function handleHapusLogo() {
+    setPreviewLogo(null);
+    setHapusLogo(true);
   }
 
   return (
@@ -360,6 +376,46 @@ export default function FormPengaturanDesa({ config }) {
         </div>
         {hapusFoto && (
           <input type="hidden" name="hapus_foto" value="1" />
+        )}
+      </div>
+
+      {/* Logo desa */}
+      <div>
+        <Label>Logo desa/kelurahan</Label>
+        <p className="mb-2 text-xs text-slate-400">
+          Format JPG/PNG/WEBP, maksimal 8MB. Logo ini akan tampil di header situs (pojok kiri
+          atas, menggantikan logo aplikasi) dan di lambang halaman utama. Kalau belum diunggah,
+          sistem tetap memakai logo aplikasi SI-LIPU sebagai identitas bawaan — termasuk di layar
+          pembuka (splash) aplikasi, yang tidak terpengaruh pengaturan ini.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          {previewLogo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={previewLogo}
+              alt=""
+              className="h-12 w-12 rounded-lg border border-slate-200 object-contain p-1"
+            />
+          )}
+          <input
+            type="file"
+            name="logo"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleLogoChange}
+            className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-navy file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-navy-light"
+          />
+          {previewLogo && (
+            <button
+              type="button"
+              onClick={handleHapusLogo}
+              className="text-xs text-red-600 underline"
+            >
+              Hapus logo
+            </button>
+          )}
+        </div>
+        {hapusLogo && (
+          <input type="hidden" name="hapus_logo" value="1" />
         )}
       </div>
 
