@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { IconMenu, IconClose } from "@/components/icons";
+import LoginButton from "@/components/LoginButton";
 
 // Menu utama header publik. `href` kosong = fitur belum ada kodenya,
 // ditampilkan sebagai label nonaktif "Segera hadir" — supaya warga tahu
@@ -51,12 +52,9 @@ export default function PublicHeader() {
               </span>
             )
           )}
-          <Link
-            href="/login"
-            className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-light"
-          >
+          <LoginButton className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-light">
             Login
-          </Link>
+          </LoginButton>
         </nav>
 
         {/* Tombol menu mobile */}
@@ -95,13 +93,12 @@ export default function PublicHeader() {
               </span>
             )
           )}
-          <Link
-            href="/login"
-            onClick={() => setMenuOpen(false)}
+          <LoginButton
+            onOpen={() => setMenuOpen(false)}
             className="mt-2 rounded-lg bg-navy px-4 py-2.5 text-center text-sm font-medium text-white"
           >
             Login
-          </Link>
+          </LoginButton>
         </nav>
       )}
     </header>
