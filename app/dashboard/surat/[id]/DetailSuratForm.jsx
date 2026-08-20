@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { updateStatusSurat } from "../actions";
 import { STATUS_LABELS } from "@/lib/statusSurat";
 
@@ -18,7 +19,7 @@ function TombolSimpan() {
 }
 
 export default function DetailSuratForm({ surat }) {
-  const [state, formAction] = useFormState(updateStatusSurat, {});
+  const [state, formAction] = useActionState(updateStatusSurat, {});
 
   return (
     <form

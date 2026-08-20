@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { ajukanSurat } from "./actions";
 import { JENIS_SURAT } from "@/lib/jenisSurat";
@@ -20,7 +21,7 @@ function TombolKirim() {
 }
 
 export default function PengajuanSuratPage() {
-  const [state, formAction] = useFormState(ajukanSurat, {});
+  const [state, formAction] = useActionState(ajukanSurat, {});
 
   if (state?.success) {
     return (

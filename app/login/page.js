@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { login } from "./actions";
 
 function TombolLogin() {
@@ -17,7 +18,7 @@ function TombolLogin() {
 }
 
 export default function LoginPage() {
-  const [state, formAction] = useFormState(login, {});
+  const [state, formAction] = useActionState(login, {});
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-slate-50 px-4">

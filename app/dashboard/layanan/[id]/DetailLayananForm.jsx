@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { updateStatusPengajuanLayanan } from "../actions";
 import { STATUS_LABELS } from "@/lib/statusSurat";
 
@@ -18,7 +19,7 @@ function TombolSimpan() {
 }
 
 export default function DetailLayananForm({ pengajuan }) {
-  const [state, formAction] = useFormState(updateStatusPengajuanLayanan, {});
+  const [state, formAction] = useActionState(updateStatusPengajuanLayanan, {});
 
   return (
     <form

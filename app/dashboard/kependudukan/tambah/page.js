@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useEffect, useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { tambahWarga } from "../actions";
@@ -21,7 +21,7 @@ function TombolSimpan() {
 
 export default function TambahWargaPage() {
   const router = useRouter();
-  const [state, formAction] = useFormState(tambahWarga, {});
+  const [state, formAction] = useActionState(tambahWarga, {});
 
   useEffect(() => {
     if (state?.success) {

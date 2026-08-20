@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useEffect, useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { login } from "@/app/login/actions";
 import { IconClose } from "@/components/icons";
 
@@ -27,7 +27,7 @@ function TombolLogin() {
  * `login` di app/login/actions.js yang menangani ini).
  */
 export default function LoginModal({ open, onClose }) {
-  const [state, formAction] = useFormState(login, {});
+  const [state, formAction] = useActionState(login, {});
 
   useEffect(() => {
     if (!open) return;

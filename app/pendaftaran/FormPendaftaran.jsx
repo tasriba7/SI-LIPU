@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { daftarPosisi } from "./actions";
 
@@ -18,7 +19,7 @@ function TombolDaftar() {
 }
 
 export default function FormPendaftaran({ slotKosong }) {
-  const [state, formAction] = useFormState(daftarPosisi, {});
+  const [state, formAction] = useActionState(daftarPosisi, {});
 
   if (state?.success) {
     return (

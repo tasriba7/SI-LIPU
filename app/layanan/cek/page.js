@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { cekStatusLayanan } from "./actions";
 import { STATUS_LABELS, STATUS_BADGE_CLASS } from "@/lib/statusSurat";
@@ -20,7 +21,7 @@ function TombolCek() {
 }
 
 export default function CekStatusLayananPage() {
-  const [state, formAction] = useFormState(cekStatusLayanan, {});
+  const [state, formAction] = useActionState(cekStatusLayanan, {});
 
   return (
     <main className="min-h-screen bg-slate-50">

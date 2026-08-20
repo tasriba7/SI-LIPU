@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useState, useEffect, useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { cariWargaUntukLayanan, ajukanLayanan } from "./actions";
 import { maskNama, maskWilayah } from "@/lib/masking";
@@ -98,8 +98,8 @@ export default function FormPengajuan({ jenisLayanan }) {
   const [nikDicoba, setNikDicoba] = useState("");
   const [dataTambahan, setDataTambahan] = useState({});
 
-  const [lookupState, lookupAction] = useFormState(cariWargaUntukLayanan, {});
-  const [submitState, submitAction] = useFormState(ajukanLayanan, {});
+  const [lookupState, lookupAction] = useActionState(cariWargaUntukLayanan, {});
+  const [submitState, submitAction] = useActionState(ajukanLayanan, {});
 
   // Simpan NIK yang dicoba begitu lookup berhasil — WAJIB di useEffect,
   // bukan dipanggil langsung saat render (itu penyebab bug "client-side

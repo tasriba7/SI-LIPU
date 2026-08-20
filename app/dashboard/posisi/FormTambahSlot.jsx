@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { tambahSlotPosisi } from "./actions";
 
 function TombolTambah() {
@@ -17,7 +18,7 @@ function TombolTambah() {
 }
 
 export default function FormTambahSlot() {
-  const [state, formAction] = useFormState(tambahSlotPosisi, {});
+  const [state, formAction] = useActionState(tambahSlotPosisi, {});
 
   return (
     <form
