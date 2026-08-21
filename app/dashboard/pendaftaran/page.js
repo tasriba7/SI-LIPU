@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABELS } from "@/lib/roles";
 import BarisPendaftaran from "./BarisPendaftaran";
+import SetujuiSemua from "./SetujuiSemua";
 
 export default async function PendaftaranAkunPage() {
   const supabase = await createClient();
@@ -29,6 +30,7 @@ export default async function PendaftaranAkunPage() {
         {pending.length === 0 && (
           <p className="text-sm text-slate-400">Tidak ada pendaftaran menunggu.</p>
         )}
+        <SetujuiSemua jumlahPending={pending.length} />
         <div className="space-y-3">
           {pending.map((p) => (
             <BarisPendaftaran key={p.id} pendaftaran={p} />
