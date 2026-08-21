@@ -8,11 +8,15 @@ export default function BarisPendaftaran({ pendaftaran }) {
   const [isPending, startTransition] = useTransition();
   const [hasil, setHasil] = useState(null);
   const [error, setError] = useState(null);
+  const [mode, setMode] = useState("acak");
+  const [passwordManual, setPasswordManual] = useState("");
 
   function handleSetujui() {
     setError(null);
     const fd = new FormData();
     fd.set("pendaftaran_id", pendaftaran.id);
+    fd.set("mode", mode);
+    fd.set("password_manual", passwordManual);
     startTransition(async () => {
       const res = await setujuiPendaftaran(null, fd);
       if (res?.error) setError(res.error);
@@ -61,23 +65,54 @@ export default function BarisPendaftaran({ pendaftaran }) {
             NIK: {pendaftaran.nik} · HP: {pendaftaran.no_hp} · {pendaftaran.email}
           </p>
         </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={handleSetujui}
-            disabled={isPending}
-            className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-white hover:bg-navy-light disabled:opacity-60"
-          >
-            {isPending ? "Memproses..." : "Setujui"}
-          </button>
-          <button
-            type="button"
-            onClick={handleTolak}
-            disabled={isPending}
-            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
-          >
-            Tolak
-          </button>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex gap-3 text-xs text-slate-500">
+            <label className="flex items-center gap-1.5">
+              <input
+                type="radio"
+                name={`mode-${pendaftaran.id}`}
+                checked={mode === "acak"}
+                onChange={() => setMode("acak")}
+              />
+              Password acak
+            </label>
+            <label className="flex items-center gap-1.5">
+              <input
+                type="radio"
+                name={`mode-${pendaftaran.id}`}
+                checked={mode === "manual"}
+                onChange={() => setMode("manual")}
+              />
+              Password manual
+            </label>
+          </div>
+          {mode === "manual" && (
+            <input
+              type="text"
+              value={passwordManual}
+              onChange={(e) => setPasswordManual(e.target.value)}
+              placeholder="Min. 6 karakter"
+              className="w-40 rounded-lg border border-slate-300 px-2 py-1 text-xs"
+            />
+          )}
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleSetujui}
+              disabled={isPending}
+              className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-white hover:bg-navy-light disabled:opacity-60"
+            >
+              {isPending ? "Memproses..." : "Setujui"}
+            </button>
+            <button
+              type="button"
+              onClick={handleTolak}
+              disabled={isPending}
+              className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60"
+            >
+              Tolak
+            </button>
+          </div>
         </div>
       </div>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
