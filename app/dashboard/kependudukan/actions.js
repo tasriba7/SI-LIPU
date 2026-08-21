@@ -60,6 +60,94 @@ export async function tambahWarga(prevState, formData) {
   return { success: true };
 }
 
+// Simpan 1 keluarga sekaligus dalam 1 aksi: No. KK + alamat diisi sekali,
+// lalu anggota (1 orang atau lebih) dikirim sebagai array JSON dari form
+// client (lihat FormKeluargaWarga.jsx). Dikirim sebagai SATU bulk insert
+// supaya atomik — kalau salah satu anggota gagal (mis. NIK dobel, atau 2
+// orang ditandai Kepala Keluarga), SEMUA anggota di form ini ikut batal
+// tersimpan, bukan tersimpan sebagian.
+export async function tambahKeluargaWarga(prevState, formData) {
+  const no_kk = formData.get("no_kk")?.trim() || null;
+  const alamat = formData.get("alamat")?.trim() || null;
+  const dusun = formData.get("dusun")?.trim() || null;
+  const rt = formData.get("rt")?.trim() || null;
+  const rw = formData.get("rw")?.trim() || null;
+
+  if (no_kk && !/^\d{16}$/.test(no_kk)) {
+    return { error: "No. KK harus berupa 16 digit angka (atau kosongkan jika belum ada)." };
+  }
+
+  let anggotaMentah;
+  try {
+    anggotaMentah = JSON.parse(formData.get("anggota") || "[]");
+  } catch {
+    return { error: "Data anggota tidak terbaca. Coba lagi." };
+  }
+  if (!Array.isArray(anggotaMentah) || anggotaMentah.length === 0) {
+    return { error: "Minimal isi 1 anggota keluarga." };
+  }
+  if (anggotaMentah.length > 20) {
+    return { error: "Maksimal 20 anggota per kali simpan." };
+  }
+
+  const nikTerlihat = new Set();
+  const barisSiap = [];
+
+  for (let i = 0; i < anggotaMentah.length; i++) {
+    const a = anggotaMentah[i] || {};
+    const label = `Anggota ke-${i + 1}`;
+    const nik = String(a.nik ?? "").trim();
+    const nama_lengkap = String(a.nama_lengkap ?? "").trim();
+    const tanggal_lahir = a.tanggal_lahir || "";
+
+    if (!nik || !nama_lengkap || !tanggal_lahir) {
+      return { error: `${label}: NIK, nama lengkap, dan tanggal lahir wajib diisi.` };
+    }
+    if (!/^\d{16}$/.test(nik)) {
+      return { error: `${label}: NIK harus 16 digit angka.` };
+    }
+    if (nikTerlihat.has(nik)) {
+      return { error: `${label}: NIK ${nik} dobel di form ini.` };
+    }
+    nikTerlihat.add(nik);
+
+    barisSiap.push({
+      nik,
+      no_kk,
+      nama_lengkap,
+      tempat_lahir: String(a.tempat_lahir ?? "").trim() || null,
+      tanggal_lahir,
+      jenis_kelamin: a.jenis_kelamin || null,
+      alamat,
+      dusun,
+      rt,
+      rw,
+      no_hp: String(a.no_hp ?? "").trim() || null,
+      status_kawin: a.status_kawin || null,
+      status_dalam_kk: a.status_dalam_kk || null,
+      pekerjaan: String(a.pekerjaan ?? "").trim() || null,
+      agama: a.agama || null,
+    });
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("warga").insert(barisSiap);
+
+  if (error) {
+    if (error.code === "23505") {
+      return { error: "Ada NIK yang sudah terdaftar sebelumnya di data kependudukan." };
+    }
+    if (error.code === "P0001") {
+      return { error: error.message };
+    }
+    return { error: "Gagal menyimpan data keluarga. Coba lagi." };
+  }
+
+  revalidatePath("/dashboard/kependudukan");
+  revalidatePath("/dashboard/kependudukan/kartu-keluarga");
+  return { success: true, jumlah: barisSiap.length };
+}
+
 export async function editWarga(prevState, formData) {
   const id = formData.get("id");
   const nik = formData.get("nik")?.trim();
