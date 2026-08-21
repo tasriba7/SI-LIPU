@@ -191,7 +191,14 @@ export function IconUserPlus(props) {
     </svg>
   );
 }
-
+export function IconKey(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <circle cx="8" cy="15" r="4" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M11 12l9-9M17 3l3 3M14 6l3 3" />
+    </svg>
+  );
+}
 export function IconBriefcase(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
