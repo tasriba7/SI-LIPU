@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { IconClose } from "@/components/icons";
 
 function formatTanggal(iso) {
@@ -125,50 +126,53 @@ export default function GaleriGrid({ items }) {
         ))}
       </div>
 
-      {aktif && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-navy-dark/90 p-4 animate-fadeIn"
-          onClick={tutup}
-          onMouseEnter={() => hoverCapable && batalkanTutupPratinjau()}
-          onMouseLeave={() => hoverCapable && jadwalkanTutupPratinjau()}
-        >
-          <button
-            type="button"
-            onClick={tutup}
-            aria-label="Tutup"
-            className="absolute right-4 top-4 text-white/70 hover:text-white"
-          >
-            <IconClose className="h-7 w-7" />
-          </button>
-
+      {aktif &&
+        typeof document !== "undefined" &&
+        createPortal(
           <div
-            className="mx-auto max-h-full w-full max-w-3xl overflow-hidden rounded-2xl bg-white"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-navy-dark/90 p-4 animate-fadeIn"
+            onClick={tutup}
+            onMouseEnter={() => hoverCapable && batalkanTutupPratinjau()}
+            onMouseLeave={() => hoverCapable && jadwalkanTutupPratinjau()}
           >
-            <div className="flex max-h-[60vh] w-full items-center justify-center bg-slate-900">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={aktif.foto_url}
-                alt={aktif.judul}
-                className="mx-auto max-h-[60vh] w-full object-contain"
-              />
-            </div>
-            <div className="p-5 sm:p-6">
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-seablue">
-                {formatTanggal(aktif.created_at)}
-              </p>
-              <h3 className="mt-1.5 font-display text-xl font-semibold text-slate-800">
-                {aktif.judul}
-              </h3>
-              {aktif.deskripsi && (
-                <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-500">
-                  {aktif.deskripsi}
+            <button
+              type="button"
+              onClick={tutup}
+              aria-label="Tutup"
+              className="absolute right-4 top-4 text-white/70 hover:text-white"
+            >
+              <IconClose className="h-7 w-7" />
+            </button>
+
+            <div
+              className="mx-auto max-h-[85vh] w-full max-w-3xl overflow-hidden rounded-2xl bg-white"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex max-h-[60vh] w-full items-center justify-center bg-slate-900">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={aktif.foto_url}
+                  alt={aktif.judul}
+                  className="mx-auto max-h-[60vh] w-full object-contain"
+                />
+              </div>
+              <div className="p-5 sm:p-6">
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-seablue">
+                  {formatTanggal(aktif.created_at)}
                 </p>
-              )}
+                <h3 className="mt-1.5 font-display text-xl font-semibold text-slate-800">
+                  {aktif.judul}
+                </h3>
+                {aktif.deskripsi && (
+                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-500">
+                    {aktif.deskripsi}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 }
