@@ -15,10 +15,6 @@ export async function tambahSlotPosisi(prevState, formData) {
   const { error } = await supabase.from("posisi_perangkat").insert({ role, wilayah });
 
   if (error) {
-    // Kode error Postgres yang paling sering muncul untuk aksi ini, supaya
-    // pesannya langsung mengarahkan ke penyebabnya alih-alih generik.
-    // Lihat log server (Vercel > Deployments > Functions/Logs) untuk detail
-    // lengkap error.code & error.message kalau pesan di bawah belum cukup.
     console.error("tambahSlotPosisi gagal:", error);
 
     if (error.code === "23505") {
@@ -40,6 +36,39 @@ export async function tambahSlotPosisi(prevState, formData) {
       return { error: "Nilai role tidak valid (harus Kadus atau Ketua RT)." };
     }
     return { error: `Gagal menambah slot: ${error.message || "penyebab tidak diketahui"}` };
+  }
+
+  revalidatePath("/dashboard/posisi");
+  return { success: true };
+}
+
+/**
+ * Hapus slot yang masih KOSONG (belum pernah diisi/didaftar). Kalau ada
+ * riwayat pendaftaran yang menunjuk ke slot ini (tabel pendaftaran_akun),
+ * database akan menolak hapus (FK) — itu supaya riwayat pendaftaran lama
+ * tidak jadi yatim. Slot yang sudah "terisi" tidak bisa langsung dihapus;
+ * kosongkan dulu lewat "Kosongkan Slot".
+ */
+export async function hapusSlot(prevState, formData) {
+  const id = formData.get("id");
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("posisi_perangkat")
+    .delete()
+    .eq("id", id)
+    .eq("status", "kosong");
+
+  if (error) {
+    console.error("hapusSlot gagal:", error);
+
+    if (error.code === "23503") {
+      return {
+        error:
+          "Slot ini tidak bisa dihapus karena masih ada riwayat pendaftaran yang terkait dengannya.",
+      };
+    }
+    return { error: `Gagal menghapus slot: ${error.message || "penyebab tidak diketahui"}` };
   }
 
   revalidatePath("/dashboard/posisi");
