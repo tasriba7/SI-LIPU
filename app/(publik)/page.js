@@ -168,6 +168,62 @@ export default async function HomePage() {
         <div className="relative h-1 w-full bg-gradient-to-r from-gold via-gold-light to-gold" />
       </section>
 
+      {/* Sambutan Kepala Desa — tampil hanya kalau admin sudah isi minimal
+          nama & sambutan lewat /dashboard/pengaturan-desa. Foto opsional
+          (pakai avatar inisial kalau belum diunggah). */}
+      {config.kepala_desa_nama && config.kepala_desa_sambutan && (
+        <section className="bg-slate-50 py-16 md:py-24">
+          <div className="mx-auto max-w-5xl px-6">
+            <p className="text-center font-mono text-xs uppercase tracking-[0.25em] text-seablue">
+              Kata Sambutan
+            </p>
+            <h2 className="mt-3 text-center font-display text-2xl font-semibold text-navy sm:text-3xl">
+              Sambutan {config.jenis_wilayah === "Kelurahan" ? "Lurah" : "Kepala Desa"}
+            </h2>
+
+            <div className="mt-10 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+              <div className="grid gap-0 md:grid-cols-[280px_1fr]">
+                <div className="relative flex flex-col items-center justify-center gap-4 bg-navy px-6 py-10 text-center">
+                  <div className="absolute inset-0 bg-gradient-to-br from-navy via-navy to-navy-dark opacity-90" />
+                  <div className="relative">
+                    {config.kepala_desa_foto_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={config.kepala_desa_foto_url}
+                        alt={config.kepala_desa_nama}
+                        className="h-32 w-32 rounded-full border-4 border-gold-light/70 object-cover shadow-lg"
+                      />
+                    ) : (
+                      <div className="flex h-32 w-32 items-center justify-center rounded-full border-4 border-gold-light/70 bg-navy-light text-4xl font-display font-semibold text-gold-light shadow-lg">
+                        {config.kepala_desa_nama.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <p className="font-display text-lg font-semibold text-white">
+                      {config.kepala_desa_nama}
+                    </p>
+                    <p className="mt-1 text-xs uppercase tracking-wider text-gold-light">
+                      {config.jenis_wilayah === "Kelurahan" ? "Lurah" : "Kepala Desa"}
+                      {config.nama_desa ? ` ${config.nama_desa}` : ""}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="relative flex flex-col justify-center px-6 py-10 sm:px-10">
+                  <span className="font-display text-6xl leading-none text-gold/30">
+                    &ldquo;
+                  </span>
+                  <p className="-mt-8 whitespace-pre-line text-base leading-relaxed text-slate-600 sm:text-lg">
+                    {config.kepala_desa_sambutan}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Layanan */}
       <section className="mx-auto max-w-6xl px-6 py-16 md:py-24">
         <p className="font-mono text-xs uppercase tracking-[0.25em] text-seablue">
