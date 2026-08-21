@@ -4,6 +4,7 @@ import VillageSeal from "@/components/VillageSeal";
 import PublicHeader from "@/components/PublicHeader";
 import StatBerandaCards from "@/components/StatBerandaCards";
 import StatistikDetailBeranda from "@/components/StatistikDetailBeranda";
+import GaleriBeranda from "@/components/GaleriBeranda";
 import {
   IconMail,
   IconMegaphone,
@@ -13,7 +14,10 @@ import {
 } from "@/components/icons";
 import { getStatistikBeranda, getStatistikBerandaDetail } from "@/lib/statistikBeranda";
 import { getConfigDesa, labelWilayah } from "@/lib/configDesa";
+import { getGaleri, getGaleriCount } from "@/lib/galeri";
 import { createClient } from "@/lib/supabase/server";
+
+const JUMLAH_GALERI_BERANDA = 8;
 
 const LAYANAN = [
   {
@@ -71,10 +75,12 @@ const JAMINAN = [
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const [stats, statsDetail, config] = await Promise.all([
+  const [stats, statsDetail, config, galeriItems, galeriTotal] = await Promise.all([
     getStatistikBeranda(),
     getStatistikBerandaDetail(),
     getConfigDesa(supabase),
+    getGaleri(supabase, { limit: JUMLAH_GALERI_BERANDA }),
+    getGaleriCount(supabase),
   ]);
 
   const wilayah = labelWilayah(config);
@@ -220,6 +226,10 @@ export default async function HomePage() {
           })}
         </div>
       </section>
+
+      {/* Galeri kegiatan — diisi admin lewat /dashboard/galeri, tersembunyi
+          otomatis kalau belum ada foto sama sekali (lihat GaleriBeranda.jsx) */}
+      <GaleriBeranda items={galeriItems} totalSemua={galeriTotal} />
 
       {/* Statistik kependudukan (agama, status pernikahan, jenis kelamin, usia, pekerjaan) */}
       <StatistikDetailBeranda detail={statsDetail} />

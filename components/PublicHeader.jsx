@@ -14,6 +14,7 @@ const MENU = [
   { nama: "Beranda", href: "/" },
   { nama: "Ajukan Layanan", href: "/layanan" },
   { nama: "Cek Status", href: "/layanan/cek" },
+  { nama: "Galeri Kegiatan", href: "/galeri" },
   { nama: "Pendaftaran Kadus/RT", href: "/pendaftaran" },
   { nama: "Pengumuman Desa", href: null },
   { nama: "Profil Desa", href: null },

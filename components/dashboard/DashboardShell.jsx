@@ -15,6 +15,7 @@ import {
   IconIdCard,
   IconUserPlus,
   IconSettings,
+  IconImage,
 } from "@/components/icons";
 import { ROLE_BADGE_CLASS, labelJabatan } from "@/lib/roles";
 
@@ -22,6 +23,7 @@ const MODUL_LAYANAN = [
   { nama: "Pengajuan Layanan", icon: IconMail, href: "/dashboard/layanan" },
   { nama: "Kelola Jenis Layanan", icon: IconLayers, href: "/dashboard/jenis-layanan" },
   { nama: "Data Kependudukan", icon: IconIdCard, href: "/dashboard/kependudukan" },
+  { nama: "Galeri Kegiatan", icon: IconImage, href: "/dashboard/galeri" },
   { nama: "Slot Kadus/Ketua RT", icon: IconUsers, href: "/dashboard/posisi" },
   { nama: "Pendaftaran Akun", icon: IconUserPlus, href: "/dashboard/pendaftaran" },
   { nama: "Pengajuan Surat (lama)", icon: IconMail, href: "/dashboard/surat" },
