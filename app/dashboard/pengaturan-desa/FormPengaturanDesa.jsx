@@ -57,6 +57,15 @@ export default function FormPengaturanDesa({ config }) {
   const [previewLogo, setPreviewLogo] = useState(config.logo_url || null);
   const [hapusLogo, setHapusLogo] = useState(false);
 
+  const [namaKepalaDesa, setNamaKepalaDesa] = useState(config.kepala_desa_nama || "");
+  const [sambutanKepalaDesa, setSambutanKepalaDesa] = useState(
+    config.kepala_desa_sambutan || ""
+  );
+  const [previewFotoKepalaDesa, setPreviewFotoKepalaDesa] = useState(
+    config.kepala_desa_foto_url || null
+  );
+  const [hapusFotoKepalaDesa, setHapusFotoKepalaDesa] = useState(false);
+
   // Muat daftar provinsi sekali di awal.
   useEffect(() => {
     fetch(`${WILAYAH_API}/provinces.json`)
@@ -157,6 +166,19 @@ export default function FormPengaturanDesa({ config }) {
   function handleHapusLogo() {
     setPreviewLogo(null);
     setHapusLogo(true);
+  }
+
+  function handleFotoKepalaDesaChange(e) {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPreviewFotoKepalaDesa(URL.createObjectURL(file));
+      setHapusFotoKepalaDesa(false);
+    }
+  }
+
+  function handleHapusFotoKepalaDesa() {
+    setPreviewFotoKepalaDesa(null);
+    setHapusFotoKepalaDesa(true);
   }
 
   return (
@@ -417,6 +439,77 @@ export default function FormPengaturanDesa({ config }) {
         {hapusLogo && (
           <input type="hidden" name="hapus_logo" value="1" />
         )}
+      </div>
+
+      {/* Profil Kepala Desa — tampil di beranda sebagai bagian "Sambutan" */}
+      <div className="space-y-4 rounded-xl border border-slate-200 p-4">
+        <div>
+          <p className="text-sm font-semibold text-slate-700">Profil Kepala Desa</p>
+          <p className="text-xs text-slate-400">
+            Nama, foto, dan sambutan ini akan tampil di beranda publik sebagai bagian
+            &quot;Sambutan Kepala Desa&quot;. Kosongkan sambutan kalau belum ingin ditampilkan.
+          </p>
+        </div>
+
+        <div>
+          <Label>Nama Kepala Desa</Label>
+          <input
+            type="text"
+            name="kepala_desa_nama"
+            value={namaKepalaDesa}
+            onChange={(e) => setNamaKepalaDesa(e.target.value)}
+            placeholder="mis. Budi Santoso"
+            className={inputClass}
+          />
+        </div>
+
+        <div>
+          <Label>Foto Kepala Desa</Label>
+          <p className="mb-2 text-xs text-slate-400">
+            Format JPG/PNG/WEBP, maksimal 8MB. Sebaiknya foto portrait/formal.
+          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            {previewFotoKepalaDesa && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={previewFotoKepalaDesa}
+                alt=""
+                className="h-16 w-16 rounded-full border border-slate-200 object-cover"
+              />
+            )}
+            <input
+              type="file"
+              name="kepala_desa_foto"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleFotoKepalaDesaChange}
+              className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-navy file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-navy-light"
+            />
+            {previewFotoKepalaDesa && (
+              <button
+                type="button"
+                onClick={handleHapusFotoKepalaDesa}
+                className="text-xs text-red-600 underline"
+              >
+                Hapus foto
+              </button>
+            )}
+          </div>
+          {hapusFotoKepalaDesa && (
+            <input type="hidden" name="hapus_kepala_desa_foto" value="1" />
+          )}
+        </div>
+
+        <div>
+          <Label>Sambutan Kepala Desa</Label>
+          <textarea
+            name="kepala_desa_sambutan"
+            rows={5}
+            value={sambutanKepalaDesa}
+            onChange={(e) => setSambutanKepalaDesa(e.target.value)}
+            placeholder="mis. Assalamualaikum warahmatullahi wabarakatuh. Selamat datang di portal layanan digital Desa..."
+            className={inputClass}
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-3">
