@@ -58,6 +58,13 @@ export default async function KependudukanPage({ searchParams }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+          <Link
+            href="/dashboard/kependudukan/kartu-keluarga"
+            className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
+          >
+            <IconUsers className="h-4 w-4" />
+            Kartu Keluarga
+          </Link>
           <ImportWargaButton />
           <ExportWargaButton cari={cari} />
           <Link
