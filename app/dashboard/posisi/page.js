@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABELS } from "@/lib/roles";
 import FormTambahSlot from "./FormTambahSlot";
 import TombolKosongkanSlot from "./TombolKosongkanSlot";
+import TombolHapusSlot from "./TombolHapusSlot";
 
 export default async function PosisiPerangkatPage() {
   const supabase = await createClient();
@@ -65,7 +66,11 @@ export default async function PosisiPerangkatPage() {
                   {p.profiles?.nama || "-"}
                 </td>
                 <td className="px-4 py-3">
-                  {p.status === "terisi" && <TombolKosongkanSlot id={p.id} />}
+                  {p.status === "terisi" ? (
+                    <TombolKosongkanSlot id={p.id} />
+                  ) : (
+                    <TombolHapusSlot id={p.id} />
+                  )}
                 </td>
               </tr>
             ))}
