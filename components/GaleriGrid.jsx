@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IconClose } from "@/components/icons";
 
 function formatTanggal(iso) {
@@ -13,22 +13,80 @@ function formatTanggal(iso) {
 
 export default function GaleriGrid({ items }) {
   const [aktif, setAktif] = useState(null);
+  // true kalau dibuka lewat klik/tap (mis. di hp, atau klik sengaja di
+  // laptop) — bedanya dari pratinjau saat hover: dikunci layarnya (tidak
+  // ikut scroll) dan cuma tertutup lewat tombol X / klik luar / Esc,
+  // bukan otomatis hilang saat kursor lewat.
+  const [terkunci, setTerkunci] = useState(false);
+  // Cuma laptop/desktop (perangkat dengan mouse yang bisa hover) yang
+  // dapat pratinjau otomatis saat kursor diarahkan ke foto. Di hp,
+  // "hover" tidak pernah aktif secara nyata jadi warga tetap ketuk foto
+  // seperti biasa.
+  const [hoverCapable, setHoverCapable] = useState(false);
+  const closeTimer = useRef(null);
 
-  // Tutup modal dengan tombol Esc, dan kunci scroll body selagi modal terbuka
-  // supaya fokus warga tetap di foto yang dibuka.
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    setHoverCapable(mq.matches);
+    const onChange = (e) => setHoverCapable(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  // Tutup modal dengan tombol Esc, dan kunci scroll body hanya saat foto
+  // dibuka lewat klik/tap — supaya pratinjau hover tidak bikin scrollbar
+  // "berkedip" setiap kursor lewat dari satu foto ke foto lain.
   useEffect(() => {
     if (!aktif) return;
     function handleKey(e) {
-      if (e.key === "Escape") setAktif(null);
+      if (e.key === "Escape") tutup();
     }
     document.addEventListener("keydown", handleKey);
-    const overflowSebelumnya = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", handleKey);
-      document.body.style.overflow = overflowSebelumnya;
-    };
-  }, [aktif]);
+    if (terkunci) {
+      const overflowSebelumnya = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.removeEventListener("keydown", handleKey);
+        document.body.style.overflow = overflowSebelumnya;
+      };
+    }
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [aktif, terkunci]);
+
+  function bukaPratinjau(item) {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+    setAktif(item);
+    setTerkunci(false);
+  }
+
+  function jadwalkanTutupPratinjau() {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => {
+      setAktif((sekarang) => (terkunci ? sekarang : null));
+    }, 120);
+  }
+
+  function batalkanTutupPratinjau() {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  }
+
+  function bukaTerkunci(item) {
+    batalkanTutupPratinjau();
+    setAktif(item);
+    setTerkunci(true);
+  }
+
+  function tutup() {
+    batalkanTutupPratinjau();
+    setAktif(null);
+    setTerkunci(false);
+  }
 
   if (!items || items.length === 0) {
     return (
@@ -45,7 +103,11 @@ export default function GaleriGrid({ items }) {
           <button
             key={item.id}
             type="button"
-            onClick={() => setAktif(item)}
+            onClick={() => bukaTerkunci(item)}
+            onMouseEnter={() => hoverCapable && bukaPratinjau(item)}
+            onMouseLeave={() => hoverCapable && jadwalkanTutupPratinjau()}
+            onFocus={() => hoverCapable && bukaPratinjau(item)}
+            onBlur={() => hoverCapable && jadwalkanTutupPratinjau()}
             className="group relative aspect-square overflow-hidden rounded-xl bg-slate-100 text-left"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -66,11 +128,13 @@ export default function GaleriGrid({ items }) {
       {aktif && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-navy-dark/90 p-4 animate-fadeIn"
-          onClick={() => setAktif(null)}
+          onClick={tutup}
+          onMouseEnter={() => hoverCapable && batalkanTutupPratinjau()}
+          onMouseLeave={() => hoverCapable && jadwalkanTutupPratinjau()}
         >
           <button
             type="button"
-            onClick={() => setAktif(null)}
+            onClick={tutup}
             aria-label="Tutup"
             className="absolute right-4 top-4 text-white/70 hover:text-white"
           >
@@ -78,10 +142,10 @@ export default function GaleriGrid({ items }) {
           </button>
 
           <div
-            className="max-h-full w-full max-w-3xl overflow-hidden rounded-2xl bg-white"
+            className="mx-auto max-h-full w-full max-w-3xl overflow-hidden rounded-2xl bg-white"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="max-h-[60vh] w-full bg-slate-900">
+            <div className="flex max-h-[60vh] w-full items-center justify-center bg-slate-900">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={aktif.foto_url}
