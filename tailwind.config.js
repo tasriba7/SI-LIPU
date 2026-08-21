@@ -44,12 +44,20 @@ module.exports = {
           "0%": { opacity: "0", transform: "translateY(12px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        pageIn: {
+          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.6s ease-out forwards",
         fadeOut: "fadeOut 0.5s ease-in forwards",
         pulseSoft: "pulseSoft 1.6s ease-in-out infinite",
         fadeUp: "fadeUp 0.7s ease-out forwards",
+        // Transisi halus saat pindah halaman (dipakai di app/template.js) —
+        // sengaja singkat & tanpa jarak geser besar supaya terasa responsif,
+        // bukan bikin pengguna menunggu.
+        pageIn: "pageIn 0.28s ease-out forwards",
       },
     },
   },
