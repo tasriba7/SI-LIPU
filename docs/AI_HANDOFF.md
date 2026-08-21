@@ -61,8 +61,7 @@ aturan jika sistem ini direplikasi ke desa lain.
 ## 3. STATUS TERKINI
 > ⚠️ AI/developer yang mengerjakan WAJIB mengedit bagian ini setiap selesai kerja.
 
-**Terakhir diupdate:** 20 Agustus 2026 (setelah implementasi Pengaturan Desa +
-identitas dinamis di beranda)
+**Terakhir diupdate:** 22 Agustus 2026 (setelah implementasi Galeri Kegiatan Desa)
 **Fase sekarang:** Fase 0, 1, 1.5, dan 1c selesai. Fase 2 (Surat) berjalan lewat 2 jalur
 (lama & baru — lihat catatan migrasi di bawah).
 
@@ -95,6 +94,16 @@ identitas dinamis di beranda)
       publik-baca/staf-tulis). Beranda publik (`app/page.js`) sekarang
       menampilkan identitas ini secara dinamis (nama desa teks besar +
       wilayah administratif + foto latar), bukan hardcode "Tatakalai".
+- [x] **Galeri Kegiatan Desa** (`/dashboard/galeri`) — tabel `galeri_kegiatan`
+      (migration 0013), admin unggah foto kegiatan (Supabase Storage bucket
+      `desa-media`, pakai ulang bucket & kebijakan yang sama dengan foto
+      latar/logo, prefix nama file `galeri-`) + judul + rincian (opsional),
+      tanpa perlu developer. Beranda publik menampilkan 8 foto terbaru dalam
+      grid dengan lightbox (klik foto untuk lihat versi besar + rincian),
+      section ini otomatis sembunyi kalau belum ada foto sama sekali.
+      Halaman publik penuh di `/galeri` (semua foto) + tautan di menu
+      header publik & tautan "Lihat semua galeri" di beranda kalau foto
+      lebih dari 8.
 
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,
@@ -107,6 +116,8 @@ tetap jalan — tapi jalur BARU untuk warga adalah `/layanan` (generik, Form Bui
 - [ ] Jalankan migrasi `0010_config_desa.sql` di Supabase project instance ini (belum
       otomatis — lihat langkah di `supabase/migrations/`), lalu isi Pengaturan Desa pertama
       kali lewat `/dashboard/pengaturan-desa` (baris `config_desa` default masih kosong).
+- [ ] Jalankan migrasi `0013_galeri.sql` di Supabase project instance ini, lalu admin bisa
+      langsung mulai isi foto lewat `/dashboard/galeri`.
 - [ ] Pertimbangkan batasi menu "Pengaturan Desa" hanya untuk role `kepala_desa`/
       `sekretaris_desa` (saat ini semua staf yang login bisa ubah, sama seperti modul lain).
 - [ ] Migrasi data lama dari `pengajuan_surat` ke `pengajuan_layanan` (opsional, kalau admin

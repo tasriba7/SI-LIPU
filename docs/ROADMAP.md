@@ -69,6 +69,9 @@ kecuali diminta pemilik proyek.
       `/dashboard/pengaturan-desa` + tabel `config_desa` (dikerjakan lebih awal dari jadwal
       karena jadi identitas visual utama beranda, lihat `AI_HANDOFF.md`). Konten profil desa
       yang lebih lengkap (sejarah, visi-misi, struktur organisasi, dll) belum dikerjakan.
+- [x] Galeri Kegiatan Desa — admin unggah foto + judul + rincian (opsional) lewat
+      `/dashboard/galeri`, tampil di beranda (8 foto terbaru) dan halaman publik `/galeri`
+      (semua foto), dengan lightbox untuk lihat versi besar.
 - (daftar ini akan berkembang — tambahkan sesuai kebutuhan desa)
 
 ---
