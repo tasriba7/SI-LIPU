@@ -17,6 +17,10 @@ export async function simpanPengaturanDesa(prevState, formData) {
   const hapusFoto = formData.get("hapus_foto") === "1";
   const logo = formData.get("logo");
   const hapusLogo = formData.get("hapus_logo") === "1";
+  const kepala_desa_nama = formData.get("kepala_desa_nama")?.toString().trim();
+  const kepala_desa_sambutan = formData.get("kepala_desa_sambutan")?.toString().trim();
+  const kepalaDesaFoto = formData.get("kepala_desa_foto");
+  const hapusFotoKepalaDesa = formData.get("hapus_kepala_desa_foto") === "1";
 
   if (!nama_desa) {
     return { error: "Nama desa/kelurahan wajib diisi." };
@@ -34,6 +38,8 @@ export async function simpanPengaturanDesa(prevState, formData) {
     kabupaten: kabupaten || null,
     kecamatan: kecamatan || null,
     alamat: alamat || null,
+    kepala_desa_nama: kepala_desa_nama || null,
+    kepala_desa_sambutan: kepala_desa_sambutan || null,
     updated_by: user?.id ?? null,
   };
 
@@ -101,6 +107,38 @@ export async function simpanPengaturanDesa(prevState, formData) {
     dataUpdate.logo_url = publicUrlData.publicUrl;
   } else if (hapusLogo) {
     dataUpdate.logo_url = null;
+  }
+
+  // Foto Kepala Desa — pola upload sama persis dengan foto/logo di atas.
+  if (kepalaDesaFoto && typeof kepalaDesaFoto === "object" && kepalaDesaFoto.size > 0) {
+    const ekstensi = (kepalaDesaFoto.name?.split(".").pop() || "").toLowerCase();
+
+    if (!EKSTENSI_DIIZINKAN.includes(ekstensi)) {
+      return { error: "Format foto Kepala Desa harus JPG, PNG, atau WEBP." };
+    }
+    if (kepalaDesaFoto.size > UKURAN_MAKS_MB * 1024 * 1024) {
+      return { error: `Ukuran foto Kepala Desa maksimal ${UKURAN_MAKS_MB}MB.` };
+    }
+
+    const namaFile = `kepala-desa-${Date.now()}.${ekstensi}`;
+    const { error: errorUpload } = await supabase.storage
+      .from("desa-media")
+      .upload(namaFile, kepalaDesaFoto, {
+        upsert: true,
+        contentType: kepalaDesaFoto.type || undefined,
+      });
+
+    if (errorUpload) {
+      return { error: "Gagal mengunggah foto Kepala Desa: " + errorUpload.message };
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("desa-media")
+      .getPublicUrl(namaFile);
+
+    dataUpdate.kepala_desa_foto_url = publicUrlData.publicUrl;
+  } else if (hapusFotoKepalaDesa) {
+    dataUpdate.kepala_desa_foto_url = null;
   }
 
   const { error } = await supabase
