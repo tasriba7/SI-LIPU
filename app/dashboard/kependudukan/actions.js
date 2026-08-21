@@ -50,6 +50,9 @@ export async function tambahWarga(prevState, formData) {
     if (error.code === "23505") {
       return { error: "NIK ini sudah terdaftar di data kependudukan." };
     }
+    if (error.code === "P0001") {
+      return { error: error.message };
+    }
     return { error: "Gagal menyimpan data warga. Coba lagi." };
   }
 
@@ -110,6 +113,9 @@ export async function editWarga(prevState, formData) {
   if (error) {
     if (error.code === "23505") {
       return { error: "NIK ini sudah dipakai warga lain." };
+    }
+    if (error.code === "P0001") {
+      return { error: error.message };
     }
     return { error: "Gagal menyimpan perubahan. Coba lagi." };
   }
@@ -204,6 +210,8 @@ export async function importWarga(prevState, formData) {
     if (error) {
       if (error.code === "23505") {
         gagal.push(`Baris ${nomorBaris}: NIK "${baris.nik}" sudah terdaftar di data kependudukan.`);
+      } else if (error.code === "P0001") {
+        gagal.push(`Baris ${nomorBaris}: ${error.message}`);
       } else {
         gagal.push(`Baris ${nomorBaris}: gagal disimpan (${error.message}).`);
       }
