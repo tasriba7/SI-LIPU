@@ -5,11 +5,15 @@ import TombolKosongkanSlot from "./TombolKosongkanSlot";
 
 export default async function PosisiPerangkatPage() {
   const supabase = await createClient();
-  const { data: daftar } = await supabase
+  const { data: daftar, error } = await supabase
     .from("posisi_perangkat")
-    .select("id, role, wilayah, status, profiles(nama)")
+    .select("id, role, wilayah, status, profiles!profile_id(nama)")
     .order("role")
     .order("wilayah");
+
+  if (error) {
+    console.error("Gagal memuat daftar posisi_perangkat:", error);
+  }
 
   return (
     <div className="space-y-6">
@@ -23,6 +27,12 @@ export default async function PosisiPerangkatPage() {
       </div>
 
       <FormTambahSlot />
+
+      {error && (
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+          Gagal memuat daftar slot: {error.message}
+        </p>
+      )}
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
         <table className="w-full min-w-[560px] text-sm">
