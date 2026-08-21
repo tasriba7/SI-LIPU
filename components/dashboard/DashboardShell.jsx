@@ -16,8 +16,9 @@ import {
   IconUserPlus,
   IconSettings,
   IconImage,
+  IconKey,
 } from "@/components/icons";
-import { ROLE_BADGE_CLASS, labelJabatan } from "@/lib/roles";
+import { ROLE_BADGE_CLASS, isAdminRole, labelJabatan } from "@/lib/roles";
 
 const MODUL_LAYANAN = [
   { nama: "Pengajuan Layanan", icon: IconMail, href: "/dashboard/layanan" },
@@ -31,6 +32,7 @@ const MODUL_LAYANAN = [
 ];
 
 const MODUL_PENGATURAN = [
+  { nama: "Kelola Akun Staf", icon: IconKey, href: "/dashboard/kelola-akun" },
   { nama: "Pengaturan Desa", icon: IconSettings, href: "/dashboard/pengaturan-desa" },
 ];
 
@@ -51,6 +53,12 @@ export default function DashboardShell({ profile, logoutAction, children }) {
 
   const badgeClass =
     ROLE_BADGE_CLASS[profile?.role] ?? "bg-white/10 text-white/70";
+
+  const modulPengaturan = MODUL_PENGATURAN.filter(
+    (m) =>
+      (m.href !== "/dashboard/kelola-akun" && m.href !== "/dashboard/pengaturan-desa") ||
+      isAdminRole(profile?.role)
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 md:flex">
@@ -135,7 +143,7 @@ export default function DashboardShell({ profile, logoutAction, children }) {
             Pengaturan
           </p>
           <ul className="space-y-1">
-            {MODUL_PENGATURAN.map(({ nama, icon: Icon, href }) => (
+            {modulPengaturan.map(({ nama, icon: Icon, href }) => (
               <li key={nama}>
                 <Link
                   href={href}
