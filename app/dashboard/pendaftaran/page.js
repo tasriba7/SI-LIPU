@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABELS } from "@/lib/roles";
 import BarisPendaftaran from "./BarisPendaftaran";
 import SetujuiSemua from "./SetujuiSemua";
+import TombolHapusRiwayat from "./TombolHapusRiwayat";
+import HapusSemuaRiwayat from "./HapusSemuaRiwayat";
 
 export default async function PendaftaranAkunPage() {
   const supabase = await createClient();
@@ -40,7 +42,10 @@ export default async function PendaftaranAkunPage() {
 
       {selesai.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-slate-600">Riwayat</h2>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-sm font-semibold text-slate-600">Riwayat</h2>
+            <HapusSemuaRiwayat jumlah={selesai.length} />
+          </div>
           <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
             <table className="w-full min-w-[560px] text-sm">
               <thead className="bg-slate-50 text-left text-xs uppercase text-slate-400">
@@ -48,6 +53,7 @@ export default async function PendaftaranAkunPage() {
                   <th className="px-4 py-3 font-medium">Nama</th>
                   <th className="px-4 py-3 font-medium">Posisi</th>
                   <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 text-right font-medium">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -67,6 +73,9 @@ export default async function PendaftaranAkunPage() {
                       >
                         {p.status === "disetujui" ? "Disetujui" : "Ditolak"}
                       </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <TombolHapusRiwayat id={p.id} nama={p.nama_lengkap} />
                     </td>
                   </tr>
                 ))}
