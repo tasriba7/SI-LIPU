@@ -45,16 +45,23 @@ export default async function KelolaAkunPage() {
     );
   }
 
-  const { data: profiles, error } = await supabase
-    .from("profiles")
-    .select("id, nama, role, jabatan, dusun, created_at")
-    .order("role")
-    .order("nama");
-
+  // Daftar profil diambil pakai admin client (melewati RLS). Tabel profiles
+  // hanya mengizinkan staf melihat baris miliknya sendiri, jadi kalau pakai
+  // client biasa, akun Kadus/Ketua RT yang baru disetujui tidak ikut muncul.
+  // Aman karena akses halaman ini sudah dibatasi ke admin di atas (server-side).
   let daftar = [];
+  let error = null;
   let errAuth = null;
   try {
     const adminClient = createAdminClient();
+
+    const { data: profiles, error: errProfiles } = await adminClient
+      .from("profiles")
+      .select("id, nama, role, jabatan, dusun, created_at")
+      .order("role")
+      .order("nama");
+    if (errProfiles) error = errProfiles;
+
     const authUsers = await ambilSemuaAuthUsers(adminClient);
     const emailById = new Map(authUsers.map((u) => [u.id, u.email]));
     daftar = (profiles ?? []).map((p) => ({
