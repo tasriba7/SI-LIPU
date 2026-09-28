@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { aturPasswordAkun } from "./actions";
 import { ROLE_BADGE_CLASS, labelJabatan } from "@/lib/roles";
 import { IconKey } from "@/components/icons";
+import CopyButton from "@/components/CopyButton";
 
 export default function BarisAkun({ akun, checked, onToggleCheck }) {
   const [buka, setBuka] = useState(false);
@@ -16,6 +17,12 @@ export default function BarisAkun({ akun, checked, onToggleCheck }) {
   const badgeClass = ROLE_BADGE_CLASS[akun.role] ?? "bg-slate-100 text-slate-500";
 
   function handleSubmit() {
+    if (
+      mode === "acak" &&
+      !confirm(`Buat password acak baru untuk ${akun.nama}? Password lama langsung tidak berlaku.`)
+    ) {
+      return;
+    }
     setError(null);
     setHasil(null);
     const fd = new FormData();
@@ -118,7 +125,10 @@ export default function BarisAkun({ akun, checked, onToggleCheck }) {
             {hasil && (
               <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-xs">
                 <p className="font-medium text-emerald-800">Password baru:</p>
-                <p className="font-mono text-emerald-700">{hasil}</p>
+                <div className="mt-0.5 flex items-center gap-2">
+                  <p className="break-all font-mono text-sm text-emerald-700">{hasil}</p>
+                  <CopyButton text={hasil} />
+                </div>
                 <p className="mt-1 text-emerald-600">
                   Catat/sampaikan sekarang — tidak ditampilkan lagi setelah ini.
                 </p>
