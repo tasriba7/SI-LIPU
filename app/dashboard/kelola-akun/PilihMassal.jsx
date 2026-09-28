@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { aturPasswordMassal } from "./actions";
 import BarisAkun from "./BarisAkun";
+import CopyButton from "@/components/CopyButton";
 
 export default function PilihMassal({ daftar }) {
   const [terpilih, setTerpilih] = useState(new Set());
@@ -75,6 +76,16 @@ export default function PilihMassal({ daftar }) {
             Password baru dibuat untuk {hasilMassal.filter((h) => h.password).length} akun.
             Catat/sampaikan sekarang — tidak ditampilkan lagi setelah ini.
           </p>
+          <CopyButton
+            label="Salin semua"
+            text={hasilMassal
+              .filter((h) => h.password)
+              .map((h) => {
+                const a = byId.get(h.userId);
+                return `${a?.nama || h.userId} (${a?.email || "-"}): ${h.password}`;
+              })
+              .join("\n")}
+          />
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <tbody className="divide-y divide-emerald-100">
@@ -85,6 +96,9 @@ export default function PilihMassal({ daftar }) {
                     </td>
                     <td className="py-1 pr-4 font-mono text-emerald-700">
                       {h.password || `Gagal: ${h.error}`}
+                    </td>
+                    <td className="py-1">
+                      {h.password && <CopyButton text={h.password} />}
                     </td>
                   </tr>
                 ))}
