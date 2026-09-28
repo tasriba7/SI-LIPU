@@ -111,8 +111,7 @@ export async function setujuiPendaftaran(prevState, formData) {
 
   if (result.error) return { error: result.error };
 
-  revalidatePath("/dashboard/pendaftaran");
-  revalidatePath("/dashboard/posisi");
+  revalidatePath("/dashboard", "layout");
 
   return result;
 }
@@ -165,8 +164,7 @@ export async function setujuiSemuaPendaftaran() {
     });
   }
 
-  revalidatePath("/dashboard/pendaftaran");
-  revalidatePath("/dashboard/posisi");
+  revalidatePath("/dashboard", "layout");
 
   return { success: true, hasil };
 }
@@ -194,6 +192,44 @@ export async function tolakPendaftaran(prevState, formData) {
     return { error: "Gagal menolak pendaftaran." };
   }
 
-  revalidatePath("/dashboard/pendaftaran");
+  revalidatePath("/dashboard", "layout");
   return { success: true };
+}
+
+/**
+ * Hapus satu riwayat pendaftaran yang SUDAH diproses (disetujui/ditolak).
+ * Pendaftaran berstatus "pending" tidak boleh dihapus lewat sini.
+ * Menghapus riwayat TIDAK menghapus akun yang sudah dibuat.
+ */
+export async function hapusRiwayatPendaftaran(pendaftaranId) {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("pendaftaran_akun")
+    .delete()
+    .eq("id", pendaftaranId)
+    .neq("status", "pending")
+    .select("id");
+
+  if (error) return { error: "Gagal menghapus riwayat." };
+  if (!data?.length) return { error: "Riwayat tidak ditemukan atau belum diproses." };
+
+  revalidatePath("/dashboard", "layout");
+  return { success: true };
+}
+
+/** Bersihkan seluruh riwayat (semua yang sudah disetujui/ditolak). */
+export async function hapusSemuaRiwayatPendaftaran() {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from("pendaftaran_akun")
+    .delete()
+    .neq("status", "pending")
+    .select("id");
+
+  if (error) return { error: "Gagal membersihkan riwayat." };
+
+  revalidatePath("/dashboard", "layout");
+  return { success: true, jumlah: data?.length ?? 0 };
 }
