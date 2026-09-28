@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   IconMenu,
   IconClose,
@@ -43,13 +44,21 @@ function sapaanWaktu(jam) {
   return "Selamat malam";
 }
 
-export default function DashboardShell({ profile, logoutAction, children }) {
+export default function DashboardShell({ profile, logoutAction, jumlahPendaftaran = 0, children }) {
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sapaan, setSapaan] = useState("Selamat datang");
 
   useEffect(() => {
     setSapaan(sapaanWaktu(new Date().getHours()));
   }, []);
+
+  // Cek ulang badge notifikasi tiap 30 detik supaya pendaftaran baru
+  // muncul tanpa admin harus pindah halaman / refresh manual.
+  useEffect(() => {
+    const t = setInterval(() => router.refresh(), 30000);
+    return () => clearInterval(t);
+  }, [router]);
 
   const badgeClass =
     ROLE_BADGE_CLASS[profile?.role] ?? "bg-white/10 text-white/70";
@@ -123,6 +132,14 @@ export default function DashboardShell({ profile, logoutAction, children }) {
                   >
                     <Icon className="h-4 w-4" />
                     <span className="flex-1">{nama}</span>
+                    {href === "/dashboard/pendaftaran" && jumlahPendaftaran > 0 && (
+                      <span
+                        aria-label={`${jumlahPendaftaran} pendaftaran menunggu`}
+                        className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white"
+                      >
+                        {jumlahPendaftaran > 99 ? "99+" : jumlahPendaftaran}
+                      </span>
+                    )}
                   </Link>
                 </li>
               ) : (
