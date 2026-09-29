@@ -73,9 +73,11 @@ export default function PublicHeader() {
 
   // Tutup drawer mobile otomatis kalau lebar layar melewati breakpoint
   // desktop (mis. rotasi tablet) supaya tidak "nyangkut" kebuka.
+  // Angka 1280 di bawah harus SAMA dengan breakpoint "xl:" yang dipakai
+  // pada nav desktop, tombol toggle, dan dropdown mobile di bawah.
   useEffect(() => {
     const onResize = () => {
-      if (window.innerWidth >= 1024) setMenuOpen(false);
+      if (window.innerWidth >= 1280) setMenuOpen(false);
     };
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
@@ -91,8 +93,13 @@ export default function PublicHeader() {
           surat" yang dipakai di hero, sekaligus penanda identitas resmi desa. */}
       <div className="h-[3px] w-full bg-gradient-to-r from-gold via-gold-light to-gold" />
 
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-6">
-        <Link href="/" className="group flex min-w-0 shrink items-center gap-2.5">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3 sm:px-6">
+        {/* shrink-0: nama desa TIDAK BOLEH ikut menyempit demi memberi ruang
+            ke menu di sebelahnya (dulu ini yang bikin "Desa Tatakalai"
+            terpotong jadi "Desa Tatakal..." di layar lebar sekalipun,
+            karena <nav> di sampingnya menolak menyempit di bawah lebar
+            kontennya sendiri, jadi semua tekanan ruang jatuh ke sini). */}
+        <Link href="/" className="group flex shrink-0 items-center gap-2.5">
           {/* Logo desa kalau sudah diunggah admin lewat /dashboard/pengaturan-desa,
               kalau belum tetap logo aplikasi SI-LIPU sebagai identitas bawaan. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -103,30 +110,36 @@ export default function PublicHeader() {
             height={34}
             className="h-8 w-8 shrink-0 rounded-full object-contain ring-1 ring-navy/10 transition group-hover:ring-gold/60 sm:h-9 sm:w-9"
           />
-          <span className="min-w-0 leading-tight">
-            <span className="block truncate font-display text-[13.5px] font-semibold tracking-wide text-navy sm:text-sm">
+          {/* max-w di sini murni jaring pengaman untuk nama desa yang SANGAT
+              panjang (bukan lagi penyebab utama pemotongan) — nama seperti
+              "Desa Tatakalai" akan selalu tampil penuh. */}
+          <span className="leading-tight">
+            <span className="block max-w-[240px] truncate font-display text-[13.5px] font-semibold tracking-wide text-navy sm:max-w-[320px] sm:text-sm">
               {config.nama_desa
                 ? `${config.jenis_wilayah || "Desa"} ${config.nama_desa}`
                 : "SI-LIPU"}
             </span>
-            <span className="block truncate font-mono text-[10px] uppercase tracking-[0.18em] text-slate-400">
+            <span className="block max-w-[240px] truncate font-mono text-[10px] uppercase tracking-[0.18em] text-slate-400 sm:max-w-[320px]">
               {config.nama_desa ? "Portal Layanan Digital Desa" : "Sistem Informasi Layanan Interaktif"}
             </span>
           </span>
         </Link>
 
-        {/* Menu desktop — baru pindah ke tata letak baris tunggal di layar
-            lebar (lg) supaya tujuh label menu tidak terpotong dua baris,
-            yang sebelumnya bikin header jadi tinggi dan mendorong judul
-            hero turun terlalu jauh di layar pendek. */}
-        <nav className="hidden items-center gap-1 lg:flex">
+        {/* Menu desktop — baru muncul mulai layar sangat lebar (xl, ≥1280px)
+            supaya nama desa di atas selalu punya ruang penuh; di bawah xl
+            dipakai menu hamburger (lihat <nav> dropdown di bawah) yang tidak
+            butuh ruang sama sekali. min-w-0 + flex-wrap di sini murni jaring
+            pengaman tambahan: kalau suatu saat nama desa sangat panjang tetap
+            butuh ruang lebih, menu ini akan turun ke baris kedua dulu,
+            bukan memotong nama desa. */}
+        <nav className="hidden min-w-0 flex-wrap items-center justify-end gap-1 xl:flex">
           {MENU.map((item) => {
             const aktif = menuAktif(item.href, pathname);
             return item.href ? (
               <Link
                 key={item.nama}
                 href={item.href}
-                className={`group relative whitespace-nowrap rounded-md px-3 py-2 text-[13px] font-medium tracking-wide transition-colors ${
+                className={`group relative whitespace-nowrap rounded-md px-2.5 py-2 text-[13px] font-medium tracking-wide transition-colors ${
                   aktif ? "text-navy" : "text-slate-500 hover:text-navy"
                 }`}
               >
@@ -140,7 +153,7 @@ export default function PublicHeader() {
             ) : (
               <span
                 key={item.nama}
-                className="cursor-not-allowed whitespace-nowrap rounded-md px-3 py-2 text-[13px] font-medium tracking-wide text-slate-300"
+                className="cursor-not-allowed whitespace-nowrap rounded-md px-2.5 py-2 text-[13px] font-medium tracking-wide text-slate-300"
                 title="Segera hadir"
               >
                 {item.nama}
@@ -152,11 +165,12 @@ export default function PublicHeader() {
           </LoginButton>
         </nav>
 
-        {/* Tombol menu mobile/tablet */}
+        {/* Tombol menu mobile/tablet — muncul di bawah xl, berpasangan
+            dengan breakpoint nav desktop di atas. */}
         <button
           type="button"
           onClick={() => setMenuOpen((v) => !v)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-navy transition hover:bg-navy/5 lg:hidden"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-navy transition hover:bg-navy/5 xl:hidden"
           aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
           aria-expanded={menuOpen}
         >
@@ -173,7 +187,7 @@ export default function PublicHeader() {
       <nav
         className={`${
           menuOpen ? "flex animate-fadeUp" : "hidden"
-        } flex-col gap-0.5 border-t border-slate-100 bg-white px-4 py-3 shadow-lg shadow-navy/5 lg:hidden`}
+        } flex-col gap-0.5 border-t border-slate-100 bg-white px-4 py-3 shadow-lg shadow-navy/5 xl:hidden`}
       >
         {MENU.map((item) => {
           const aktif = menuAktif(item.href, pathname);
