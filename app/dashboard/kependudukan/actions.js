@@ -244,6 +244,21 @@ export async function editWarga(prevState, formData) {
 
 const KOLOM_WAJIB = ["nik", "nama_lengkap", "tanggal_lahir"];
 
+// Ubah berbagai penulisan jenis kelamin di file Excel jadi "L" / "P" (nilai
+// yang diterima database). Yang diterima, tanpa peduli huruf besar/kecil,
+// spasi, tanda hubung, atau titik dua di depan:
+//   Laki-laki : "L", "Laki-laki", "laki-laki", "Laki-Laki", "laki laki", "Pria"
+//   Perempuan : "P", "Perempuan", "perempuan", "PEREMPUAN", "Wanita"
+// Mengembalikan null kalau tidak dikenali (kemudian ditolak dengan pesan jelas).
+function normalisasiJenisKelamin(nilai) {
+  if (nilai === null || nilai === undefined) return null;
+  // Buang semua selain huruf: ": Laki-Laki " -> "lakilaki"
+  const k = String(nilai).toLowerCase().replace(/[^a-z]/g, "");
+  if (["l", "lk", "laki", "lakilaki", "pria", "male", "m"].includes(k)) return "L";
+  if (["p", "pr", "perempuan", "wanita", "female", "f"].includes(k)) return "P";
+  return null;
+}
+
 function bersihkanBarisImport(raw, nomorBaris) {
   const ambil = (k) => {
     const v = raw?.[k];
@@ -281,8 +296,14 @@ function bersihkanBarisImport(raw, nomorBaris) {
   if (Number.isNaN(Date.parse(baris.tanggal_lahir))) {
     return { error: `Baris ${nomorBaris}: tanggal lahir "${baris.tanggal_lahir}" tidak valid.` };
   }
-  if (baris.jenis_kelamin && !["L", "P"].includes(baris.jenis_kelamin)) {
-    return { error: `Baris ${nomorBaris}: jenis kelamin harus "L" atau "P".` };
+  if (baris.jenis_kelamin) {
+    const jk = normalisasiJenisKelamin(baris.jenis_kelamin);
+    if (!jk) {
+      return {
+        error: `Baris ${nomorBaris}: jenis kelamin "${baris.jenis_kelamin}" tidak dikenali. Isi dengan Laki-laki / Perempuan (atau L / P).`,
+      };
+    }
+    baris.jenis_kelamin = jk;
   }
 
   return { data: baris };
