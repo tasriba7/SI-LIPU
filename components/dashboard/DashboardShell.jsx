@@ -44,7 +44,13 @@ function sapaanWaktu(jam) {
   return "Selamat malam";
 }
 
-export default function DashboardShell({ profile, logoutAction, jumlahPendaftaran = 0, children }) {
+export default function DashboardShell({
+  profile,
+  logoutAction,
+  jumlahPendaftaran = 0,
+  jumlahDataKurang = 0,
+  children,
+}) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sapaan, setSapaan] = useState("Selamat datang");
@@ -138,6 +144,15 @@ export default function DashboardShell({ profile, logoutAction, jumlahPendaftara
                         className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white"
                       >
                         {jumlahPendaftaran > 99 ? "99+" : jumlahPendaftaran}
+                      </span>
+                    )}
+                    {href === "/dashboard/kependudukan" && jumlahDataKurang > 0 && (
+                      <span
+                        aria-label={`${jumlahDataKurang} data warga belum lengkap`}
+                        title="Ada data warga yang belum lengkap"
+                        className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold leading-none text-white"
+                      >
+                        {jumlahDataKurang > 99 ? "99+" : jumlahDataKurang}
                       </span>
                     )}
                   </Link>
