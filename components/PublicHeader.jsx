@@ -119,7 +119,8 @@ export default function PublicHeader() {
         </Link>
 
         {/* Menu desktop (≥1024px) — kapsul abu-abu lembut, menu aktif
-            tampil sebagai pil navy. Menu "segera hadir" hanya ditampilkan
+            tampil sebagai pil navy. Saat kursor diarahkan, menu membesar
+            halus (scale 110%) dan latarnya berubah. Menu "segera hadir" hanya ditampilkan
             di layar xl supaya di lg semua menu aktif tetap muat sejajar. */}
         <nav
           aria-label="Menu utama"
@@ -138,10 +139,10 @@ export default function PublicHeader() {
                 key={item.nama}
                 href={item.href}
                 aria-current={aktif ? "page" : undefined}
-                className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-200 xl:px-4 ${
+                className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-all duration-300 ease-out hover:scale-110 motion-reduce:transform-none xl:px-4 ${
                   aktif
-                    ? "bg-navy text-white shadow-sm shadow-navy/30"
-                    : "text-slate-600 hover:bg-white hover:text-navy hover:shadow-sm"
+                    ? "bg-navy text-white shadow-sm shadow-navy/30 hover:bg-navy-light hover:shadow-md hover:shadow-navy/40"
+                    : "text-slate-600 hover:bg-white hover:text-navy hover:shadow-md hover:shadow-navy/15 hover:ring-1 hover:ring-gold/50"
                 }`}
               >
                 {label}
