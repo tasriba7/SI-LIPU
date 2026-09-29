@@ -4,6 +4,7 @@ import { IconPlus, IconUsers, IconSearch } from "@/components/icons";
 import TombolHapusWarga from "./TombolHapusWarga";
 import ImportWargaButton from "./ImportWargaButton";
 import ExportWargaButton from "./ExportWargaButton";
+import { ringkasKolomKosong } from "@/lib/kelengkapan";
 
 function inisial(nama) {
   if (!nama) return "?";
@@ -16,12 +17,18 @@ function inisial(nama) {
 export default async function KependudukanPage({ searchParams }) {
   const sp = await searchParams;
   const cari = sp?.cari?.trim() || "";
+  const hanyaKurang = sp?.kurang === "1";
   const supabase = await createClient();
 
+  // Dibaca dari view `warga_kelengkapan` (bukan tabel `warga` langsung) supaya
+  // ikut dapat info siapa penginput dan kolom apa yang masih kosong. View ini
+  // security_invoker = true, jadi tetap mengikuti RLS: Kadus/Ketua RT otomatis
+  // hanya melihat wilayahnya, staf desa (admin) melihat semua wilayah —
+  // termasuk yang diinput Kadus/Ketua RT, tanpa perlu langkah tambahan apa pun.
   let query = supabase
-    .from("warga")
+    .from("warga_kelengkapan")
     .select(
-      "id, nik, nama_lengkap, jenis_kelamin, dusun, rt, rw, tanggal_lahir, no_hp, status_dalam_kk"
+      "id, nik, nama_lengkap, jenis_kelamin, dusun, rt, rw, tanggal_lahir, no_hp, status_dalam_kk, dibuat_oleh_nama, dibuat_oleh_role, jumlah_kosong, kolom_kosong"
     )
     .order("nama_lengkap")
     .limit(50);
@@ -29,11 +36,18 @@ export default async function KependudukanPage({ searchParams }) {
   if (cari) {
     query = query.or(`nama_lengkap.ilike.%${cari}%,nik.ilike.%${cari}%`);
   }
+  if (hanyaKurang) {
+    query = query.gt("jumlah_kosong", 0);
+  }
 
   const { data: daftar } = await query;
   const { count: totalWarga } = await supabase
     .from("warga")
     .select("id", { count: "exact", head: true });
+  const { count: totalKurang } = await supabase
+    .from("warga_kelengkapan")
+    .select("id", { count: "exact", head: true })
+    .gt("jumlah_kosong", 0);
 
   return (
     <div className="space-y-6">
@@ -53,6 +67,14 @@ export default async function KependudukanPage({ searchParams }) {
               <p className="mt-1.5 text-xs font-medium text-navy">
                 {totalWarga.toLocaleString("id-ID")} warga terdaftar
               </p>
+            )}
+            {typeof totalKurang === "number" && totalKurang > 0 && (
+              <Link
+                href="/dashboard/kependudukan?kurang=1"
+                className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-amber-600 hover:underline"
+              >
+                ⚠ {totalKurang.toLocaleString("id-ID")} data belum lengkap — klik untuk lihat
+              </Link>
             )}
           </div>
         </div>
@@ -103,6 +125,20 @@ export default async function KependudukanPage({ searchParams }) {
             Reset pencarian
           </Link>
         )}
+        <Link
+          href={
+            hanyaKurang
+              ? `/dashboard/kependudukan${cari ? `?cari=${encodeURIComponent(cari)}` : ""}`
+              : `/dashboard/kependudukan?kurang=1${cari ? `&cari=${encodeURIComponent(cari)}` : ""}`
+          }
+          className={`ml-auto rounded-lg border px-3 py-1.5 text-xs font-medium ${
+            hanyaKurang
+              ? "border-amber-300 bg-amber-50 text-amber-700"
+              : "border-slate-300 text-slate-500 hover:bg-slate-50"
+          }`}
+        >
+          {hanyaKurang ? "✓ Menampilkan yang belum lengkap saja" : "Tampilkan yang belum lengkap saja"}
+        </Link>
       </form>
 
       {/* Table */}
@@ -117,6 +153,8 @@ export default async function KependudukanPage({ searchParams }) {
                 <th className="px-4 py-3 font-medium">Dusun / RT-RW</th>
                 <th className="px-4 py-3 font-medium">Tanggal Lahir</th>
                 <th className="px-4 py-3 font-medium">No. HP</th>
+                <th className="px-4 py-3 font-medium">Ditambahkan oleh</th>
+                <th className="px-4 py-3 font-medium">Kelengkapan</th>
                 <th className="px-4 py-3 font-medium"></th>
               </tr>
             </thead>
@@ -165,6 +203,38 @@ export default async function KependudukanPage({ searchParams }) {
                       : "-"}
                   </td>
                   <td className="px-4 py-3 text-slate-500">{w.no_hp || "-"}</td>
+                  <td className="px-4 py-3 text-slate-500">
+                    {w.dibuat_oleh_nama ? (
+                      <>
+                        <p className="leading-tight text-slate-700">{w.dibuat_oleh_nama}</p>
+                        {w.dibuat_oleh_role && (
+                          <p className="text-[11px] leading-tight text-slate-400">
+                            {w.dibuat_oleh_role === "kadus"
+                              ? "Kadus"
+                              : w.dibuat_oleh_role === "ketua_rt"
+                                ? "Ketua RT"
+                                : w.dibuat_oleh_role}
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-xs text-slate-300">Data lama / impor</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    {w.jumlah_kosong > 0 ? (
+                      <span
+                        className="cursor-help rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700"
+                        title={`Kolom belum diisi: ${ringkasKolomKosong(w.kolom_kosong, 20)}`}
+                      >
+                        Kurang {w.jumlah_kosong} kolom
+                      </span>
+                    ) : (
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                        Lengkap
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-3">
                       <Link
@@ -180,7 +250,7 @@ export default async function KependudukanPage({ searchParams }) {
               ))}
               {(daftar ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-16 text-center">
+                  <td colSpan={9} className="px-4 py-16 text-center">
                     <div className="mx-auto flex max-w-xs flex-col items-center gap-2 text-slate-400">
                       <IconUsers className="h-8 w-8" />
                       <p className="text-sm">
