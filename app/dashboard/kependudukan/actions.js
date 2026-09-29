@@ -309,6 +309,27 @@ function bersihkanBarisImport(raw, nomorBaris) {
   return { data: baris };
 }
 
+// Terjemahkan error Supabase saat insert jadi pesan yang bisa dipahami perangkat desa.
+function pesanErrorInsert(error, nomorBaris, nik) {
+  if (error.code === "23505") {
+    return `Baris ${nomorBaris}: NIK "${nik}" sudah terdaftar di data kependudukan.`;
+  }
+  if (error.code === "P0001") {
+    return `Baris ${nomorBaris}: ${error.message}`;
+  }
+  if (error.code === "42501") {
+    return `Baris ${nomorBaris}: Anda tidak berwenang menambahkan data untuk Dusun/RT/RW ini (di luar wilayah tugas Anda).`;
+  }
+  return `Baris ${nomorBaris}: gagal disimpan (${error.message}).`;
+}
+
+// Impor data warga. TIDAK ada batas jumlah baris per file: browser
+// (ImportWargaButton.jsx) memecah file jadi paket kecil (±100 baris) dan
+// memanggil aksi ini berulang kali, sambil menampilkan progres. Batas 500
+// di bawah hanya pengaman per SATU permintaan, bukan batas per file.
+//
+// Tiap baris boleh membawa `_baris` = nomor baris aslinya di file Excel,
+// supaya pesan error tetap menunjuk baris yang benar walau file dipecah.
 export async function importWarga(prevState, formData) {
   let rows;
   try {
@@ -321,45 +342,54 @@ export async function importWarga(prevState, formData) {
     return { error: "Tidak ada baris data yang bisa diimpor dari file ini." };
   }
   if (rows.length > 500) {
-    return { error: "Maksimal 500 baris per proses impor. Bagi file jadi beberapa bagian." };
+    return { error: "Terlalu banyak baris dalam satu permintaan (maks. 500). Muat ulang halaman lalu coba lagi." };
   }
 
   const supabase = await createClient();
   const gagal = [];
-  let berhasil = 0;
+  const siap = []; // { baris, nomorBaris }
   const nikTerlihat = new Set();
 
   for (let i = 0; i < rows.length; i++) {
-    const nomorBaris = i + 2; // baris 1 = header di file Excel
+    const nomorBaris = Number(rows[i]?._baris) || i + 2; // baris 1 = header di file Excel
     const hasilBersih = bersihkanBarisImport(rows[i], nomorBaris);
     if (hasilBersih.error) {
       gagal.push(hasilBersih.error);
       continue;
     }
-
     const baris = hasilBersih.data;
     if (nikTerlihat.has(baris.nik)) {
       gagal.push(`Baris ${nomorBaris}: NIK "${baris.nik}" duplikat di dalam file yang diunggah.`);
       continue;
     }
     nikTerlihat.add(baris.nik);
+    siap.push({ baris, nomorBaris });
+  }
 
-    const { error } = await supabase.from("warga").insert(baris);
-    if (error) {
-      if (error.code === "23505") {
-        gagal.push(`Baris ${nomorBaris}: NIK "${baris.nik}" sudah terdaftar di data kependudukan.`);
-      } else if (error.code === "P0001") {
-        gagal.push(`Baris ${nomorBaris}: ${error.message}`);
-      } else if (error.code === "42501") {
-        gagal.push(
-          `Baris ${nomorBaris}: Anda tidak berwenang menambahkan data untuk Dusun/RT/RW ini (di luar wilayah tugas Anda).`
-        );
-      } else {
-        gagal.push(`Baris ${nomorBaris}: gagal disimpan (${error.message}).`);
+  let berhasil = 0;
+
+  if (siap.length > 0) {
+    // Jalur cepat: simpan semua baris valid dalam SATU permintaan (atomik).
+    const { error: errorMassal } = await supabase
+      .from("warga")
+      .insert(siap.map((s) => s.baris));
+
+    if (!errorMassal) {
+      berhasil = siap.length;
+    } else {
+      // Ada baris yang ditolak database (NIK sudah ada, di luar wilayah, dll).
+      // Karena insert massal bersifat atomik, belum ada yang tersimpan —
+      // ulangi satu per satu supaya baris yang bermasalah bisa ditunjuk
+      // dan baris lainnya tetap masuk.
+      for (const { baris, nomorBaris } of siap) {
+        const { error } = await supabase.from("warga").insert(baris);
+        if (error) {
+          gagal.push(pesanErrorInsert(error, nomorBaris, baris.nik));
+          continue;
+        }
+        berhasil += 1;
       }
-      continue;
     }
-    berhasil += 1;
   }
 
   revalidatePath("/dashboard/kependudukan");
