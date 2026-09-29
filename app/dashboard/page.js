@@ -8,6 +8,8 @@ import {
   IconMegaphone,
   IconSettings,
 } from "@/components/icons";
+import { createClient } from "@/lib/supabase/server";
+import { ringkasKolomKosong } from "@/lib/kelengkapan";
 
 // Daftar modul disamakan dengan MODUL_LAYANAN & MODUL_PENGATURAN di
 // components/dashboard/DashboardShell.jsx supaya kartu di beranda ini dan
@@ -98,7 +100,31 @@ function KartuModul({ nama, deskripsi, icon: Icon, href }) {
   );
 }
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient();
+
+  // Ringkasan data warga belum lengkap PER PENGINPUT. Mengikuti RLS: staf
+  // desa (admin) melihat semua penginput dari semua wilayah — termasuk yang
+  // ditambahkan Kadus/Ketua RT — sedangkan Kadus/Ketua RT hanya melihat
+  // ringkasan wilayahnya sendiri.
+  const { data: ringkasanKelengkapan } = await supabase
+    .from("ringkasan_kelengkapan_penginput")
+    .select("dibuat_oleh, nama, role, wilayah, total, belum_lengkap")
+    .gt("belum_lengkap", 0)
+    .order("belum_lengkap", { ascending: false })
+    .limit(8);
+
+  const { data: kolomTersering } = await supabase
+    .from("ringkasan_kolom_kosong")
+    .select("kolom, jumlah")
+    .order("jumlah", { ascending: false })
+    .limit(5);
+
+  const totalBelumLengkap = (ringkasanKelengkapan ?? []).reduce(
+    (a, r) => a + (r.belum_lengkap || 0),
+    0
+  );
+
   return (
     <div className="space-y-8">
       <div>
@@ -107,6 +133,60 @@ export default function DashboardPage() {
           Pilih modul di bawah untuk mulai bekerja.
         </p>
       </div>
+
+      {ringkasanKelengkapan && ringkasanKelengkapan.length > 0 && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-sm font-bold text-amber-800">
+                ⚠ Ada {totalBelumLengkap} data kependudukan yang belum lengkap
+              </h2>
+              <p className="mt-1 text-xs text-amber-700">
+                Rincian per penginput di bawah ini. Klik "Data Kependudukan" untuk
+                membuka dan melengkapi.
+              </p>
+            </div>
+            <Link
+              href="/dashboard/kependudukan?kurang=1"
+              className="shrink-0 rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100"
+            >
+              Lihat & lengkapi
+            </Link>
+          </div>
+
+          <div className="mt-3 divide-y divide-amber-100 overflow-hidden rounded-xl border border-amber-100 bg-white">
+            {ringkasanKelengkapan.map((r) => (
+              <div
+                key={r.dibuat_oleh ?? "tanpa-penginput"}
+                className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm"
+              >
+                <div>
+                  <p className="font-medium text-slate-700">
+                    {r.nama || "Data lama / impor (penginput tidak tercatat)"}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {[
+                      r.role === "kadus" ? "Kadus" : r.role === "ketua_rt" ? "Ketua RT" : r.role,
+                      r.wilayah,
+                    ]
+                      .filter(Boolean)
+                      .join(" — ")}
+                  </p>
+                </div>
+                <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                  {r.belum_lengkap} dari {r.total} data
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {kolomTersering && kolomTersering.length > 0 && (
+            <p className="mt-3 text-xs text-amber-700">
+              Kolom paling sering kosong: {ringkasKolomKosong(kolomTersering.map((k) => k.kolom), 5)}.
+            </p>
+          )}
+        </div>
+      )}
 
       <section>
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
