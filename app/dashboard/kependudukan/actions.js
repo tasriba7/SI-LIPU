@@ -53,6 +53,12 @@ export async function tambahWarga(prevState, formData) {
     if (error.code === "P0001") {
       return { error: error.message };
     }
+    if (error.code === "42501") {
+      return {
+        error:
+          "Anda tidak berwenang menambahkan data untuk Dusun/RT/RW ini. Pastikan kolom Dusun, RT, dan RW yang diisi sesuai dengan wilayah tugas Anda.",
+      };
+    }
     return { error: "Gagal menyimpan data warga. Coba lagi." };
   }
 
@@ -140,6 +146,12 @@ export async function tambahKeluargaWarga(prevState, formData) {
     if (error.code === "P0001") {
       return { error: error.message };
     }
+    if (error.code === "42501") {
+      return {
+        error:
+          "Anda tidak berwenang menambahkan data untuk Dusun/RT/RW ini. Pastikan Dusun, RT, dan RW yang diisi sesuai dengan wilayah tugas Anda.",
+      };
+    }
     return { error: "Gagal menyimpan data keluarga. Coba lagi." };
   }
 
@@ -177,7 +189,7 @@ export async function editWarga(prevState, formData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { data: baruTersimpan, error } = await supabase
     .from("warga")
     .update({
       nik,
@@ -196,7 +208,8 @@ export async function editWarga(prevState, formData) {
       pekerjaan,
       agama,
     })
-    .eq("id", id);
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     if (error.code === "23505") {
@@ -205,7 +218,23 @@ export async function editWarga(prevState, formData) {
     if (error.code === "P0001") {
       return { error: error.message };
     }
+    if (error.code === "42501") {
+      return {
+        error:
+          "Anda tidak berwenang memindahkan data ini ke Dusun/RT/RW tersebut. Pastikan wilayah yang diisi sesuai dengan wilayah tugas Anda.",
+      };
+    }
     return { error: "Gagal menyimpan perubahan. Coba lagi." };
+  }
+
+  // RLS (using) membatasi baris mana yang boleh diupdate berdasarkan wilayah.
+  // Kalau baris di luar wilayah akun ini, Supabase TIDAK melempar error —
+  // update itu hanya diam-diam menyentuh 0 baris. Deteksi kasus itu di sini
+  // supaya tidak salah menampilkan "Berhasil disimpan" padahal tidak terjadi apa-apa.
+  if (!baruTersimpan || baruTersimpan.length === 0) {
+    return {
+      error: "Anda tidak berwenang mengubah data warga ini (di luar wilayah tugas Anda).",
+    };
   }
 
   revalidatePath("/dashboard/kependudukan");
@@ -300,6 +329,10 @@ export async function importWarga(prevState, formData) {
         gagal.push(`Baris ${nomorBaris}: NIK "${baris.nik}" sudah terdaftar di data kependudukan.`);
       } else if (error.code === "P0001") {
         gagal.push(`Baris ${nomorBaris}: ${error.message}`);
+      } else if (error.code === "42501") {
+        gagal.push(
+          `Baris ${nomorBaris}: Anda tidak berwenang menambahkan data untuk Dusun/RT/RW ini (di luar wilayah tugas Anda).`
+        );
       } else {
         gagal.push(`Baris ${nomorBaris}: gagal disimpan (${error.message}).`);
       }
@@ -324,7 +357,11 @@ export async function hapusWarga(prevState, formData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("warga").delete().eq("id", id);
+  const { data: terhapus, error } = await supabase
+    .from("warga")
+    .delete()
+    .eq("id", id)
+    .select("id");
 
   if (error) {
     if (error.code === "23503") {
@@ -334,6 +371,16 @@ export async function hapusWarga(prevState, formData) {
       };
     }
     return { error: "Gagal menghapus data warga. Coba lagi." };
+  }
+
+  // Sama seperti update: RLS bisa diam-diam menghapus 0 baris (di luar
+  // wilayah, atau Kadus/Ketua RT mencoba hapus data yang bukan buatannya
+  // sendiri) tanpa melempar error. Deteksi di sini.
+  if (!terhapus || terhapus.length === 0) {
+    return {
+      error:
+        "Anda tidak berwenang menghapus data warga ini. Kadus/Ketua RT hanya bisa menghapus data yang ia tambahkan sendiri.",
+    };
   }
 
   revalidatePath("/dashboard/kependudukan");
