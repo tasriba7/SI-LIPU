@@ -11,7 +11,11 @@ import {
   IconCheck,
   IconArrowRight,
 } from "@/components/icons";
-import { getStatistikBeranda, getStatistikBerandaDetail } from "@/lib/statistikBeranda";
+import {
+  getStatistikBeranda,
+  getStatistikBerandaDetail,
+  getStatistikPerDusun,
+} from "@/lib/statistikBeranda";
 import { getConfigDesa, labelWilayah } from "@/lib/configDesa";
 import { getGaleri, getGaleriCount } from "@/lib/galeri";
 import { createClient } from "@/lib/supabase/server";
@@ -74,9 +78,10 @@ const JAMINAN = [
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const [stats, statsDetail, config, galeriItems, galeriTotal] = await Promise.all([
+  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal] = await Promise.all([
     getStatistikBeranda(),
     getStatistikBerandaDetail(),
+    getStatistikPerDusun(),
     getConfigDesa(supabase),
     getGaleri(supabase, { limit: JUMLAH_GALERI_BERANDA }),
     getGaleriCount(supabase),
@@ -284,8 +289,9 @@ export default async function HomePage() {
           otomatis kalau belum ada foto sama sekali (lihat GaleriBeranda.jsx) */}
       <GaleriBeranda items={galeriItems} totalSemua={galeriTotal} />
 
-      {/* Statistik kependudukan (agama, status pernikahan, jenis kelamin, usia, pekerjaan) */}
-      <StatistikDetailBeranda detail={statsDetail} />
+      {/* Statistik kependudukan: sekilas, donut jenis kelamin, dan rincian bertab
+          (usia, pekerjaan, agama, status nikah, per dusun) */}
+      <StatistikDetailBeranda detail={statsDetail} perDusun={statsDusun} />
 
       {/* Cara kerja */}
       <section className="bg-white py-16 md:py-24">
