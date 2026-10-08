@@ -3,6 +3,8 @@ import Link from "next/link";
 import VillageSeal from "@/components/VillageSeal";
 import StatBerandaCards from "@/components/StatBerandaCards";
 import StatistikDetailBeranda from "@/components/StatistikDetailBeranda";
+import Reveal from "@/components/Reveal";
+import AuroraBackground from "@/components/AuroraBackground";
 import GaleriBeranda from "@/components/GaleriBeranda";
 import {
   IconMail,
@@ -173,12 +175,13 @@ export default async function HomePage() {
         <div className="relative h-1 w-full bg-gradient-to-r from-gold via-gold-light to-gold" />
       </section>
 
+      <AuroraBackground>
       {/* Sambutan Kepala Desa — tampil hanya kalau admin sudah isi minimal
           nama & sambutan lewat /dashboard/pengaturan-desa. Foto opsional
           (pakai avatar inisial kalau belum diunggah). */}
       {config.kepala_desa_nama && config.kepala_desa_sambutan && (
-        <section className="bg-slate-50 py-16 md:py-24">
-          <div className="mx-auto max-w-5xl px-6">
+        <section className="py-16 md:py-24">
+          <Reveal className="mx-auto max-w-5xl px-6">
             <p className="text-center font-mono text-xs uppercase tracking-[0.25em] text-seablue">
               Kata Sambutan
             </p>
@@ -225,30 +228,32 @@ export default async function HomePage() {
                 </div>
               </div>
             </div>
-          </div>
+          </Reveal>
         </section>
       )}
 
       {/* Layanan */}
       <section className="mx-auto max-w-6xl px-6 py-16 md:py-24">
-        <p className="font-mono text-xs uppercase tracking-[0.25em] text-seablue">
-          Tanpa Akun, Tanpa Antre
-        </p>
-        <h2 className="mt-3 font-display text-2xl font-semibold text-navy sm:text-3xl">
-          Layanan yang bisa diakses sekarang
-        </h2>
+        <Reveal>
+          <p className="font-mono text-xs uppercase tracking-[0.25em] text-seablue">
+            Tanpa Akun, Tanpa Antre
+          </p>
+          <h2 className="mt-3 font-display text-2xl font-semibold text-navy sm:text-3xl">
+            Layanan yang bisa diakses sekarang
+          </h2>
+        </Reveal>
 
         <div className="mt-8 grid gap-4 sm:grid-cols-2">
-          {LAYANAN.map(({ nama, deskripsi, icon: Icon, href }) => {
+          {LAYANAN.map(({ nama, deskripsi, icon: Icon, href }, idx) => {
             const Wrapper = href ? Link : "div";
             return (
+              <Reveal key={nama} delay={idx * 120}>
               <Wrapper
-                key={nama}
                 {...(href ? { href } : {})}
-                className={`group relative overflow-hidden rounded-2xl border p-6 transition ${
+                className={`group relative h-full overflow-hidden rounded-2xl border p-6 backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl ${
                   href
-                    ? "border-gold/40 bg-navy/[0.02] hover:border-gold hover:shadow-md"
-                    : "border-slate-200 bg-white"
+                    ? "border-gold/40 bg-white/70 hover:border-gold"
+                    : "border-slate-200 bg-white/70"
                 }`}
               >
                 <span
@@ -280,6 +285,7 @@ export default async function HomePage() {
                   </span>
                 )}
               </Wrapper>
+              </Reveal>
             );
           })}
         </div>
@@ -287,25 +293,31 @@ export default async function HomePage() {
 
       {/* Galeri kegiatan — diisi admin lewat /dashboard/galeri, tersembunyi
           otomatis kalau belum ada foto sama sekali (lihat GaleriBeranda.jsx) */}
-      <GaleriBeranda items={galeriItems} totalSemua={galeriTotal} />
+      <Reveal>
+        <GaleriBeranda items={galeriItems} totalSemua={galeriTotal} />
+      </Reveal>
 
       {/* Statistik kependudukan: sekilas, donut jenis kelamin, dan rincian bertab
           (usia, pekerjaan, agama, status nikah, per dusun) */}
-      <StatistikDetailBeranda detail={statsDetail} perDusun={statsDusun} namaDesa={config.nama_desa} wilayah={wilayah} />
+      <Reveal>
+        <StatistikDetailBeranda detail={statsDetail} perDusun={statsDusun} namaDesa={config.nama_desa} wilayah={wilayah} />
+      </Reveal>
 
       {/* Cara kerja */}
-      <section className="bg-white py-16 md:py-24">
+      <section className="py-16 md:py-24">
         <div className="mx-auto max-w-6xl px-6">
-          <p className="font-mono text-xs uppercase tracking-[0.25em] text-seablue">
-            Prosesnya
-          </p>
-          <h2 className="mt-3 font-display text-2xl font-semibold text-navy sm:text-3xl">
-            Tiga langkah, selesai
-          </h2>
+          <Reveal>
+            <p className="font-mono text-xs uppercase tracking-[0.25em] text-seablue">
+              Prosesnya
+            </p>
+            <h2 className="mt-3 font-display text-2xl font-semibold text-navy sm:text-3xl">
+              Tiga langkah, selesai
+            </h2>
+          </Reveal>
 
           <div className="mt-10 grid gap-8 md:grid-cols-3 md:gap-6">
             {CARA_KERJA.map(({ nomor, judul, teks }, i) => (
-              <div key={nomor} className="relative">
+              <Reveal key={nomor} delay={i * 150} className="relative">
                 {i < CARA_KERJA.length - 1 && (
                   <div className="absolute right-[-1.5rem] top-6 hidden h-px w-12 bg-slate-300 md:block" />
                 )}
@@ -316,7 +328,7 @@ export default async function HomePage() {
                 <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
                   {teks}
                 </p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -325,8 +337,8 @@ export default async function HomePage() {
       {/* Jaminan / trust */}
       <section className="mx-auto max-w-6xl px-6 py-16 md:py-20">
         <div className="grid gap-8 sm:grid-cols-3">
-          {JAMINAN.map(({ judul, teks }) => (
-            <div key={judul} className="flex gap-3">
+          {JAMINAN.map(({ judul, teks }, i) => (
+            <Reveal key={judul} delay={i * 150} className="flex gap-3">
               <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-navy text-white">
                 <IconCheck className="h-3.5 w-3.5" />
               </div>
@@ -336,10 +348,11 @@ export default async function HomePage() {
                   {teks}
                 </p>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       </section>
+      </AuroraBackground>
 
       {/* Footer */}
       <footer className="border-t border-slate-100">
