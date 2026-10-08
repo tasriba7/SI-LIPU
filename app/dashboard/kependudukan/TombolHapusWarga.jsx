@@ -32,7 +32,7 @@ export default function TombolHapusWarga({ id, nama }) {
       type="button"
       onClick={handleClick}
       disabled={isPending}
-      className="text-xs font-medium text-red-500 hover:underline disabled:opacity-50"
+      className="text-[12px] font-medium text-red-500 hover:underline disabled:opacity-50"
     >
       {isPending ? "Menghapus..." : "Hapus"}
     </button>
