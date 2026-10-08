@@ -110,10 +110,18 @@ export default async function DetailPengajuanLayananPage({ params }) {
               </dd>
             </div>
           )}
+          {pengajuan.jenis_pengaduan && (
+            <div className="sm:col-span-2">
+              <dt className="text-slate-400">Jenis pengaduan</dt>
+              <dd className="text-slate-700">{pengajuan.jenis_pengaduan}</dd>
+            </div>
+          )}
           {pengajuan.keterangan && (
             <div className="sm:col-span-2">
-              <dt className="text-slate-400">Keterangan</dt>
-              <dd className="text-slate-700">{pengajuan.keterangan}</dd>
+              <dt className="text-slate-400">
+                {pengajuan.jenis_pengaduan ? "Isi pengaduan" : "Keterangan"}
+              </dt>
+              <dd className="whitespace-pre-wrap text-slate-700">{pengajuan.keterangan}</dd>
             </div>
           )}
           {formSchema.map((field) => (

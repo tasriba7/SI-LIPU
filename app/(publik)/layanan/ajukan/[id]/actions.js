@@ -3,6 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { cariWargaDenganRateLimit } from "@/lib/lookupWarga";
 import { buatKodeTracking } from "@/lib/kodeTracking";
+import { buatBuktiVerifikasi, cekBuktiVerifikasi } from "@/lib/buktiVerifikasi";
+import { JENIS_PENGADUAN, JENIS_LAINNYA } from "@/lib/jenisPengaduan";
 
 /**
  * Step 1 (opsional, tergantung butuh_lookup_warga jenis layanan): cari data
@@ -38,7 +40,9 @@ export async function cariWargaUntukLayanan(prevState, formData) {
     };
   }
 
-  return { found: true, data: hasil.data, nikDicoba: nik };
+  // `bukti` = tanda server bahwa NIK + tanggal lahir sudah lolos verifikasi
+  // (dipakai form pengaduan; tidak memuat identitas apa pun).
+  return { found: true, data: hasil.data, nikDicoba: nik, bukti: buatBuktiVerifikasi() };
 }
 
 /**
@@ -65,6 +69,48 @@ export async function ajukanLayanan(prevState, formData) {
 
   const supabase = await createClient();
 
+  // Kategori layanan selalu dicek di server (bukan percaya tampilan form).
+  const { data: jenis } = await supabase
+    .from("jenis_layanan_master")
+    .select("kategori")
+    .eq("id", jenis_layanan_id)
+    .eq("aktif", true)
+    .maybeSingle();
+
+  if (!jenis) {
+    return { error: "Jenis layanan tidak valid." };
+  }
+  const adalahPengaduan = jenis.kategori === "pengaduan";
+
+  // Pengaduan: wajib sudah verifikasi NIK + tanggal lahir (anonim maupun
+  // tidak), supaya tidak ada yang asal mengirim aduan.
+  let jenis_pengaduan = null;
+  if (adalahPengaduan) {
+    if (!cekBuktiVerifikasi(formData.get("bukti_verifikasi"))) {
+      return {
+        error:
+          "Verifikasi NIK dan tanggal lahir sudah kedaluwarsa atau belum dilakukan. Muat ulang halaman lalu ulangi dari awal.",
+      };
+    }
+
+    const pilihan = formData.get("jenis_pengaduan")?.trim();
+    if (!pilihan || !JENIS_PENGADUAN.includes(pilihan)) {
+      return { error: "Pilih jenis pengaduan terlebih dahulu." };
+    }
+    if (pilihan === JENIS_LAINNYA) {
+      const lainnya = formData.get("jenis_pengaduan_lainnya")?.trim();
+      if (!lainnya) {
+        return { error: "Tuliskan pengaduan Anda tentang apa." };
+      }
+      jenis_pengaduan = `${JENIS_LAINNYA}: ${lainnya.slice(0, 120)}`;
+    } else {
+      jenis_pengaduan = pilihan;
+    }
+    if (!keterangan) {
+      return { error: "Isi pengaduan wajib diisi." };
+    }
+  }
+
   // Identitas pelapor. Kalau ANONIM: tidak ada satu pun data identitas yang
   // dibaca dari form maupun disimpan (nama, NIK, No. HP, tautan data warga).
   let nama_pemohon = null;
@@ -73,16 +119,9 @@ export async function ajukanLayanan(prevState, formData) {
   let warga_id = null;
 
   if (anonim) {
-    // Anonim hanya boleh untuk layanan kategori pengaduan — dicek di server,
-    // bukan percaya tampilan form (dan dijaga lagi oleh trigger database).
-    const { data: jenis } = await supabase
-      .from("jenis_layanan_master")
-      .select("kategori")
-      .eq("id", jenis_layanan_id)
-      .eq("aktif", true)
-      .maybeSingle();
-
-    if (jenis?.kategori !== "pengaduan") {
+    // Anonim hanya boleh untuk layanan kategori pengaduan (dijaga lagi oleh
+    // trigger database).
+    if (!adalahPengaduan) {
       return { error: "Mode anonim hanya tersedia untuk layanan pengaduan." };
     }
   } else {
@@ -110,6 +149,7 @@ export async function ajukanLayanan(prevState, formData) {
     nik,
     no_hp,
     keterangan,
+    jenis_pengaduan,
     data_tambahan,
     anonim,
   });

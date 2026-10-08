@@ -90,3 +90,9 @@ pemilik proyek sebelum melanjutkan, karena kebocoran data kependudukan adalah ri
 - Jangan mengubah `anonim` jadi `false` atau mengisi identitas belakangan; trigger
   `jaga_pengaduan_anonim` di database memblokirnya.
 - Kode tracking adalah satu-satunya kunci pelapor anonim: dibuat dengan `crypto`, minimal 10 karakter.
+- Form pengaduan **wajib verifikasi NIK + tanggal lahir lebih dulu** (anonim maupun tidak). Server
+  menerbitkan bukti verifikasi bertanda tangan (`lib/buktiVerifikasi.js`, kedaluwarsa 30 menit,
+  TANPA identitas di dalamnya) dan `ajukanLayanan` menolak pengaduan tanpa bukti itu. Jangan
+  memasukkan NIK/warga_id ke dalam bukti, karena akan merusak anonimitas.
+- Catatan: pencarian NIK tetap tercatat di `log_pencarian_warga` (NIK, IP, waktu) sesuai aturan
+  audit di atas; log ini tidak ditautkan ke baris pengaduan.

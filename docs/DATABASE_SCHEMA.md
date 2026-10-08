@@ -208,3 +208,7 @@ representasi hasil di database saja).
   `perangkat_desa` lewat foreign key — jangan duplikasi data warga/staf.
 - Tambah kolom ke tabel yang sudah ada **boleh**, tapi jangan hapus/ubah tipe kolom yang sudah
   dipakai modul lain tanpa cek dampaknya dulu.
+
+> **Jenis pengaduan (migration 0019):** `pengajuan_layanan.jenis_pengaduan` (text, null untuk
+> non-pengaduan) menyimpan kategori dropdown (daftar di `lib/jenisPengaduan.js`), atau
+> `Lainnya: <teks warga>`. Isi pengaduan disimpan di kolom `keterangan`.

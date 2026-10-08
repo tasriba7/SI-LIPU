@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { cariWargaUntukLayanan, ajukanLayanan } from "./actions";
 import { maskNama, maskWilayah } from "@/lib/masking";
+import { JENIS_PENGADUAN, JENIS_LAINNYA } from "@/lib/jenisPengaduan";
 
 function TombolAksi({ children, pendingText }) {
   const { pending } = useFormStatus();
@@ -60,7 +61,6 @@ function FieldDinamis({ field, value, onChange }) {
     return (
       <select
         required={field.wajib}
-        defaultValue=""
         className={base}
         value={value || ""}
         onChange={(e) => onChange(field.field_key, e.target.value)}
@@ -92,17 +92,23 @@ export default function FormPengajuan({ jenisLayanan }) {
   const butuhLookup = jenisLayanan.butuh_lookup_warga;
   const formSchema = jenisLayanan.form_schema || [];
 
-  // Khusus pengaduan: warga boleh memilih merahasiakan identitasnya (anonim).
+  // Khusus pengaduan: warga WAJIB verifikasi NIK + tanggal lahir lebih dulu
+  // (mencegah aduan asal-asalan), baru boleh memilih anonim atau tampilkan data.
   const bolehAnonim = jenisLayanan.kategori === "pengaduan";
   const [anonim, setAnonim] = useState(false);
 
-  // "pilih" (khusus pengaduan) -> "lookup" -> "isi" -> selesai (state success dari ajukanLayanan)
+  // Pengaduan : "lookup" -> "pilih" -> "isi" -> selesai
+  // Lainnya   : (opsional "lookup") -> "isi" -> selesai (state success dari ajukanLayanan)
   const [tahap, setTahap] = useState(
-    bolehAnonim ? "pilih" : butuhLookup ? "lookup" : "isi"
+    bolehAnonim || butuhLookup ? "lookup" : "isi"
   );
   const [wargaTerpilih, setWargaTerpilih] = useState(null); // { warga_id, nama_lengkap, dusun, rt, rw }
   const [nikDicoba, setNikDicoba] = useState("");
+  const [bukti, setBukti] = useState(""); // bukti verifikasi dari server (khusus pengaduan)
+  const [ditolak, setDitolak] = useState(null); // hasil lookup yang dijawab "Bukan saya"
   const [dataTambahan, setDataTambahan] = useState({});
+  const [jenisPengaduan, setJenisPengaduan] = useState("");
+  const [jenisLainnya, setJenisLainnya] = useState("");
 
   const [lookupState, lookupAction] = useActionState(cariWargaUntukLayanan, {});
   const [submitState, submitAction] = useActionState(ajukanLayanan, {});
@@ -120,70 +126,18 @@ export default function FormPengajuan({ jenisLayanan }) {
     setDataTambahan((prev) => ({ ...prev, [key]: value }));
   }
 
-  // --- Tahap 0 (khusus pengaduan): tampilkan identitas atau anonim ---
-  if (tahap === "pilih") {
-    return (
-      <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-bold text-navy">{jenisLayanan.nama_layanan}</h1>
-        <p className="mb-6 mt-1 text-sm text-slate-500">
-          Bagaimana Anda ingin mengirim pengaduan ini?
-        </p>
-
-        <div className="space-y-3">
-          <button
-            type="button"
-            onClick={() => {
-              setAnonim(false);
-              setTahap(butuhLookup ? "lookup" : "isi");
-            }}
-            className="w-full rounded-xl border border-slate-200 p-4 text-left transition hover:border-navy"
-          >
-            <p className="font-semibold text-slate-800">Tampilkan identitas saya</p>
-            <p className="mt-1 text-sm text-slate-500">
-              Nama, NIK, dan No. HP Anda terlihat oleh petugas desa, sehingga
-              petugas bisa menghubungi Anda.
-            </p>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setAnonim(true);
-              setWargaTerpilih(null);
-              setNikDicoba("");
-              setTahap("isi");
-            }}
-            className="w-full rounded-xl border border-slate-200 p-4 text-left transition hover:border-navy"
-          >
-            <p className="font-semibold text-slate-800">Rahasiakan identitas saya (anonim)</p>
-            <p className="mt-1 text-sm text-slate-500">
-              Nama, NIK, dan No. HP tidak diminta dan tidak disimpan. Tidak ada
-              seorang pun yang bisa tahu siapa pengadu, kecuali Anda sendiri.
-            </p>
-          </button>
-        </div>
-
-        <Link
-          href="/layanan"
-          className="mt-6 block text-center text-xs text-slate-400 hover:text-slate-600"
-        >
-          Kembali ke daftar layanan
-        </Link>
-      </div>
-    );
-  }
-
   // --- Tahap 1: cari data warga ---
   if (tahap === "lookup") {
     return (
       <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-sm">
         <h1 className="text-xl font-bold text-navy">{jenisLayanan.nama_layanan}</h1>
         <p className="mb-6 mt-1 text-sm text-slate-500">
-          Masukkan NIK dan tanggal lahir Anda — kami akan cari data Anda supaya
-          tidak perlu isi ulang nama & alamat.
+          {bolehAnonim
+            ? "Sebelum mengirim pengaduan, masukkan NIK dan tanggal lahir Anda untuk memastikan Anda warga desa. Setelah itu Anda bisa memilih mengirim secara anonim atau menampilkan identitas."
+            : "Masukkan NIK dan tanggal lahir Anda — kami akan cari data Anda supaya tidak perlu isi ulang nama & alamat."}
         </p>
 
-        {!lookupState?.found && (
+        {(!lookupState?.found || ditolak === lookupState) && (
           <form action={lookupAction} className="space-y-4">
             <div>
               <label className="mb-1 block text-sm text-slate-600">NIK (16 digit)</label>
@@ -218,11 +172,13 @@ export default function FormPengajuan({ jenisLayanan }) {
               </p>
             )}
 
-            <TombolAksi pendingText="Mencari...">Cari Data Saya</TombolAksi>
+            <TombolAksi pendingText="Mencari...">
+              {bolehAnonim ? "Verifikasi" : "Cari Data Saya"}
+            </TombolAksi>
           </form>
         )}
 
-        {lookupState?.found && (
+        {lookupState?.found && ditolak !== lookupState && (
           <div className="space-y-4">
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
               <p className="text-slate-500">Data ditemukan:</p>
@@ -240,7 +196,8 @@ export default function FormPengajuan({ jenisLayanan }) {
                 type="button"
                 onClick={() => {
                   setWargaTerpilih(lookupState.data);
-                  setTahap("isi");
+                  setBukti(lookupState.bukti || "");
+                  setTahap(bolehAnonim ? "pilih" : "isi");
                 }}
                 className="flex-1 rounded-lg bg-navy py-2.5 font-medium text-white hover:bg-navy-light"
               >
@@ -250,7 +207,12 @@ export default function FormPengajuan({ jenisLayanan }) {
                 type="button"
                 onClick={() => {
                   setWargaTerpilih(null);
-                  setTahap("isi");
+                  if (bolehAnonim) {
+                    // Pengaduan tidak boleh lanjut tanpa verifikasi: ulangi pencarian.
+                    setDitolak(lookupState);
+                  } else {
+                    setTahap("isi");
+                  }
                 }}
                 className="flex-1 rounded-lg border border-slate-300 py-2.5 font-medium text-slate-600 hover:bg-slate-50"
               >
@@ -260,7 +222,7 @@ export default function FormPengajuan({ jenisLayanan }) {
           </div>
         )}
 
-        {(lookupState?.notFound || lookupState?.error) && (
+        {!bolehAnonim && (lookupState?.notFound || lookupState?.error) && (
           <button
             type="button"
             onClick={() => setTahap("isi")}
@@ -269,6 +231,57 @@ export default function FormPengajuan({ jenisLayanan }) {
             Lanjut isi data manual &rarr;
           </button>
         )}
+
+        <Link
+          href="/layanan"
+          className="mt-6 block text-center text-xs text-slate-400 hover:text-slate-600"
+        >
+          Kembali ke daftar layanan
+        </Link>
+      </div>
+    );
+  }
+
+  // --- Tahap 2 (khusus pengaduan): setelah terverifikasi, tampilkan identitas atau anonim ---
+  if (tahap === "pilih") {
+    return (
+      <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-sm">
+        <h1 className="text-xl font-bold text-navy">{jenisLayanan.nama_layanan}</h1>
+        <p className="mb-6 mt-1 text-sm text-slate-500">
+          Verifikasi berhasil. Bagaimana Anda ingin mengirim pengaduan ini?
+        </p>
+
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={() => {
+              setAnonim(false);
+              setTahap("isi");
+            }}
+            className="w-full rounded-xl border border-slate-200 p-4 text-left transition hover:border-navy"
+          >
+            <p className="font-semibold text-slate-800">Tampilkan identitas saya</p>
+            <p className="mt-1 text-sm text-slate-500">
+              Nama, NIK, dan No. HP Anda terlihat oleh petugas desa, sehingga
+              petugas bisa menghubungi Anda.
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setAnonim(true);
+              setTahap("isi");
+            }}
+            className="w-full rounded-xl border border-slate-200 p-4 text-left transition hover:border-navy"
+          >
+            <p className="font-semibold text-slate-800">Rahasiakan identitas saya (anonim)</p>
+            <p className="mt-1 text-sm text-slate-500">
+              Nama, NIK, dan No. HP tidak diminta dan tidak disimpan bersama
+              pengaduan. Petugas desa tidak akan melihat siapa pengadunya.
+            </p>
+          </button>
+        </div>
 
         <Link
           href="/layanan"
@@ -294,7 +307,7 @@ export default function FormPengajuan({ jenisLayanan }) {
           <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
             <p className="font-semibold">Mode anonim aktif</p>
             <p className="mt-1">
-              Identitas Anda tidak diminta dan tidak disimpan. Agar tetap
+              Identitas Anda tidak diminta dan tidak disimpan bersama pengaduan. Agar tetap
               anonim, <strong>jangan menulis nama, nomor HP, atau ciri-ciri
               pribadi Anda</strong> di isi pengaduan.
             </p>
@@ -312,6 +325,7 @@ export default function FormPengajuan({ jenisLayanan }) {
           <input type="hidden" name="jenis_layanan_id" value={jenisLayanan.id} />
           <input type="hidden" name="kode_prefix" value={jenisLayanan.kode_prefix} />
           <input type="hidden" name="anonim" value={anonim ? "1" : "0"} />
+          <input type="hidden" name="bukti_verifikasi" value={bolehAnonim ? bukti : ""} />
           <input type="hidden" name="warga_id" value={anonim ? "" : wargaTerpilih?.warga_id || ""} />
           <input
             type="hidden"
@@ -345,7 +359,10 @@ export default function FormPengajuan({ jenisLayanan }) {
               inputMode="numeric"
               pattern="\d{16}"
               defaultValue={nikDicoba}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-navy"
+              readOnly={bolehAnonim}
+              className={`w-full rounded-lg border px-3 py-2 outline-none focus:border-navy ${
+                bolehAnonim ? "border-slate-200 bg-slate-50 text-slate-500" : "border-slate-300"
+              }`}
             />
           </div>
 
@@ -362,15 +379,72 @@ export default function FormPengajuan({ jenisLayanan }) {
             </>
           )}
 
-          <div>
-            <label className="mb-1 block text-sm text-slate-600">Keterangan</label>
-            <textarea
-              name="keterangan"
-              rows={2}
-              placeholder="Keperluan / detail tambahan (opsional)"
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-navy"
-            />
-          </div>
+          {bolehAnonim ? (
+            <>
+              <div>
+                <label className="mb-1 block text-sm text-slate-600">
+                  Jenis pengaduan<span className="text-red-500"> *</span>
+                </label>
+                <select
+                  name="jenis_pengaduan"
+                  required
+                  value={jenisPengaduan}
+                  onChange={(e) => setJenisPengaduan(e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-navy"
+                >
+                  <option value="" disabled>
+                    Pilih jenis pengaduan
+                  </option>
+                  {JENIS_PENGADUAN.map((j) => (
+                    <option key={j} value={j}>
+                      {j}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {jenisPengaduan === JENIS_LAINNYA && (
+                <div>
+                  <label className="mb-1 block text-sm text-slate-600">
+                    Pengaduan tentang apa?<span className="text-red-500"> *</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="jenis_pengaduan_lainnya"
+                    required
+                    maxLength={120}
+                    value={jenisLainnya}
+                    onChange={(e) => setJenisLainnya(e.target.value)}
+                    placeholder="Contoh: pohon tumbang, hewan ternak berkeliaran"
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-navy"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-600">
+                  Isi pengaduan<span className="text-red-500"> *</span>
+                </label>
+                <textarea
+                  name="keterangan"
+                  required
+                  rows={5}
+                  placeholder="Ceritakan pengaduan Anda: apa yang terjadi, di mana, dan kapan."
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-navy"
+                />
+              </div>
+            </>
+          ) : (
+            <div>
+              <label className="mb-1 block text-sm text-slate-600">Keterangan</label>
+              <textarea
+                name="keterangan"
+                rows={2}
+                placeholder="Keperluan / detail tambahan (opsional)"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-navy"
+              />
+            </div>
+          )}
 
           {formSchema.map((field) => (
             <div key={field.field_key}>
