@@ -23,10 +23,33 @@ function labelRole(role) {
   return role || "";
 }
 
+const PILIHAN_TAMPIL = [25, 50, 100, 200];
+const DEFAULT_TAMPIL = 50;
+// PostgREST/Supabase membatasi 1000 baris per permintaan, jadi "Tampilkan semua"
+// mengambil data bertahap per 1000 baris sampai habis.
+const UKURAN_BATCH = 1000;
+
+function buatUrl({ cari, kurang, tampil }) {
+  const q = new URLSearchParams();
+  if (cari) q.set("cari", cari);
+  if (kurang) q.set("kurang", "1");
+  if (tampil && tampil !== String(DEFAULT_TAMPIL)) q.set("tampil", tampil);
+  const str = q.toString();
+  return `/dashboard/kependudukan${str ? `?${str}` : ""}`;
+}
+
 export default async function KependudukanPage({ searchParams }) {
   const sp = await searchParams;
   const cari = sp?.cari?.trim() || "";
   const hanyaKurang = sp?.kurang === "1";
+  const tampilSemua = sp?.tampil === "semua";
+  const tampilParam = Number(sp?.tampil);
+  const batas = tampilSemua
+    ? null
+    : PILIHAN_TAMPIL.includes(tampilParam)
+      ? tampilParam
+      : DEFAULT_TAMPIL;
+  const tampilKey = tampilSemua ? "semua" : String(batas);
   const supabase = await createClient();
 
   // Dibaca dari view `warga_kelengkapan` (bukan tabel `warga` langsung) supaya
@@ -34,22 +57,42 @@ export default async function KependudukanPage({ searchParams }) {
   // security_invoker = true, jadi tetap mengikuti RLS: Kadus/Ketua RT otomatis
   // hanya melihat wilayahnya, staf desa (admin) melihat semua wilayah —
   // termasuk yang diinput Kadus/Ketua RT, tanpa perlu langkah tambahan apa pun.
-  let query = supabase
-    .from("warga_kelengkapan")
-    .select(
-      "id, nik, nama_lengkap, jenis_kelamin, dusun, rt, rw, tanggal_lahir, no_hp, status_dalam_kk, dibuat_oleh_nama, dibuat_oleh_role, jumlah_kosong, kolom_kosong"
-    )
-    .order("nama_lengkap")
-    .limit(50);
-
-  if (cari) {
-    query = query.or(`nama_lengkap.ilike.%${cari}%,nik.ilike.%${cari}%`);
+  function bangunQuery() {
+    let q = supabase
+      .from("warga_kelengkapan")
+      .select(
+        "id, nik, nama_lengkap, jenis_kelamin, dusun, rt, rw, tanggal_lahir, no_hp, status_dalam_kk, dibuat_oleh_nama, dibuat_oleh_role, jumlah_kosong, kolom_kosong",
+        { count: "exact" }
+      )
+      .order("nama_lengkap")
+      .order("id"); // urutan tambahan supaya paging antar batch stabil
+    if (cari) {
+      q = q.or(`nama_lengkap.ilike.%${cari}%,nik.ilike.%${cari}%`);
+    }
+    if (hanyaKurang) {
+      q = q.gt("jumlah_kosong", 0);
+    }
+    return q;
   }
-  if (hanyaKurang) {
-    query = query.gt("jumlah_kosong", 0);
+
+  let daftar = [];
+  let jumlahCocok = 0;
+  if (tampilSemua) {
+    for (let dari = 0; ; dari += UKURAN_BATCH) {
+      const { data, count } = await bangunQuery().range(
+        dari,
+        dari + UKURAN_BATCH - 1
+      );
+      if (typeof count === "number") jumlahCocok = count;
+      daftar.push(...(data ?? []));
+      if (!data || data.length < UKURAN_BATCH) break;
+    }
+  } else {
+    const { data, count } = await bangunQuery().limit(batas);
+    daftar = data ?? [];
+    jumlahCocok = count ?? daftar.length;
   }
 
-  const { data: daftar } = await query;
   const { count: totalWarga } = await supabase
     .from("warga")
     .select("id", { count: "exact", head: true });
@@ -110,6 +153,10 @@ export default async function KependudukanPage({ searchParams }) {
 
       {/* Search */}
       <form className="flex flex-wrap items-center gap-2">
+        {hanyaKurang && <input type="hidden" name="kurang" value="1" />}
+        {tampilKey !== String(DEFAULT_TAMPIL) && (
+          <input type="hidden" name="tampil" value={tampilKey} />
+        )}
         <div className="relative w-full max-w-sm">
           <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -128,18 +175,14 @@ export default async function KependudukanPage({ searchParams }) {
         </button>
         {cari && (
           <Link
-            href="/dashboard/kependudukan"
+            href={buatUrl({ kurang: hanyaKurang, tampil: tampilKey })}
             className="text-sm text-slate-400 hover:text-slate-600"
           >
             Reset pencarian
           </Link>
         )}
         <Link
-          href={
-            hanyaKurang
-              ? `/dashboard/kependudukan${cari ? `?cari=${encodeURIComponent(cari)}` : ""}`
-              : `/dashboard/kependudukan?kurang=1${cari ? `&cari=${encodeURIComponent(cari)}` : ""}`
-          }
+          href={buatUrl({ cari, kurang: !hanyaKurang, tampil: tampilKey })}
           className={`ml-auto rounded-lg border px-3 py-1.5 text-xs font-medium ${
             hanyaKurang
               ? "border-amber-300 bg-amber-50 text-amber-700"
@@ -149,6 +192,44 @@ export default async function KependudukanPage({ searchParams }) {
           {hanyaKurang ? "✓ Menampilkan yang belum lengkap saja" : "Tampilkan yang belum lengkap saja"}
         </Link>
       </form>
+
+      {/* Pilihan jumlah data yang ditampilkan */}
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
+        <p>
+          Menampilkan{" "}
+          <span className="font-semibold text-slate-700">
+            {daftar.length.toLocaleString("id-ID")}
+          </span>{" "}
+          dari{" "}
+          <span className="font-semibold text-slate-700">
+            {jumlahCocok.toLocaleString("id-ID")}
+          </span>{" "}
+          data{cari || hanyaKurang ? " (sesuai filter)" : ""}
+        </p>
+        <div className="flex items-center gap-1.5">
+          <span>Tampilkan:</span>
+          <div className="inline-flex overflow-hidden rounded-lg border border-slate-300 bg-white">
+            {[...PILIHAN_TAMPIL.map(String), "semua"].map((nilai) => {
+              const aktif = tampilKey === nilai;
+              return (
+                <Link
+                  key={nilai}
+                  href={buatUrl({ cari, kurang: hanyaKurang, tampil: nilai })}
+                  scroll={false}
+                  aria-current={aktif ? "true" : undefined}
+                  className={`border-r border-slate-200 px-3 py-1.5 font-medium last:border-r-0 ${
+                    aktif
+                      ? "bg-navy text-white"
+                      : "text-slate-600 hover:bg-slate-50"
+                  }`}
+                >
+                  {nilai === "semua" ? "Semua" : nilai}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -180,7 +261,7 @@ export default async function KependudukanPage({ searchParams }) {
               </tr>
             </thead>
             <tbody className="text-slate-600">
-              {(daftar ?? []).map((w, i) => (
+              {daftar.map((w, i) => (
                 <tr
                   key={w.id}
                   className="odd:bg-white even:bg-slate-50/60 hover:bg-navy/5"
@@ -277,7 +358,7 @@ export default async function KependudukanPage({ searchParams }) {
                   </td>
                 </tr>
               ))}
-              {(daftar ?? []).length === 0 && (
+              {daftar.length === 0 && (
                 <tr>
                   <td colSpan={12} className="px-4 py-16 text-center">
                     <div className="mx-auto flex max-w-xs flex-col items-center gap-2 text-slate-400">
@@ -295,10 +376,10 @@ export default async function KependudukanPage({ searchParams }) {
       </div>
 
       <p className="text-xs text-slate-400">
-        Menampilkan maksimal 50 hasil. Gunakan pencarian untuk mempersempit,
-        atau tombol "Ekspor ke Excel" untuk mengunduh seluruh data. Untuk
-        menambah banyak data sekaligus, gunakan tombol "Impor Data Penduduk"
-        di atas.
+        Gunakan pilihan "Tampilkan" di atas untuk mengatur jumlah baris, atau
+        pencarian untuk mempersempit. Tombol "Ekspor ke Excel" mengunduh
+        seluruh data. Untuk menambah banyak data sekaligus, gunakan tombol
+        "Impor Data Penduduk" di atas.
       </p>
     </div>
   );
