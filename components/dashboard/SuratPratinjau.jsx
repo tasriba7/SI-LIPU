@@ -22,7 +22,18 @@ function TabelBiodata({ daftar }) {
   );
 }
 
+// Perkecil huruf kop bila teksnya panjang, supaya tetap satu baris di kertas A4.
+function ukuranKop(teks, dasarPt) {
+  const batas = dasarPt >= 15 ? 30 : 34; // jumlah huruf yang masih muat pada ukuran dasar
+  const n = String(teks).length;
+  if (n <= batas) return `${dasarPt}pt`;
+  return `${Math.max(8.5, (dasarPt * batas) / n).toFixed(1)}pt`;
+}
+
 export default function SuratPratinjau({ draf, nomor, tanggal, kota, ttd, config, gambar }) {
+  const barisKabupaten = `PEMERINTAH KABUPATEN ${(config.kabupaten || "").toUpperCase()}`.trim();
+  const barisKecamatan = `KECAMATAN ${(config.kecamatan || "").toUpperCase()}`.trim();
+  const barisDesa = `${config.jenis_wilayah === "Kelurahan" ? "KELURAHAN" : "DESA"} ${(config.nama_desa || "").toUpperCase()}`.trim();
   return (
     <>
       <div
@@ -30,27 +41,26 @@ export default function SuratPratinjau({ draf, nomor, tanggal, kota, ttd, config
         className="mx-auto w-full max-w-[210mm] bg-white p-[18mm] shadow print:max-w-none print:p-0 print:shadow-none"
         style={{ fontFamily: '"Times New Roman", Times, serif', fontSize: "12pt", color: "#000", lineHeight: 1.5 }}
       >
-        {/* Kop surat */}
-        <div className="flex items-center gap-4 border-b-[3px] border-double border-black pb-2">
+        {/* Kop surat: 4 baris, masing-masing SATU baris (tidak membungkus). */}
+        <div className="relative border-b-[3px] border-double border-black pb-2">
           {config.logo_url && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={config.logo_url} alt="" style={{ width: "22mm", height: "22mm", objectFit: "contain" }} />
+            <img src={config.logo_url} alt="" style={{ position: "absolute", left: 0, top: 0, width: "22mm", height: "22mm", objectFit: "contain" }} />
           )}
-          <div className="flex-1 text-center" style={{ lineHeight: 1.25 }}>
-            <div style={{ fontSize: "13pt", fontWeight: 700 }}>
-              PEMERINTAH KABUPATEN {(config.kabupaten || "").toUpperCase()}
+          <div className="text-center" style={{ lineHeight: 1.25, padding: config.logo_url ? "0 24mm" : 0 }}>
+            <div style={{ fontSize: ukuranKop(barisKabupaten, 13), fontWeight: 700, whiteSpace: "nowrap" }}>
+              {barisKabupaten}
             </div>
-            <div style={{ fontSize: "13pt", fontWeight: 700 }}>
-              KECAMATAN {(config.kecamatan || "").toUpperCase()}
+            <div style={{ fontSize: ukuranKop(barisKecamatan, 13), fontWeight: 700, whiteSpace: "nowrap" }}>
+              {barisKecamatan}
             </div>
-            <div style={{ fontSize: "15pt", fontWeight: 700 }}>
-              {config.jenis_wilayah === "Kelurahan" ? "KELURAHAN" : "DESA"} {(config.nama_desa || "").toUpperCase()}
+            <div style={{ fontSize: ukuranKop(barisDesa, 15), fontWeight: 700, whiteSpace: "nowrap" }}>
+              {barisDesa}
             </div>
             {config.alamat && (
-              <div style={{ fontSize: "9.5pt", fontStyle: "italic" }}>{config.alamat}</div>
+              <div style={{ fontSize: "9.5pt", fontStyle: "italic", whiteSpace: "nowrap" }}>{config.alamat}</div>
             )}
           </div>
-          {config.logo_url && <div style={{ width: "22mm" }} />}
         </div>
 
         {/* Judul & nomor */}

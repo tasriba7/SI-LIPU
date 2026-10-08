@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { buatDraf, buatPenandatangan, hariIniISO } from "@/lib/suratTemplate";
+import { buatDraf, buatPenandatangan, hariIniISO, judulKata } from "@/lib/suratTemplate";
 import SuratPratinjau from "@/components/dashboard/SuratPratinjau";
 import { intipNomor, terbitkanSurat } from "./actions";
 
@@ -42,7 +42,7 @@ export default function SuratEditor({
 
   const [nomor, setNomor] = useState(suratTerbit?.nomor_surat || "");
   const [tanggal, setTanggal] = useState(suratTerbit?.tanggal_surat || hariIniISO());
-  const [kota, setKota] = useState(tersimpan?.kota || config.nama_desa || "");
+  const [kota, setKota] = useState(tersimpan?.kota || judulKata(config.nama_desa || ""));
   const [modeTtd, setModeTtd] = useState(tersimpan?.penandatangan?.mode || "kades");
   const [namaSekdes, setNamaSekdes] = useState(
     tersimpan?.penandatangan?.mode === "sekdes" ? tersimpan.penandatangan.nama : ""
