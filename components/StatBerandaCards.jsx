@@ -41,7 +41,7 @@ function StatCard({ icon: Icon, label, value, suffix = "" }) {
   }, [value]);
 
   return (
-    <div className="group flex items-center gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-5 transition-all duration-300 ease-out hover:-translate-y-1 hover:border-gold/40 hover:bg-white/[0.05]">
+    <div className="group flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-5 text-center transition-all sm:flex-row sm:gap-4 sm:text-left duration-300 ease-out hover:-translate-y-1 hover:border-gold/40 hover:bg-white/[0.05]">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/5 text-gold-light transition-colors duration-300 group-hover:bg-gold/15">
         <Icon className="h-5 w-5" />
       </div>
@@ -59,7 +59,7 @@ function StatCard({ icon: Icon, label, value, suffix = "" }) {
 
 export default function StatBerandaCards({ stats }) {
   return (
-    <div className="grid gap-5 sm:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
       {STAT_CARDS.map((c) => (
         <StatCard key={c.key} {...c} value={stats[c.key]} />
       ))}

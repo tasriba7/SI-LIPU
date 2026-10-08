@@ -237,7 +237,7 @@ function TombolUnduh({ detail, perDusun, namaDesa, wilayah }) {
   );
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
       <button type="button" disabled={!!proses} onClick={() => jalankan("pdf")}
         className={`${kelas} border-gold bg-gold text-navy-dark hover:bg-gold-light`}>
         {ikon}{proses === "pdf" ? "Menyiapkan…" : "Unduh PDF"}
@@ -322,13 +322,13 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
 
       <div className="relative mx-auto max-w-6xl px-6">
         {/* Judul */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="flex flex-col items-center gap-4 text-center md:flex-row md:items-end md:justify-between md:text-left">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.25em] text-gold">Data Terbuka</p>
             <h2 className="mt-3 font-display text-3xl font-semibold text-white sm:text-4xl">
               Desa Dalam Angka
             </h2>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/60">
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-white/60 md:mx-0">
               Gambaran penduduk desa yang dirangkum otomatis dari data
               kependudukan. Hanya angka agregat yang ditampilkan — tidak ada
               data pribadi warga yang dibuka ke publik.
@@ -339,7 +339,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
             Diperbarui otomatis dari database
           </span>
         </div>
-        <div className="mt-6">
+        <div className="mt-6 flex justify-center md:justify-start">
           <TombolUnduh detail={detail} perDusun={perDusun} namaDesa={namaDesa} wilayah={wilayah} />
         </div>
 
@@ -351,7 +351,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
                 key={s.label}
                 type="button"
                 onClick={() => setTabAktif(s.tab)}
-                className="group rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-left transition duration-300 hover:-translate-y-0.5 hover:border-gold/40 hover:bg-white/[0.07] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+                className="group rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center transition duration-300 hover:-translate-y-0.5 sm:text-left hover:border-gold/40 hover:bg-white/[0.07] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
               >
                 <p className="text-[11px] uppercase tracking-widest text-white/45">{s.label}</p>
                 <p className="mt-2 truncate font-display text-lg font-semibold text-white sm:text-xl" title={s.juara.label}>
@@ -366,9 +366,9 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
         )}
 
         {/* Donut + Rincian */}
-        <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+        <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
           {/* Jenis kelamin */}
-          <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur sm:p-8">
+          <div className="min-w-0 rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur sm:p-8">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-gold-light">
                 <IconGenderBalance className="h-5 w-5" />
@@ -407,7 +407,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
           </div>
 
           {/* Rincian bertab */}
-          <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur sm:p-8">
+          <div className="min-w-0 rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur sm:p-8">
             <div
               role="tablist"
               aria-label="Kategori statistik"

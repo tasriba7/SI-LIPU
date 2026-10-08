@@ -151,14 +151,14 @@ export default async function HomePage() {
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/layanan"
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-gold px-6 py-3 text-sm font-semibold text-navy-dark transition hover:bg-gold-light"
+                className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-lg bg-gold px-6 py-3 text-sm font-semibold text-navy-dark transition hover:bg-gold-light sm:w-auto"
               >
                 Ajukan Layanan
                 <IconArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/layanan/cek"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/20 px-6 py-3 text-sm font-medium text-white transition hover:border-white/40 hover:bg-white/5"
+                className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-lg border border-white/20 px-6 py-3 text-sm font-medium text-white transition hover:border-white/40 hover:bg-white/5 sm:w-auto"
               >
                 Cek Status Pengajuan
               </Link>
