@@ -247,13 +247,13 @@ export default async function HomePage() {
           {LAYANAN.map(({ nama, deskripsi, icon: Icon, href }, idx) => {
             const Wrapper = href ? Link : "div";
             return (
-              <Reveal key={nama} delay={idx * 120}>
+              <Reveal key={nama} delay={idx * 120} className="h-full">
               <Wrapper
                 {...(href ? { href } : {})}
-                className={`group relative h-full overflow-hidden rounded-2xl border p-6 backdrop-blur-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl ${
+                className={`group relative block h-full overflow-hidden rounded-2xl border p-6 transition duration-300 ease-out hover:-translate-y-1.5 hover:shadow-xl hover:shadow-navy/10 ${
                   href
-                    ? "border-gold/40 bg-white/70 hover:border-gold"
-                    : "border-slate-200 bg-white/70"
+                    ? "border-gold/40 bg-white/80 hover:border-gold"
+                    : "border-slate-200 bg-white/80"
                 }`}
               >
                 <span
@@ -317,17 +317,19 @@ export default async function HomePage() {
 
           <div className="mt-10 grid gap-8 md:grid-cols-3 md:gap-6">
             {CARA_KERJA.map(({ nomor, judul, teks }, i) => (
-              <Reveal key={nomor} delay={i * 150} className="relative">
+              <Reveal key={nomor} delay={i * 150} className="relative h-full">
                 {i < CARA_KERJA.length - 1 && (
-                  <div className="absolute right-[-1.5rem] top-6 hidden h-px w-12 bg-slate-300 md:block" />
+                  <div className="absolute right-[-1.5rem] top-1/2 z-10 hidden h-px w-12 bg-slate-300 md:block" />
                 )}
-                <span className="font-display text-4xl font-semibold text-gold">
-                  {nomor}
-                </span>
-                <h3 className="mt-3 font-semibold text-slate-800">{judul}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
-                  {teks}
-                </p>
+                <div className="h-full rounded-2xl border border-slate-200/70 bg-white/70 p-6 transition duration-300 ease-out hover:-translate-y-1.5 hover:border-gold/60 hover:shadow-xl hover:shadow-navy/10">
+                  <span className="font-display text-4xl font-semibold text-gold">
+                    {nomor}
+                  </span>
+                  <h3 className="mt-3 font-semibold text-slate-800">{judul}</h3>
+                  <p className="mt-1.5 text-sm leading-relaxed text-slate-500">
+                    {teks}
+                  </p>
+                </div>
               </Reveal>
             ))}
           </div>
@@ -338,7 +340,8 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-6 py-16 md:py-20">
         <div className="grid gap-8 sm:grid-cols-3">
           {JAMINAN.map(({ judul, teks }, i) => (
-            <Reveal key={judul} delay={i * 150} className="flex gap-3">
+            <Reveal key={judul} delay={i * 150} className="h-full">
+              <div className="flex h-full gap-3 rounded-2xl border border-transparent p-4 transition duration-300 ease-out hover:-translate-y-1 hover:border-slate-200 hover:bg-white/70 hover:shadow-lg">
               <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-navy text-white">
                 <IconCheck className="h-3.5 w-3.5" />
               </div>
@@ -347,6 +350,7 @@ export default async function HomePage() {
                 <p className="mt-1 text-sm leading-relaxed text-slate-500">
                   {teks}
                 </p>
+              </div>
               </div>
             </Reveal>
           ))}
