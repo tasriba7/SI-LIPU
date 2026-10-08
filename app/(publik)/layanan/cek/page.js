@@ -60,7 +60,9 @@ export default function CekStatusLayananPage() {
               {state.result.jenis_surat}
             </p>
             <p className="text-slate-500">
-              Atas nama {state.result.nama_pemohon}
+              {state.result.nama_pemohon
+                ? `Atas nama ${state.result.nama_pemohon}`
+                : "Pengaduan anonim"}
             </p>
             <span
               className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${

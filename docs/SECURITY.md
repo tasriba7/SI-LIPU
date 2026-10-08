@@ -79,3 +79,14 @@ Jika mengerjakan fitur apapun yang menyentuh tabel `warga` tanpa login admin, **
 dokumen ini dulu** dan pastikan implementasinya sesuai. Jika ragu, jangan menebak — tanyakan ke
 pemilik proyek sebelum melanjutkan, karena kebocoran data kependudukan adalah risiko serius
 (hukum & kepercayaan warga terhadap desa).
+
+
+---
+
+## Pengaduan Anonim (WAJIB DIPATUHI)
+- Jika pelapor memilih anonim, identitas (nama, NIK, No. HP, `warga_id`) **tidak boleh disimpan
+  sama sekali** — bukan sekadar disembunyikan di tampilan. Jangan pernah menambah fitur yang
+  menyimpan identitas pelapor anonim (log IP, nomor HP "cadangan", dsb).
+- Jangan mengubah `anonim` jadi `false` atau mengisi identitas belakangan; trigger
+  `jaga_pengaduan_anonim` di database memblokirnya.
+- Kode tracking adalah satu-satunya kunci pelapor anonim: dibuat dengan `crypto`, minimal 10 karakter.

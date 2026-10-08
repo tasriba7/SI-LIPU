@@ -23,7 +23,7 @@ export default async function DaftarPengajuanLayananPage({ searchParams }) {
   let query = supabase
     .from("pengajuan_layanan")
     .select(
-      "id, kode_tracking, nama_pemohon, nik, no_hp, status, created_at, jenis_layanan_master(nama_layanan)"
+      "id, kode_tracking, anonim, nama_pemohon, nik, no_hp, status, created_at, jenis_layanan_master(nama_layanan)"
     )
     .order("created_at", { ascending: false })
     .limit(BATAS);
@@ -134,10 +134,13 @@ export default async function DaftarPengajuanLayananPage({ searchParams }) {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {(daftar ?? []).map((row) => {
-              const wa = linkWhatsApp(
-                row.no_hp,
-                `Halo ${row.nama_pemohon}, ini kantor desa terkait pengajuan ${row.kode_tracking}.`
-              );
+              // Pengaduan anonim: tidak ada nama/HP, jadi tidak ada tombol WhatsApp.
+              const wa = row.anonim
+                ? null
+                : linkWhatsApp(
+                    row.no_hp,
+                    `Halo ${row.nama_pemohon}, ini kantor desa terkait pengajuan ${row.kode_tracking}.`
+                  );
               return (
                 <tr key={row.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3">
@@ -156,7 +159,15 @@ export default async function DaftarPengajuanLayananPage({ searchParams }) {
                   <td className="px-4 py-3 text-slate-700">
                     {row.jenis_layanan_master?.nama_layanan}
                   </td>
-                  <td className="px-4 py-3 text-slate-700">{row.nama_pemohon}</td>
+                  <td className="px-4 py-3 text-slate-700">
+                    {row.anonim ? (
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                        Anonim
+                      </span>
+                    ) : (
+                      row.nama_pemohon
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <span
                       className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASS[row.status]}`}

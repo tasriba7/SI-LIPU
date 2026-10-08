@@ -187,6 +187,11 @@ representasi hasil di database saja).
 > disetujui → sistem generate record di `surat` (jika jenisnya surat) atau tindak lanjut lain
 > (jika pengaduan/bansos).
 
+> **Pengaduan anonim (migration 0018):** tabel `pengajuan_layanan` punya kolom `anonim`
+> (boolean). Jika `true`, kolom `nama_pemohon`, `nik`, `no_hp`, `warga_id` WAJIB `null`
+> (dijaga constraint + trigger). Hanya boleh untuk `jenis_layanan_master.kategori = 'pengaduan'`.
+> Kolom `nama_pemohon`/`nik`/`no_hp` sekarang boleh null (khusus baris anonim).
+
 ## 9. `log_aktivitas` (dipakai semua modul)
 | Kolom | Tipe | Keterangan |
 |---|---|---|

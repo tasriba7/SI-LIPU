@@ -105,6 +105,16 @@ aturan jika sistem ini direplikasi ke desa lain.
       header publik & tautan "Lihat semua galeri" di beranda kalau foto
       lebih dari 8.
 
+- [x] **Pengaduan Anonim** — pada layanan berkategori `pengaduan`, warga memilih
+      "Tampilkan identitas saya" atau "Rahasiakan identitas (anonim)" sebelum mengisi
+      form. Kalau anonim: nama/NIK/No. HP TIDAK diminta dan TIDAK disimpan (kolom
+      `pengajuan_layanan.anonim = true`, identitas dipaksa kosong lewat constraint +
+      trigger di migration 0018, jadi admin pun tidak bisa melihat atau mengisinya
+      belakangan). Pelapor hanya memegang kode tracking (10 karakter, dibuat dengan
+      crypto) untuk cek status di `/layanan/cek`. Di dashboard admin pelapor tampil
+      "Anonim", tombol WhatsApp tidak muncul. **Wajib jalankan `0018_pengaduan_anonim.sql`
+      di Supabase.**
+
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,
 tanpa lookup warga, dan tidak ada sistem slot RT. Semua sudah diperbaiki lewat migrasi

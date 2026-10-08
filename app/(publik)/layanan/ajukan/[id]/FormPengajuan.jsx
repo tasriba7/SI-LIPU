@@ -92,8 +92,14 @@ export default function FormPengajuan({ jenisLayanan }) {
   const butuhLookup = jenisLayanan.butuh_lookup_warga;
   const formSchema = jenisLayanan.form_schema || [];
 
-  // "lookup" -> "konfirmasi" -> "isi" -> selesai (state success dari ajukanLayanan)
-  const [tahap, setTahap] = useState(butuhLookup ? "lookup" : "isi");
+  // Khusus pengaduan: warga boleh memilih merahasiakan identitasnya (anonim).
+  const bolehAnonim = jenisLayanan.kategori === "pengaduan";
+  const [anonim, setAnonim] = useState(false);
+
+  // "pilih" (khusus pengaduan) -> "lookup" -> "isi" -> selesai (state success dari ajukanLayanan)
+  const [tahap, setTahap] = useState(
+    bolehAnonim ? "pilih" : butuhLookup ? "lookup" : "isi"
+  );
   const [wargaTerpilih, setWargaTerpilih] = useState(null); // { warga_id, nama_lengkap, dusun, rt, rw }
   const [nikDicoba, setNikDicoba] = useState("");
   const [dataTambahan, setDataTambahan] = useState({});
@@ -112,6 +118,59 @@ export default function FormPengajuan({ jenisLayanan }) {
 
   function ubahFieldTambahan(key, value) {
     setDataTambahan((prev) => ({ ...prev, [key]: value }));
+  }
+
+  // --- Tahap 0 (khusus pengaduan): tampilkan identitas atau anonim ---
+  if (tahap === "pilih") {
+    return (
+      <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-sm">
+        <h1 className="text-xl font-bold text-navy">{jenisLayanan.nama_layanan}</h1>
+        <p className="mb-6 mt-1 text-sm text-slate-500">
+          Bagaimana Anda ingin mengirim pengaduan ini?
+        </p>
+
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={() => {
+              setAnonim(false);
+              setTahap(butuhLookup ? "lookup" : "isi");
+            }}
+            className="w-full rounded-xl border border-slate-200 p-4 text-left transition hover:border-navy"
+          >
+            <p className="font-semibold text-slate-800">Tampilkan identitas saya</p>
+            <p className="mt-1 text-sm text-slate-500">
+              Nama, NIK, dan No. HP Anda terlihat oleh petugas desa, sehingga
+              petugas bisa menghubungi Anda.
+            </p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setAnonim(true);
+              setWargaTerpilih(null);
+              setNikDicoba("");
+              setTahap("isi");
+            }}
+            className="w-full rounded-xl border border-slate-200 p-4 text-left transition hover:border-navy"
+          >
+            <p className="font-semibold text-slate-800">Rahasiakan identitas saya (anonim)</p>
+            <p className="mt-1 text-sm text-slate-500">
+              Nama, NIK, dan No. HP tidak diminta dan tidak disimpan. Tidak ada
+              seorang pun yang bisa tahu siapa pengadu, kecuali Anda sendiri.
+            </p>
+          </button>
+        </div>
+
+        <Link
+          href="/layanan"
+          className="mt-6 block text-center text-xs text-slate-400 hover:text-slate-600"
+        >
+          Kembali ke daftar layanan
+        </Link>
+      </div>
+    );
   }
 
   // --- Tahap 1: cari data warga ---
@@ -231,16 +290,37 @@ export default function FormPengajuan({ jenisLayanan }) {
           cek status.
         </p>
 
+        {anonim && (
+          <div className="mb-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+            <p className="font-semibold">Mode anonim aktif</p>
+            <p className="mt-1">
+              Identitas Anda tidak diminta dan tidak disimpan. Agar tetap
+              anonim, <strong>jangan menulis nama, nomor HP, atau ciri-ciri
+              pribadi Anda</strong> di isi pengaduan.
+            </p>
+            <button
+              type="button"
+              onClick={() => setTahap("pilih")}
+              className="mt-2 text-xs font-medium underline"
+            >
+              Ubah pilihan
+            </button>
+          </div>
+        )}
+
         <form action={submitAction} className="space-y-4">
           <input type="hidden" name="jenis_layanan_id" value={jenisLayanan.id} />
           <input type="hidden" name="kode_prefix" value={jenisLayanan.kode_prefix} />
-          <input type="hidden" name="warga_id" value={wargaTerpilih?.warga_id || ""} />
+          <input type="hidden" name="anonim" value={anonim ? "1" : "0"} />
+          <input type="hidden" name="warga_id" value={anonim ? "" : wargaTerpilih?.warga_id || ""} />
           <input
             type="hidden"
             name="data_tambahan_json"
             value={JSON.stringify(dataTambahan)}
           />
 
+          {!anonim && (
+            <>
           <div>
             <label className="mb-1 block text-sm text-slate-600">Nama lengkap</label>
             <input
@@ -278,6 +358,9 @@ export default function FormPengajuan({ jenisLayanan }) {
               className="w-full rounded-lg border border-slate-300 px-3 py-2 outline-none focus:border-navy"
             />
           </div>
+
+            </>
+          )}
 
           <div>
             <label className="mb-1 block text-sm text-slate-600">Keterangan</label>
@@ -330,6 +413,14 @@ export default function FormPengajuan({ jenisLayanan }) {
         Simpan kode tracking di bawah ini baik-baik — dipakai untuk cek status
         pengajuan Anda kapan saja.
       </p>
+      {submitState.anonim && (
+        <p className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800">
+          Pengaduan Anda tercatat <strong>anonim</strong>. Kode ini satu-satunya
+          cara untuk mengecek status — kami tidak menyimpan identitas Anda,
+          jadi <strong>kode yang hilang tidak bisa dipulihkan</strong>. Catat
+          atau tangkap layar sekarang.
+        </p>
+      )}
       <p className="mt-4 rounded-lg bg-slate-100 py-3 font-mono text-xl font-bold tracking-widest text-navy">
         {submitState.kode_tracking}
       </p>

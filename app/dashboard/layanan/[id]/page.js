@@ -25,10 +25,12 @@ export default async function DetailPengajuanLayananPage({ params }) {
       .single();
     pemroses = prof?.nama ?? null;
   }
-  const wa = linkWhatsApp(
-    pengajuan.no_hp,
-    `Halo ${pengajuan.nama_pemohon}, ini kantor desa terkait pengajuan ${pengajuan.kode_tracking}.`
-  );
+  const wa = pengajuan.anonim
+    ? null
+    : linkWhatsApp(
+        pengajuan.no_hp,
+        `Halo ${pengajuan.nama_pemohon}, ini kantor desa terkait pengajuan ${pengajuan.kode_tracking}.`
+      );
 
   const formSchema = pengajuan.jenis_layanan_master?.form_schema || [];
 
@@ -53,6 +55,20 @@ export default async function DetailPengajuanLayananPage({ params }) {
         </h1>
 
         <dl className="mt-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+          {pengajuan.anonim ? (
+            <div className="sm:col-span-2">
+              <dt className="text-slate-400">Pelapor</dt>
+              <dd className="text-slate-700">
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-500">
+                  Anonim
+                </span>
+                <span className="ml-2 text-xs text-slate-400">
+                  Identitas dirahasiakan oleh pelapor dan tidak tersimpan di sistem.
+                </span>
+              </dd>
+            </div>
+          ) : (
+            <>
           <div>
             <dt className="text-slate-400">Nama pemohon</dt>
             <dd className="text-slate-700">{pengajuan.nama_pemohon}</dd>
@@ -77,6 +93,8 @@ export default async function DetailPengajuanLayananPage({ params }) {
               )}
             </dd>
           </div>
+            </>
+          )}
           <div>
             <dt className="text-slate-400">Diajukan</dt>
             <dd className="text-slate-700">
