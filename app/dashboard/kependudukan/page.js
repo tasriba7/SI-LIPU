@@ -4,6 +4,7 @@ import { IconPlus, IconUsers, IconSearch } from "@/components/icons";
 import TombolHapusWarga from "./TombolHapusWarga";
 import ImportWargaButton from "./ImportWargaButton";
 import ExportWargaButton from "./ExportWargaButton";
+import PilihJumlahTampil from "./PilihJumlahTampil";
 import { ringkasKolomKosong } from "@/lib/kelengkapan";
 
 function formatTanggal(t) {
@@ -181,9 +182,18 @@ export default async function KependudukanPage({ searchParams }) {
             Reset pencarian
           </Link>
         )}
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <PilihJumlahTampil
+            nilai={tampilKey}
+            opsi={[...PILIHAN_TAMPIL.map(String), "semua"].map((nilai) => ({
+              value: nilai,
+              label: nilai === "semua" ? "Semua data" : `${nilai} data`,
+              href: buatUrl({ cari, kurang: hanyaKurang, tampil: nilai }),
+            }))}
+          />
         <Link
           href={buatUrl({ cari, kurang: !hanyaKurang, tampil: tampilKey })}
-          className={`ml-auto rounded-lg border px-3 py-1.5 text-xs font-medium ${
+          className={`rounded-lg border px-3 py-1.5 text-xs font-medium ${
             hanyaKurang
               ? "border-amber-300 bg-amber-50 text-amber-700"
               : "border-slate-300 text-slate-500 hover:bg-slate-50"
@@ -191,45 +201,8 @@ export default async function KependudukanPage({ searchParams }) {
         >
           {hanyaKurang ? "✓ Menampilkan yang belum lengkap saja" : "Tampilkan yang belum lengkap saja"}
         </Link>
-      </form>
-
-      {/* Pilihan jumlah data yang ditampilkan */}
-      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-500">
-        <p>
-          Menampilkan{" "}
-          <span className="font-semibold text-slate-700">
-            {daftar.length.toLocaleString("id-ID")}
-          </span>{" "}
-          dari{" "}
-          <span className="font-semibold text-slate-700">
-            {jumlahCocok.toLocaleString("id-ID")}
-          </span>{" "}
-          data{cari || hanyaKurang ? " (sesuai filter)" : ""}
-        </p>
-        <div className="flex items-center gap-1.5">
-          <span>Tampilkan:</span>
-          <div className="inline-flex overflow-hidden rounded-lg border border-slate-300 bg-white">
-            {[...PILIHAN_TAMPIL.map(String), "semua"].map((nilai) => {
-              const aktif = tampilKey === nilai;
-              return (
-                <Link
-                  key={nilai}
-                  href={buatUrl({ cari, kurang: hanyaKurang, tampil: nilai })}
-                  scroll={false}
-                  aria-current={aktif ? "true" : undefined}
-                  className={`border-r border-slate-200 px-3 py-1.5 font-medium last:border-r-0 ${
-                    aktif
-                      ? "bg-navy text-white"
-                      : "text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  {nilai === "semua" ? "Semua" : nilai}
-                </Link>
-              );
-            })}
-          </div>
         </div>
-      </div>
+      </form>
 
       {/* Table */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -376,7 +349,15 @@ export default async function KependudukanPage({ searchParams }) {
       </div>
 
       <p className="text-xs text-slate-400">
-        Gunakan pilihan "Tampilkan" di atas untuk mengatur jumlah baris, atau
+        Menampilkan{" "}
+        <span className="font-semibold text-slate-600">
+          {daftar.length.toLocaleString("id-ID")}
+        </span>{" "}
+        dari{" "}
+        <span className="font-semibold text-slate-600">
+          {jumlahCocok.toLocaleString("id-ID")}
+        </span>{" "}
+        data{cari || hanyaKurang ? " (sesuai filter)" : ""}. Gunakan pilihan "Tampilkan" di atas untuk mengatur jumlah baris, atau
         pencarian untuk mempersempit. Tombol "Ekspor ke Excel" mengunduh
         seluruh data. Untuk menambah banyak data sekaligus, gunakan tombol
         "Impor Data Penduduk" di atas.
