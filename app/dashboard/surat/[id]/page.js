@@ -4,11 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import DetailSuratForm from "./DetailSuratForm";
 
 export default async function DetailSuratPage({ params }) {
+  const { id } = await params;
   const supabase = await createClient();
   const { data: surat } = await supabase
     .from("pengajuan_surat")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (!surat) notFound();
@@ -57,6 +58,19 @@ export default async function DetailSuratPage({ params }) {
           </div>
         </dl>
       </div>
+
+      <Link
+        href={`/dashboard/surat/${id}/surat`}
+        className="flex items-center justify-between rounded-2xl border border-navy/20 bg-navy/5 p-5 transition hover:border-navy"
+      >
+        <div>
+          <p className="font-semibold text-navy">Buat Surat</p>
+          <p className="text-xs text-slate-500">
+            Isi surat terisi otomatis dari data pemohon. Tinggal periksa, beri nomor, lalu cetak.
+          </p>
+        </div>
+        <span className="text-navy">&rarr;</span>
+      </Link>
 
       <DetailSuratForm surat={surat} />
     </div>

@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getConfigDesa } from "@/lib/configDesa";
+import { ambilBerkasTtd, pilihGambar } from "@/lib/suratBerkas";
 import SuratPratinjau from "@/components/dashboard/SuratPratinjau";
 import TombolCetak from "./TombolCetak";
 
@@ -9,9 +10,10 @@ export default async function DetailSuratTerbitPage({ params }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: surat }, config] = await Promise.all([
+  const [{ data: surat }, config, berkas] = await Promise.all([
     supabase.from("surat_terbit").select("*").eq("id", id).maybeSingle(),
     getConfigDesa(supabase),
+    ambilBerkasTtd(supabase),
   ]);
   if (!surat) notFound();
 
@@ -26,7 +28,11 @@ export default async function DetailSuratTerbitPage({ params }) {
         </Link>
         <div className="flex items-center gap-3">
           <Link
-            href={`/dashboard/layanan/${surat.pengajuan_id}/surat`}
+            href={
+              surat.pengajuan_surat_id
+                ? `/dashboard/surat/${surat.pengajuan_surat_id}/surat`
+                : `/dashboard/layanan/${surat.pengajuan_id}/surat`
+            }
             className="text-sm text-slate-500 hover:text-navy"
           >
             Buka di editor
@@ -41,6 +47,7 @@ export default async function DetailSuratTerbitPage({ params }) {
           tanggal={surat.tanggal_surat}
           kota={surat.isi?.kota}
           ttd={surat.isi?.penandatangan || {}}
+          gambar={pilihGambar(berkas, surat.isi)}
           config={{
             nama_desa: config.nama_desa,
             jenis_wilayah: config.jenis_wilayah,

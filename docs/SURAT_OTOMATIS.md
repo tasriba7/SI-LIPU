@@ -53,13 +53,23 @@ Field tanggal di Form Builder otomatis menyediakan `{{key}}`, `{{key_angka}}` (2
 `{{key_hari}}` (Rabu). `{{usia_almarhum}}` dihitung otomatis; `{{alamat_anak}}`/`{{alamat_almarhum}}`
 jatuh ke alamat pemohon bila kosong.
 
+## Pembaruan lanjutan (migrasi 0022)
+- **Penomoran otomatis**: format per template (`format_nomor`, mis. `470/{urut3}/DS/{bulan_romawi}/{tahun}`)
+  + `kelompok_nomor`. Kosongkan kolom nomor di editor = nomor diambil saat disimpan (atomik, reset per tahun).
+  Petunjuk "Otomatis: ..." di editor hanya perkiraan, belum memakai nomor. Mulai dari angka tertentu:
+  lihat komentar di akhir bagian 1 migrasi 0022.
+- **Tambah template baru**: `/dashboard/template-surat/tambah` (kerangka kosong atau salin template lain).
+- **Pengajuan LAMA**: `/dashboard/surat/[id]/surat`; surat disimpan di `surat_terbit.pengajuan_surat_id`.
+  Data warga dilengkapi lewat pencocokan NIK ke tabel `warga` bila ada.
+- **Cek status publik** menampilkan nomor surat (bukan isi/NIK).
+- **Tanda tangan & stempel**: `/dashboard/pengaturan-desa/tanda-tangan` (admin). Bucket privat `desa-ttd`,
+  signed URL 1 jam. Snapshot surat hanya menyimpan penanda `tampil_ttd`/`tampil_stempel`; gambar diambil saat
+  ditampilkan. Catatan: surat lama yang dicetak ulang akan memakai gambar TERBARU di pengaturan.
+
 ## YANG BELUM
-1. Tombol "Tambah template baru" di Kelola Template (sementara lewat SQL).
-2. Penomoran otomatis (counter per tahun, aman balapan).
-3. Surat untuk pengajuan LAMA (`pengajuan_surat`).
-4. `/layanan/cek`: tampilkan nomor surat (jangan tampilkan isi/NIK, lihat SECURITY.md).
-5. Tanda tangan/stempel gambar.
-6. Kolom nomor surat di `/dashboard/layanan` + log aktivitas penerbitan.
-7. Uji manual: migrasi 0020 & 0021, ajukan Kelahiran/Kematian, cek pratinjau & cetak A4, nomor ganda,
-   login Kepala Desa (read-only), NIK tak terdata.
-8. Update `docs/DATABASE_SCHEMA.md` (kolom baru `template_surat`, tabel `surat_terbit`).
+1. Kolom nomor surat di `/dashboard/layanan` dan log aktivitas penerbitan.
+2. Pembatalan/revisi nomor (nomor yang terpakai tidak dikembalikan; kekosongan urutan wajar bila simpan gagal).
+3. Hapus template (sementara cukup dinonaktifkan).
+4. Uji manual: migrasi 0020-0022 berurutan; ajukan Kelahiran/Kematian; nomor otomatis dari dua akun bersamaan;
+   surat untuk pengajuan lama; cek status publik menampilkan nomor; unggah ttd/stempel lalu cetak A4;
+   login Kepala Desa (read-only).

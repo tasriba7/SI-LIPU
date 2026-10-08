@@ -118,7 +118,7 @@ aturan jika sistem ini direplikasi ke desa lain.
 - [x] **Surat Otomatis (Modul 4)** — lihat `docs/SURAT_OTOMATIS.md`. Migrasi 0020 + 0021
       (template Kelahiran & Kematian, dua blok biodata). Halaman: `/dashboard/layanan/[id]/surat`
       (editor), `/dashboard/template-surat` (admin), `/dashboard/surat-terbit` (arsip & cetak ulang).
-      **Wajib jalankan `0020` lalu `0021` di Supabase.**
+      **Wajib jalankan `0020`, `0021`, lalu `0022` di Supabase** (0022: penomoran otomatis, surat untuk pengajuan lama, nomor di cek status, bucket privat `desa-ttd`).
 
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,

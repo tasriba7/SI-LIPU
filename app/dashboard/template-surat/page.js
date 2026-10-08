@@ -16,12 +16,20 @@ export default async function TemplateSuratPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-bold text-slate-800">Kelola Template Surat</h1>
-        <p className="text-sm text-slate-500">
-          Ubah redaksi surat tanpa developer. Perubahan berlaku untuk surat yang dibuat
-          sesudahnya; surat yang sudah terbit tidak ikut berubah.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-bold text-slate-800">Kelola Template Surat</h1>
+          <p className="text-sm text-slate-500">
+            Ubah redaksi surat tanpa developer. Perubahan berlaku untuk surat yang dibuat
+            sesudahnya; surat yang sudah terbit tidak ikut berubah.
+          </p>
+        </div>
+        <Link
+          href="/dashboard/template-surat/tambah"
+          className="shrink-0 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-light"
+        >
+          + Tambah Template
+        </Link>
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">

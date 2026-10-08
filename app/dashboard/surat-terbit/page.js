@@ -12,13 +12,17 @@ export default async function SuratTerbitPage({ searchParams }) {
   const { data } = await supabase
     .from("surat_terbit")
     .select(
-      "id, nomor_surat, tanggal_surat, isi, pengajuan_id, pengajuan_layanan(kode_tracking, nama_pemohon, jenis_layanan_master(nama_layanan))"
+      "id, nomor_surat, tanggal_surat, isi, pengajuan_id, pengajuan_surat_id, pengajuan_layanan(kode_tracking, nama_pemohon), pengajuan_surat(kode_tracking, nama_pemohon)"
     )
     .order("tanggal_surat", { ascending: false })
     .order("created_at", { ascending: false })
     .limit(BATAS_TAMPIL);
 
-  const semua = data || [];
+  // Sumber surat: pengajuan baru (layanan) atau lama (surat).
+  const semua = (data || []).map((s) => ({
+    ...s,
+    pengajuan: s.pengajuan_layanan || s.pengajuan_surat || {},
+  }));
   const daftar = kata
     ? semua.filter((s) => {
         const bio = [...(s.isi?.biodata || []), ...(s.isi?.biodata2 || [])]
@@ -27,8 +31,8 @@ export default async function SuratTerbitPage({ searchParams }) {
         const teks = [
           s.nomor_surat,
           s.isi?.judul,
-          s.pengajuan_layanan?.nama_pemohon,
-          s.pengajuan_layanan?.kode_tracking,
+          s.pengajuan.nama_pemohon,
+          s.pengajuan.kode_tracking,
           bio,
         ]
           .join(" ")
@@ -81,9 +85,9 @@ export default async function SuratTerbitPage({ searchParams }) {
                 <td className="px-4 py-3 font-mono text-xs text-slate-700">{s.nomor_surat}</td>
                 <td className="px-4 py-3 text-slate-700">{s.isi?.judul}</td>
                 <td className="px-4 py-3">
-                  <p className="text-slate-700">{s.pengajuan_layanan?.nama_pemohon}</p>
+                  <p className="text-slate-700">{s.pengajuan.nama_pemohon}</p>
                   <p className="font-mono text-[11px] text-slate-400">
-                    {s.pengajuan_layanan?.kode_tracking}
+                    {s.pengajuan.kode_tracking}
                   </p>
                 </td>
                 <td className="px-4 py-3 text-slate-500">{formatTanggalId(s.tanggal_surat)}</td>

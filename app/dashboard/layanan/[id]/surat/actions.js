@@ -10,21 +10,53 @@ function bersih(v, maks) {
   return String(v ?? "").replace(/\r\n/g, "\n").trim().slice(0, maks);
 }
 
+// Dua sumber pengajuan: tabel generik baru (Form Builder) dan tabel lama.
+const SUMBER = {
+  layanan: {
+    tabel: "pengajuan_layanan",
+    kolom: "pengajuan_id",
+    kolomPilih: "id, status, anonim, catatan_admin",
+    path: "/dashboard/layanan",
+  },
+  lama: {
+    tabel: "pengajuan_surat",
+    kolom: "pengajuan_surat_id",
+    kolomPilih: "id, status, catatan_admin",
+    path: "/dashboard/surat",
+  },
+};
+
+/** Nomor berikutnya (tanpa memakainya) untuk petunjuk di editor. */
+export async function intipNomor({ templateId, tanggal }) {
+  if (!templateId || !/^\d{4}-\d{2}-\d{2}$/.test(String(tanggal ?? ""))) return { nomor: null };
+  const supabase = await createClient();
+  const akses = await pastikanBisaTerbitkanSurat(supabase);
+  if (akses.error) return { nomor: null };
+  const { data } = await supabase.rpc("intip_nomor_surat", {
+    p_template_id: templateId,
+    p_tanggal: tanggal,
+  });
+  return { nomor: data || null };
+}
+
 /**
  * Simpan salinan final surat + tandai pengajuan selesai.
  * Server memeriksa ulang SEMUA masukan (jangan percaya klien) dan role
  * penerbit; RLS di surat_terbit adalah lapisan kedua.
+ * Nomor kosong + template punya format nomor => nomor diambil otomatis.
  */
 export async function terbitkanSurat(payload) {
+  const sumber = payload?.sumber === "lama" ? SUMBER.lama : SUMBER.layanan;
   const pengajuanId = String(payload?.pengajuanId ?? "");
   const nomor = bersih(payload?.nomorSurat, BATAS.nomor);
   const tanggal = String(payload?.tanggalSurat ?? "").slice(0, 10);
+  const templateId = payload?.templateId ? String(payload.templateId) : null;
   const draf = payload?.draf;
   const ttd = payload?.penandatangan;
 
   if (!pengajuanId) return { error: "Pengajuan tidak ditemukan." };
-  if (!nomor) return { error: "Nomor surat wajib diisi." };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)) return { error: "Tanggal surat tidak valid." };
+  if (!nomor && !templateId) return { error: "Nomor surat wajib diisi." };
   if (!draf || typeof draf !== "object") return { error: "Isi surat kosong." };
   if (!ttd?.nama?.trim()) return { error: "Nama penandatangan wajib diisi." };
 
@@ -50,6 +82,9 @@ export async function terbitkanSurat(payload) {
       nama: bersih(ttd.nama, BATAS.label),
       nip: bersih(ttd.nip, 40),
     },
+    // Hanya penanda; gambarnya sendiri diambil dari bucket privat saat ditampilkan.
+    tampil_ttd: payload?.tampilTtd === true,
+    tampil_stempel: payload?.tampilStempel === true,
     kota: bersih(payload?.kota, BATAS.label),
   };
   if (!isi.judul) return { error: "Judul surat kosong." };
@@ -59,8 +94,8 @@ export async function terbitkanSurat(payload) {
   if (akses.error) return { error: akses.error };
 
   const { data: pengajuan } = await supabase
-    .from("pengajuan_layanan")
-    .select("id, status, anonim, catatan_admin")
+    .from(sumber.tabel)
+    .select(sumber.kolomPilih)
     .eq("id", pengajuanId)
     .maybeSingle();
   if (!pengajuan) return { error: "Pengajuan tidak ditemukan." };
@@ -69,28 +104,54 @@ export async function terbitkanSurat(payload) {
     return { error: "Pengajuan ini berstatus ditolak. Ubah statusnya dulu sebelum membuat surat." };
   }
 
-  const { error } = await supabase.from("surat_terbit").upsert(
-    {
-      pengajuan_id: pengajuanId,
-      template_id: payload?.templateId || null,
-      nomor_surat: nomor,
-      tanggal_surat: tanggal,
-      isi,
-      diterbitkan_oleh: akses.user.id,
-    },
-    { onConflict: "pengajuan_id" }
-  );
+  const simpan = (nomorFinal) =>
+    supabase.from("surat_terbit").upsert(
+      {
+        [sumber.kolom]: pengajuanId,
+        template_id: templateId,
+        nomor_surat: nomorFinal,
+        tanggal_surat: tanggal,
+        isi,
+        diterbitkan_oleh: akses.user.id,
+      },
+      { onConflict: sumber.kolom }
+    );
+
+  let nomorFinal = nomor;
+  let error = null;
+
+  if (nomorFinal) {
+    ({ error } = await simpan(nomorFinal));
+  } else {
+    // Penomoran otomatis. Ulangi bila nomor kebetulan sudah dipakai surat yang
+    // nomornya diketik manual (maks. 5 kali).
+    for (let i = 0; i < 5; i++) {
+      const { data, error: errNomor } = await supabase.rpc("ambil_nomor_surat", {
+        p_template_id: templateId,
+        p_tanggal: tanggal,
+      });
+      if (errNomor || !data) {
+        return {
+          error:
+            "Nomor otomatis tidak tersedia (format nomor template belum diisi). Ketik nomor surat secara manual.",
+        };
+      }
+      nomorFinal = data;
+      ({ error } = await simpan(nomorFinal));
+      if (!error || error.code !== "23505") break;
+    }
+  }
 
   if (error) {
     if (error.code === "23505") {
-      return { error: `Nomor surat "${nomor}" sudah dipakai surat lain. Gunakan nomor berbeda.` };
+      return { error: `Nomor surat "${nomorFinal}" sudah dipakai surat lain. Gunakan nomor berbeda.` };
     }
     return { error: "Gagal menyimpan surat. Coba lagi." };
   }
 
   // Status otomatis "selesai" (catatan lama dipertahankan kalau sudah diisi).
   await supabase
-    .from("pengajuan_layanan")
+    .from(sumber.tabel)
     .update({
       status: "selesai",
       diproses_oleh: akses.user.id,
@@ -100,8 +161,9 @@ export async function terbitkanSurat(payload) {
     })
     .eq("id", pengajuanId);
 
-  revalidatePath("/dashboard/layanan");
-  revalidatePath(`/dashboard/layanan/${pengajuanId}`);
-  revalidatePath(`/dashboard/layanan/${pengajuanId}/surat`);
-  return { success: true };
+  revalidatePath(sumber.path);
+  revalidatePath(`${sumber.path}/${pengajuanId}`);
+  revalidatePath(`${sumber.path}/${pengajuanId}/surat`);
+  revalidatePath("/dashboard/surat-terbit");
+  return { success: true, nomor: nomorFinal };
 }

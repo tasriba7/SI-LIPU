@@ -50,6 +50,8 @@ export async function simpanTemplate(payload) {
       biodata2: bersihBiodata(payload?.biodata2),
       isi: bersih(payload?.isi, BATAS.teks),
       penutup: bersih(payload?.penutup, BATAS.teks),
+      format_nomor: bersih(payload?.formatNomor, BATAS.label),
+      kelompok_nomor: bersih(payload?.kelompokNomor, 60).toLowerCase().replace(/[^a-z0-9_-]+/g, "_") || "umum",
     })
     .eq("id", id);
 
@@ -73,4 +75,65 @@ export async function toggleAktifTemplate(id, aktifBaru) {
 
   revalidatePath("/dashboard/template-surat");
   return { success: true };
+}
+
+/**
+ * Buat template baru: kosong, atau salinan dari template yang sudah ada.
+ * Setelah dibuat, admin menyunting isinya di halaman edit.
+ */
+export async function buatTemplate({ kode, nama, salinDariId }) {
+  const kodeBersih = bersih(kode, 40).toLowerCase().replace(/[^a-z0-9_]+/g, "_").replace(/^_+|_+$/g, "");
+  const namaBersih = bersih(nama, BATAS.label);
+  if (!kodeBersih) return { error: "Kode template wajib diisi (huruf kecil/angka, mis. kuasa_pengurusan)." };
+  if (!namaBersih) return { error: "Nama template wajib diisi." };
+
+  const supabase = await createClient();
+  const akses = await pastikanAdmin(supabase);
+  if (akses.error) return { error: akses.error };
+
+  let dasar = {
+    kata_kunci: [],
+    judul_atas: "",
+    judul: namaBersih.toUpperCase(),
+    pembuka:
+      "Yang bertanda tangan di bawah ini, Kepala {{jenis_wilayah}} {{nama_desa}} Kecamatan {{kecamatan}} Kabupaten {{kabupaten}}, menerangkan bahwa:",
+    biodata: [
+      { label: "Nama", value: "{{nama}}" },
+      { label: "NIK", value: "{{nik}}" },
+      { label: "Tempat/Tanggal Lahir", value: "{{ttl}}" },
+      { label: "Alamat", value: "{{alamat}}" },
+    ],
+    teks_tengah: "",
+    biodata2: [],
+    isi: "",
+    penutup:
+      "Demikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.",
+    format_nomor: "470/{urut3}/DS/{bulan_romawi}/{tahun}",
+    kelompok_nomor: "umum",
+  };
+
+  if (salinDariId) {
+    const { data: sumber } = await supabase
+      .from("template_surat")
+      .select("kata_kunci, judul_atas, judul, pembuka, biodata, teks_tengah, biodata2, isi, penutup, format_nomor, kelompok_nomor")
+      .eq("id", String(salinDariId))
+      .maybeSingle();
+    if (!sumber) return { error: "Template sumber tidak ditemukan." };
+    // Kata kunci tidak disalin supaya dua template tidak berebut layanan yang sama.
+    dasar = { ...sumber, kata_kunci: [] };
+  }
+
+  const { data, error } = await supabase
+    .from("template_surat")
+    .insert({ kode: kodeBersih, nama: namaBersih, ...dasar })
+    .select("id")
+    .single();
+
+  if (error) {
+    if (error.code === "23505") return { error: `Kode "${kodeBersih}" sudah dipakai template lain.` };
+    return { error: "Gagal membuat template. Coba lagi." };
+  }
+
+  revalidatePath("/dashboard/template-surat");
+  return { success: true, id: data.id };
 }

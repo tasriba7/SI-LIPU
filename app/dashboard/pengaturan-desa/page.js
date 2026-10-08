@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getConfigDesa } from "@/lib/configDesa";
 import { isAdminRole } from "@/lib/roles";
@@ -38,6 +39,17 @@ export default async function PengaturanDesaPage() {
           termasuk foto latar yang dipilih di bawah.
         </p>
       </div>
+
+      <Link
+        href="/dashboard/pengaturan-desa/tanda-tangan"
+        className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-sm transition hover:border-navy"
+      >
+        <span>
+          <span className="font-semibold text-slate-700">Tanda Tangan &amp; Stempel</span>
+          <span className="block text-xs text-slate-400">Gambar untuk dicetak pada surat resmi</span>
+        </span>
+        <span className="text-navy">&rarr;</span>
+      </Link>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
         <FormPengaturanDesa config={config} />

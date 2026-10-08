@@ -22,7 +22,7 @@ function TabelBiodata({ daftar }) {
   );
 }
 
-export default function SuratPratinjau({ draf, nomor, tanggal, kota, ttd, config }) {
+export default function SuratPratinjau({ draf, nomor, tanggal, kota, ttd, config, gambar }) {
   return (
     <>
       <div
@@ -81,7 +81,16 @@ export default function SuratPratinjau({ draf, nomor, tanggal, kota, ttd, config
           <div>{kota || "........"}, {formatTanggalId(tanggal)}</div>
           {ttd.jabatan_awal && <div>{ttd.jabatan_awal}</div>}
           <div style={{ fontWeight: 700 }}>{ttd.jabatan}</div>
-          <div style={{ height: "22mm" }} />
+          <div style={{ height: "22mm", position: "relative" }}>
+            {gambar?.stempel && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={gambar.stempel} alt="" style={{ position: "absolute", left: "-6mm", top: "-3mm", width: "26mm", opacity: 0.85, mixBlendMode: "multiply" }} />
+            )}
+            {gambar?.ttd && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={gambar.ttd} alt="" style={{ position: "absolute", left: "50%", top: 0, height: "22mm", transform: "translateX(-50%)", objectFit: "contain", mixBlendMode: "multiply" }} />
+            )}
+          </div>
           <div style={{ fontWeight: 700, textDecoration: "underline" }}>{ttd.nama || "........................"}</div>
           {ttd.nip && <div>NIP. {ttd.nip}</div>}
         </div>

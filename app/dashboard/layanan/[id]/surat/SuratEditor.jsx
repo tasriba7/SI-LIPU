@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { buatDraf, buatPenandatangan, hariIniISO } from "@/lib/suratTemplate";
 import SuratPratinjau from "@/components/dashboard/SuratPratinjau";
-import { terbitkanSurat } from "./actions";
+import { intipNomor, terbitkanSurat } from "./actions";
 
 const input =
   "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-navy focus:outline-none";
@@ -22,6 +22,8 @@ export default function SuratEditor({
   config,
   bolehTerbitkan,
   wargaTerhubung,
+  sumber = "layanan",
+  berkasTtd = { ttdKades: null, ttdSekdes: null, stempel: null },
 }) {
   const [templateId, setTemplateId] = useState(templateAwalId || "");
   const template = useMemo(
@@ -46,6 +48,9 @@ export default function SuratEditor({
     tersimpan?.penandatangan?.mode === "sekdes" ? tersimpan.penandatangan.nama : ""
   );
   const [nip, setNip] = useState(tersimpan?.penandatangan?.nip || "");
+  const [tampilTtd, setTampilTtd] = useState(!!tersimpan?.tampil_ttd);
+  const [tampilStempel, setTampilStempel] = useState(!!tersimpan?.tampil_stempel);
+  const [nomorSaran, setNomorSaran] = useState(null);
   const [pesan, setPesan] = useState(null);
   const [pending, mulai] = useTransition();
 
@@ -55,6 +60,27 @@ export default function SuratEditor({
     namaSekdes,
     nip,
   });
+
+  // Petunjuk nomor otomatis berikutnya (tidak memakai nomor; baru dipakai saat disimpan).
+  useEffect(() => {
+    if (!bolehTerbitkan || !templateId) {
+      setNomorSaran(null);
+      return;
+    }
+    let batal = false;
+    intipNomor({ templateId, tanggal }).then((r) => {
+      if (!batal) setNomorSaran(r?.nomor || null);
+    });
+    return () => {
+      batal = true;
+    };
+  }, [bolehTerbitkan, templateId, tanggal]);
+
+  const gambarTtd = modeTtd === "sekdes" ? berkasTtd.ttdSekdes : berkasTtd.ttdKades;
+  const gambar = {
+    ttd: tampilTtd ? gambarTtd : null,
+    stempel: tampilStempel ? berkasTtd.stempel : null,
+  };
 
   function gantiTemplate(id) {
     if (draf && !confirm("Mengganti jenis surat akan menimpa isi yang sudah Anda edit. Lanjutkan?"))
@@ -78,6 +104,9 @@ export default function SuratEditor({
     setPesan(null);
     mulai(async () => {
       const r = await terbitkanSurat({
+        sumber,
+        tampilTtd: !!gambarTtd && tampilTtd,
+        tampilStempel: !!berkasTtd.stempel && tampilStempel,
         pengajuanId,
         templateId: templateId || null,
         nomorSurat: nomor,
@@ -86,10 +115,11 @@ export default function SuratEditor({
         draf,
         penandatangan: ttd,
       });
+      if (r?.nomor) setNomor(r.nomor);
       setPesan(
         r?.error
           ? { jenis: "error", teks: r.error }
-          : { jenis: "ok", teks: "Surat tersimpan & pengajuan ditandai selesai. Sekarang bisa dicetak." }
+          : { jenis: "ok", teks: `Surat tersimpan (nomor ${r.nomor}) & pengajuan ditandai selesai. Sekarang bisa dicetak.` }
       );
     });
   }
@@ -133,14 +163,19 @@ export default function SuratEditor({
           {draf && (
             <>
               <div>
-                <Label>Nomor surat *</Label>
+                <Label>Nomor surat {nomorSaran ? "(kosongkan = otomatis)" : "*"}</Label>
                 <input
-                  className={`${input} ${!nomor.trim() ? kosong : ""}`}
+                  className={`${input} ${!nomor.trim() && !nomorSaran ? kosong : ""}`}
                   value={nomor}
                   onChange={(e) => setNomor(e.target.value)}
-                  placeholder="mis. 470/012/DS/X/2026"
+                  placeholder={nomorSaran ? `Otomatis: ${nomorSaran}` : "mis. 470/012/DS/X/2026"}
                   disabled={!bolehTerbitkan}
                 />
+                {nomorSaran && !nomor.trim() && (
+                  <p className="mt-1 text-[11px] text-slate-400">
+                    Nomor dikunci saat Anda menekan simpan. Perkiraan: {nomorSaran}
+                  </p>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -181,6 +216,28 @@ export default function SuratEditor({
                 <input className={input} value={nip}
                   onChange={(e) => setNip(e.target.value)} disabled={!bolehTerbitkan} />
               </div>
+              {(gambarTtd || berkasTtd.stempel) ? (
+                <div className="space-y-1.5 rounded-lg bg-slate-50 p-3">
+                  {gambarTtd && (
+                    <label className="flex items-center gap-2 text-sm text-slate-700">
+                      <input type="checkbox" checked={tampilTtd} disabled={!bolehTerbitkan}
+                        onChange={(e) => setTampilTtd(e.target.checked)} />
+                      Sertakan gambar tanda tangan
+                    </label>
+                  )}
+                  {berkasTtd.stempel && (
+                    <label className="flex items-center gap-2 text-sm text-slate-700">
+                      <input type="checkbox" checked={tampilStempel} disabled={!bolehTerbitkan}
+                        onChange={(e) => setTampilStempel(e.target.checked)} />
+                      Sertakan stempel
+                    </label>
+                  )}
+                </div>
+              ) : (
+                <p className="text-[11px] text-slate-400">
+                  Gambar tanda tangan/stempel belum diunggah (Pengaturan Desa &rarr; Tanda Tangan &amp; Stempel).
+                </p>
+              )}
             </>
           )}
         </div>
@@ -283,7 +340,7 @@ export default function SuratEditor({
       {/* ====== Pratinjau = area cetak ====== */}
       <div className="overflow-x-auto">
         {draf ? (
-          <SuratPratinjau draf={draf} nomor={nomor} tanggal={tanggal} kota={kota} ttd={ttd} config={config} />
+          <SuratPratinjau draf={draf} nomor={nomor || (nomorSaran ? `${nomorSaran} (otomatis)` : "")} tanggal={tanggal} kota={kota} ttd={ttd} config={config} gambar={gambar} />
         ) : (
           <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-400">
             Pilih jenis surat di sebelah kiri untuk melihat pratinjau.

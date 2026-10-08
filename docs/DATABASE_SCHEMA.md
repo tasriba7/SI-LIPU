@@ -192,6 +192,56 @@ representasi hasil di database saja).
 > (dijaga constraint + trigger). Hanya boleh untuk `jenis_layanan_master.kategori = 'pengaduan'`.
 > Kolom `nama_pemohon`/`nik`/`no_hp` sekarang boleh null (khusus baris anonim).
 
+## 8b. Modul Surat Otomatis (migration 0020, 0021, 0022)
+
+### `template_surat` — redaksi surat, dikelola admin di `/dashboard/template-surat`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| kode | text | unik, mis. `sktm`, `kelahiran` |
+| nama | text | nama di dropdown |
+| kata_kunci | text[] | dicocokkan ke nama jenis layanan untuk memilih template otomatis |
+| judul_atas | text | teks miring di atas judul (mis. "UNTUK YANG BERSANGKUTAN"), boleh kosong (0021) |
+| judul | text | judul surat |
+| pembuka | text | paragraf pembuka, boleh memakai `{{variabel}}` |
+| biodata | jsonb | `[{label, value}]` blok biodata pertama |
+| teks_tengah | text | kalimat penghubung antara dua blok biodata (0021) |
+| biodata2 | jsonb | blok biodata kedua, default `[]` (0021) |
+| isi / penutup | text | paragraf isi (pisah dengan baris kosong) / kalimat penutup |
+| format_nomor | text | format nomor otomatis, penanda `{urut} {urut3} {bulan} {bulan_romawi} {tahun}`; kosong = manual (0022) |
+| kelompok_nomor | text | template dengan kelompok sama berbagi satu urutan, default `umum` (0022) |
+| aktif | boolean | |
+
+### `counter_nomor_surat` (0022)
+Primary key `(kelompok, tahun)`, kolom `terakhir int`. RLS aktif tanpa policy: hanya dipakai fungsi
+`security definer` `intip_nomor_surat` (melihat nomor berikutnya) dan `ambil_nomor_surat`
+(memakai nomor, atomik lewat `insert ... on conflict do update`), keduanya khusus
+`akses_tulis_penuh()`. Urutan reset per tahun menurut tanggal surat.
+
+### `surat_terbit` — salinan final (snapshot) surat
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| pengajuan_id | uuid | FK `pengajuan_layanan`, unik, boleh null (0022) |
+| pengajuan_surat_id | uuid | FK `pengajuan_surat` (pengajuan LAMA), unik, boleh null (0022) |
+| template_id | uuid | FK `template_surat` (on delete set null) |
+| nomor_surat | text | unik tanpa peka huruf besar/kecil & spasi pinggir |
+| tanggal_surat | date | |
+| isi | jsonb | snapshot: judul_atas, judul, pembuka, biodata, teks_tengah, biodata2, isi, penutup, penandatangan, kota, tampil_ttd, tampil_stempel |
+| diterbitkan_oleh | uuid | FK `profiles` |
+
+Constraint `surat_terbit_satu_sumber`: tepat satu dari `pengajuan_id` / `pengajuan_surat_id` terisi.
+
+### Tambahan pada `config_desa` (0022)
+`ttd_kades_path`, `ttd_sekdes_path`, `stempel_path` (text): path file di bucket **privat** `desa-ttd`
+(bukan `desa-media`). Ditampilkan lewat signed URL 1 jam; hanya admin yang boleh mengunggah.
+
+### RPC publik cek status (0022)
+`cek_status_pengajuan_layanan` dan `cek_status_pengajuan_surat` kini juga mengembalikan
+`nomor_surat` dan `tanggal_surat` (null bila surat belum terbit). Isi surat & NIK tidak pernah ikut.
+
+---
+
 ## 9. `log_aktivitas` (dipakai semua modul)
 | Kolom | Tipe | Keterangan |
 |---|---|---|

@@ -5,38 +5,21 @@ import { getConfigDesa } from "@/lib/configDesa";
 import { bisaTerbitkanSurat } from "@/lib/roles";
 import { susunVariabel } from "@/lib/suratTemplate";
 import { ambilBerkasTtd } from "@/lib/suratBerkas";
-import SuratEditor from "./SuratEditor";
+import SuratEditor from "@/app/dashboard/layanan/[id]/surat/SuratEditor";
 
-export default async function BuatSuratPage({ params }) {
+// Surat untuk pengajuan LAMA (tabel pengajuan_surat). Pola sama dengan
+// /dashboard/layanan/[id]/surat; bedanya data diambil dari kolom tabel lama
+// dan dilengkapi data kependudukan bila NIK-nya terdata.
+export default async function BuatSuratLamaPage({ params }) {
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: pengajuan } = await supabase
-    .from("pengajuan_layanan")
-    .select("*, jenis_layanan_master(nama_layanan)")
+  const { data: lama } = await supabase
+    .from("pengajuan_surat")
+    .select("*")
     .eq("id", id)
     .maybeSingle();
-  if (!pengajuan) notFound();
-
-  const kembali = (
-    <Link
-      href={`/dashboard/layanan/${id}`}
-      className="text-sm text-slate-400 hover:text-slate-600 print:hidden"
-    >
-      &larr; Kembali ke detail pengajuan
-    </Link>
-  );
-
-  if (pengajuan.anonim) {
-    return (
-      <div className="max-w-2xl space-y-4">
-        {kembali}
-        <p className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-          Pengajuan anonim tidak memiliki identitas pemohon, sehingga tidak bisa dibuatkan surat.
-        </p>
-      </div>
-    );
-  }
+  if (!lama) notFound();
 
   const {
     data: { user },
@@ -47,28 +30,36 @@ export default async function BuatSuratPage({ params }) {
 
   const [{ data: warga }, config, { data: templates }, { data: suratTerbit }, berkasTtd] =
     await Promise.all([
-      pengajuan.warga_id
-        ? supabase.from("warga").select("*").eq("id", pengajuan.warga_id).maybeSingle()
-        : Promise.resolve({ data: null }),
+      supabase.from("warga").select("*").eq("nik", lama.nik).maybeSingle(),
       getConfigDesa(supabase),
       supabase.from("template_surat").select("*").eq("aktif", true).order("nama"),
-      supabase.from("surat_terbit").select("*").eq("pengajuan_id", id).maybeSingle(),
+      supabase.from("surat_terbit").select("*").eq("pengajuan_surat_id", id).maybeSingle(),
       ambilBerkasTtd(supabase),
     ]);
 
+  // Sesuaikan bentuk pengajuan lama ke bentuk yang dipahami mesin template.
+  const pengajuan = {
+    nama_pemohon: lama.nama_pemohon,
+    nik: lama.nik,
+    keterangan: lama.keperluan,
+    data_tambahan: { alamat: lama.alamat },
+  };
   const vars = susunVariabel({ pengajuan, warga, config });
 
-  // Tebak template dari nama layanan (kata kunci di template_surat.kata_kunci).
-  const namaLayanan = (pengajuan.jenis_layanan_master?.nama_layanan || "").toLowerCase();
+  const namaJenis = (lama.jenis_surat || "").toLowerCase();
   const tebakan =
-    (templates || []).find((t) => t.kata_kunci?.some((k) => namaLayanan.includes(k))) ||
-    null;
+    (templates || []).find((t) => t.kata_kunci?.some((k) => namaJenis.includes(k))) || null;
 
   return (
     <div className="space-y-4">
-      {kembali}
+      <Link
+        href={`/dashboard/surat/${id}`}
+        className="text-sm text-slate-400 hover:text-slate-600 print:hidden"
+      >
+        &larr; Kembali ke detail pengajuan
+      </Link>
       <h1 className="text-lg font-bold text-slate-800 print:hidden">
-        Buat Surat — {pengajuan.jenis_layanan_master?.nama_layanan}
+        Buat Surat — {lama.jenis_surat}
       </h1>
       <SuratEditor
         pengajuanId={id}
@@ -87,7 +78,7 @@ export default async function BuatSuratPage({ params }) {
         }}
         bolehTerbitkan={bisaTerbitkanSurat(profil?.role)}
         wargaTerhubung={!!warga}
-        sumber="layanan"
+        sumber="lama"
         berkasTtd={berkasTtd}
       />
     </div>

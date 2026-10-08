@@ -71,6 +71,13 @@ export default function CekStatusLayananPage() {
             >
               {STATUS_LABELS[state.result.status]}
             </span>
+            {state.result.nomor_surat && (
+              <p className="mt-2 rounded-lg bg-emerald-50 px-3 py-2 text-emerald-800">
+                Surat sudah terbit dengan nomor{" "}
+                <span className="font-mono font-semibold">{state.result.nomor_surat}</span>
+                . Silakan ambil di kantor desa pada jam kerja dengan membawa kode tracking ini.
+              </p>
+            )}
             {state.result.catatan_admin && (
               <p className="mt-2 rounded-lg bg-slate-50 px-3 py-2 text-slate-600">
                 {state.result.catatan_admin}

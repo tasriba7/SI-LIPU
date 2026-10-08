@@ -67,6 +67,8 @@ export default function FormTemplate({ template }) {
   const [biodata2, setBiodata2] = useState(template.biodata2 || []);
   const [isi, setIsi] = useState(template.isi || "");
   const [penutup, setPenutup] = useState(template.penutup || "");
+  const [formatNomor, setFormatNomor] = useState(template.format_nomor || "");
+  const [kelompokNomor, setKelompokNomor] = useState(template.kelompok_nomor || "umum");
   const [pesan, setPesan] = useState(null);
   const [pending, mulai] = useTransition();
 
@@ -85,6 +87,8 @@ export default function FormTemplate({ template }) {
         biodata2,
         isi,
         penutup,
+        formatNomor,
+        kelompokNomor,
       });
       setPesan(
         r?.error
@@ -143,6 +147,22 @@ export default function FormTemplate({ template }) {
       <div>
         <Label>Kalimat penutup</Label>
         <textarea rows={3} className={input} value={penutup} onChange={(e) => setPenutup(e.target.value)} />
+      </div>
+
+      <div className="grid gap-3 rounded-xl bg-slate-50 p-3 sm:grid-cols-2">
+        <div>
+          <Label bantuan="Penanda: {urut} {urut3} {bulan} {bulan_romawi} {tahun}. Kosong = nomor diketik manual.">
+            Format nomor otomatis
+          </Label>
+          <input className={input} value={formatNomor} onChange={(e) => setFormatNomor(e.target.value)}
+            placeholder="470/{urut3}/DS/{bulan_romawi}/{tahun}" />
+        </div>
+        <div>
+          <Label bantuan="Template dengan kelompok sama berbagi satu urutan. Urutan mulai dari 1 tiap tahun.">
+            Kelompok urutan
+          </Label>
+          <input className={input} value={kelompokNomor} onChange={(e) => setKelompokNomor(e.target.value)} />
+        </div>
       </div>
 
       {pesan && (
