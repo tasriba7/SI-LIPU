@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { pastikanAdmin } from "@/lib/akses";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ROLE_LABELS } from "@/lib/roles";
 
@@ -73,6 +74,8 @@ export async function setujuiPendaftaran(prevState, formData) {
   const passwordManual = formData.get("password_manual")?.trim() || "";
 
   const supabase = await createClient();
+  const _akses = await pastikanAdmin(supabase);
+  if (_akses.error) return { error: _akses.error };
   const {
     data: { user: admin },
   } = await supabase.auth.getUser();
@@ -123,6 +126,8 @@ export async function setujuiPendaftaran(prevState, formData) {
  */
 export async function setujuiSemuaPendaftaran() {
   const supabase = await createClient();
+  const _akses = await pastikanAdmin(supabase);
+  if (_akses.error) return { error: _akses.error };
   const {
     data: { user: admin },
   } = await supabase.auth.getUser();
@@ -174,6 +179,8 @@ export async function tolakPendaftaran(prevState, formData) {
   const catatan_admin = formData.get("catatan_admin")?.trim() || null;
 
   const supabase = await createClient();
+  const _akses = await pastikanAdmin(supabase);
+  if (_akses.error) return { error: _akses.error };
   const {
     data: { user: admin },
   } = await supabase.auth.getUser();
@@ -203,6 +210,8 @@ export async function tolakPendaftaran(prevState, formData) {
  */
 export async function hapusRiwayatPendaftaran(pendaftaranId) {
   const supabase = await createClient();
+  const _akses = await pastikanAdmin(supabase);
+  if (_akses.error) return { error: _akses.error };
 
   const { data, error } = await supabase
     .from("pendaftaran_akun")
@@ -221,6 +230,8 @@ export async function hapusRiwayatPendaftaran(pendaftaranId) {
 /** Bersihkan seluruh riwayat (semua yang sudah disetujui/ditolak). */
 export async function hapusSemuaRiwayatPendaftaran() {
   const supabase = await createClient();
+  const _akses = await pastikanAdmin(supabase);
+  if (_akses.error) return { error: _akses.error };
 
   const { data, error } = await supabase
     .from("pendaftaran_akun")

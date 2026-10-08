@@ -15,9 +15,9 @@ export default async function PendaftaranPage() {
     <main className="min-h-screen bg-slate-50">
       <div className="flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-sm">
-        <h1 className="text-xl font-bold text-navy">Pendaftaran Kadus / Ketua RT</h1>
+        <h1 className="text-xl font-bold text-navy">Pendaftaran Kepala Desa / Kadus / Ketua RT</h1>
         <p className="mb-6 mt-1 text-sm text-slate-500">
-          Khusus calon Kepala Dusun atau Ketua RT. Pilih wilayah Anda — kalau
+          Khusus calon Kepala Desa, Kepala Dusun, atau Ketua RT. Pilih wilayah Anda — kalau
           slotnya masih kosong, pendaftaran akan diteruskan ke admin desa
           untuk disetujui.
         </p>

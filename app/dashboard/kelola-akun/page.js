@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAdminRole } from "@/lib/roles";
 import PilihMassal from "./PilihMassal";
+import FormBuatAkun from "./FormBuatAkun";
 
 async function ambilSemuaAuthUsers(adminClient) {
   // auth.admin.listUsers dipaginasi; ambil semua halaman (staf desa jumlahnya
@@ -36,10 +37,9 @@ export default async function KelolaAkunPage() {
       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6">
         <h1 className="text-lg font-bold text-amber-800">Halaman Terbatas</h1>
         <p className="mt-2 text-sm text-amber-700">
-          Halaman ini hanya bisa diakses oleh Kepala Desa atau Sekretaris
-          Desa, karena berkaitan dengan password login perangkat desa lain.
-          Hubungi Kepala Desa/Sekretaris Desa kalau Anda perlu bantuan
-          mengatur ulang akun.
+          Halaman ini hanya bisa diakses oleh Administrator, karena berkaitan
+          dengan akun dan password login perangkat desa lain. Hubungi
+          Administrator desa kalau Anda perlu bantuan.
         </p>
       </div>
     );
@@ -77,8 +77,8 @@ export default async function KelolaAkunPage() {
       <div>
         <h1 className="text-lg font-bold text-slate-800">Kelola Akun Staf</h1>
         <p className="text-sm text-slate-500">
-          Atur ulang password akun perangkat desa yang sudah aktif, kapan
-          saja — tidak perlu menunggu proses pendaftaran ulang. Bisa satu per
+          Buat akun staf baru (mis. Kepala Desa) dan atur ulang password akun
+          perangkat desa yang sudah aktif, kapan saja — tidak perlu menunggu proses pendaftaran ulang. Bisa satu per
           satu (manual atau acak) atau pilih banyak sekaligus (acak semua).
         </p>
       </div>
@@ -93,6 +93,8 @@ export default async function KelolaAkunPage() {
           Gagal memuat data email akun: {errAuth}
         </p>
       )}
+
+      <FormBuatAkun />
 
       <PilihMassal daftar={daftar} />
     </div>

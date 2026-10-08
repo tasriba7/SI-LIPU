@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { pastikanBisaMenulis } from "@/lib/akses";
 
 export async function updateStatusPengajuanLayanan(prevState, formData) {
   const id = formData.get("id");
@@ -13,6 +14,8 @@ export async function updateStatusPengajuanLayanan(prevState, formData) {
   }
 
   const supabase = await createClient();
+  const _akses = await pastikanBisaMenulis(supabase);
+  if (_akses.error) return { error: _akses.error };
   const {
     data: { user },
   } = await supabase.auth.getUser();

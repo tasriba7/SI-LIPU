@@ -1,11 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABELS } from "@/lib/roles";
+import { pastikanAdmin } from "@/lib/akses";
+import HalamanTerbatas from "@/components/dashboard/HalamanTerbatas";
 import FormTambahSlot from "./FormTambahSlot";
 import TombolKosongkanSlot from "./TombolKosongkanSlot";
 import TombolHapusSlot from "./TombolHapusSlot";
 
 export default async function PosisiPerangkatPage() {
   const supabase = await createClient();
+  const cek = await pastikanAdmin(supabase);
+  if (cek.error) return <HalamanTerbatas />;
   const { data: daftar, error } = await supabase
     .from("posisi_perangkat")
     .select("id, role, wilayah, status, profiles!profile_id(nama)")
@@ -19,10 +23,10 @@ export default async function PosisiPerangkatPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-lg font-bold text-slate-800">Slot Posisi (Kadus & Ketua RT)</h1>
+        <h1 className="text-lg font-bold text-slate-800">Slot Posisi (Kepala Desa, Kadus & Ketua RT)</h1>
         <p className="text-sm text-slate-500">
           Daftarkan dulu wilayah (dusun/RT-RW) sebagai slot kosong, baru
-          calon Kadus/Ketua RT bisa mendaftar mandiri lewat{" "}
+          calon Kepala Desa/Kadus/Ketua RT bisa mendaftar mandiri lewat{" "}
           <code className="rounded bg-slate-100 px-1">/pendaftaran</code>.
         </p>
       </div>

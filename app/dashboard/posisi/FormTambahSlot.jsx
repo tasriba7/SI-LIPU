@@ -34,11 +34,12 @@ export default function FormTambahSlot() {
         >
           <option value="ketua_rt">Ketua RT</option>
           <option value="kadus">Kepala Dusun</option>
+          <option value="kepala_desa">Kepala Desa</option>
         </select>
       </div>
       <div className="flex-1">
         <label className="mb-1 block text-xs text-slate-500">
-          Wilayah (mis. &quot;RT 01/RW 02&quot; atau &quot;Dusun 1&quot;)
+          Wilayah (mis. &quot;RT 01/RW 02&quot;, &quot;Dusun 1&quot;, atau &quot;Desa&quot; untuk Kepala Desa)
         </label>
         <input
           type="text"

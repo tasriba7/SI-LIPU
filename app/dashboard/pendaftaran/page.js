@@ -1,5 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABELS } from "@/lib/roles";
+import { pastikanAdmin } from "@/lib/akses";
+import HalamanTerbatas from "@/components/dashboard/HalamanTerbatas";
 import BarisPendaftaran from "./BarisPendaftaran";
 import SetujuiSemua from "./SetujuiSemua";
 import TombolHapusRiwayat from "./TombolHapusRiwayat";
@@ -7,6 +9,8 @@ import HapusSemuaRiwayat from "./HapusSemuaRiwayat";
 
 export default async function PendaftaranAkunPage() {
   const supabase = await createClient();
+  const cek = await pastikanAdmin(supabase);
+  if (cek.error) return <HalamanTerbatas />;
   const { data: daftar } = await supabase
     .from("pendaftaran_akun")
     .select("*, posisi_perangkat(role, wilayah, status)")
@@ -18,7 +22,7 @@ export default async function PendaftaranAkunPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-lg font-bold text-slate-800">Pendaftaran Kadus / Ketua RT</h1>
+        <h1 className="text-lg font-bold text-slate-800">Pendaftaran Akun (Kepala Desa / Kadus / Ketua RT)</h1>
         <p className="text-sm text-slate-500">
           Antrian pendaftaran mandiri yang menunggu persetujuan. Slot yang
           sudah terisi otomatis ditolak sistem sebelum masuk sini.

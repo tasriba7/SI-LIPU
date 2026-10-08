@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { pastikanBisaMenulis } from "@/lib/akses";
 
 export async function tambahWarga(prevState, formData) {
   const nik = formData.get("nik")?.trim();
@@ -28,6 +29,8 @@ export async function tambahWarga(prevState, formData) {
   }
 
   const supabase = await createClient();
+  const _akses = await pastikanBisaMenulis(supabase);
+  if (_akses.error) return { error: _akses.error };
   const { error } = await supabase.from("warga").insert({
     nik,
     no_kk,
@@ -137,6 +140,8 @@ export async function tambahKeluargaWarga(prevState, formData) {
   }
 
   const supabase = await createClient();
+  const _akses = await pastikanBisaMenulis(supabase);
+  if (_akses.error) return { error: _akses.error };
   const { error } = await supabase.from("warga").insert(barisSiap);
 
   if (error) {
@@ -189,6 +194,8 @@ export async function editWarga(prevState, formData) {
   }
 
   const supabase = await createClient();
+  const _akses = await pastikanBisaMenulis(supabase);
+  if (_akses.error) return { error: _akses.error };
   const { data: baruTersimpan, error } = await supabase
     .from("warga")
     .update({
@@ -346,6 +353,8 @@ export async function importWarga(prevState, formData) {
   }
 
   const supabase = await createClient();
+  const _akses = await pastikanBisaMenulis(supabase);
+  if (_akses.error) return { error: _akses.error };
   const gagal = [];
   const siap = []; // { baris, nomorBaris }
   const nikTerlihat = new Set();
@@ -408,6 +417,8 @@ export async function hapusWarga(prevState, formData) {
   }
 
   const supabase = await createClient();
+  const _akses = await pastikanBisaMenulis(supabase);
+  if (_akses.error) return { error: _akses.error };
   const { data: terhapus, error } = await supabase
     .from("warga")
     .delete()

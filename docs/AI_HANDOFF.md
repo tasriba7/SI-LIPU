@@ -146,3 +146,10 @@ tetap jalan — tapi jalur BARU untuk warga adalah `/layanan` (generik, Form Bui
 Proyek ini dipesan dan diawasi langsung oleh pemilik (bukan sepenuhnya otonom AI).
 Setiap keputusan besar (ganti stack, ubah struktur database, dsb) harus dikonfirmasi ke pemilik
 proyek terlebih dahulu — jangan diputuskan sepihak oleh AI.
+
+## Update: role admin & Kepala Desa read-only (migrasi 0017)
+- Role baru `admin` = satu-satunya yang boleh Kelola Akun Staf (termasuk Buat Akun), Pengaturan Desa, Slot Posisi, Pendaftaran Akun.
+- `kepala_desa` = hanya lihat. Dijaga di server (`lib/akses.js`) DAN di RLS (fungsi `boleh_tulis_staf`, `akses_tulis_penuh`, `adalah_admin`).
+- Akun Kepala Desa bisa dibuat lewat slot + pendaftaran (role `kepala_desa` di `posisi_perangkat`) atau langsung oleh admin di Kelola Akun Staf.
+- Sekdes/Kaur/Kasi tetap bisa menulis data seperti sebelumnya, tetapi tidak lagi punya akses Kelola Akun / Pengaturan Desa.
+- `profiles`: role/dusun/jabatan tidak bisa diubah user sendiri (trigger `kunci_kolom_profil`).

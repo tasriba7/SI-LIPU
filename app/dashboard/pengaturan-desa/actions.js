@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { pastikanAdmin } from "@/lib/akses";
 
 const EKSTENSI_DIIZINKAN = ["jpg", "jpeg", "png", "webp"];
 const UKURAN_MAKS_MB = 8;
@@ -27,6 +28,8 @@ export async function simpanPengaturanDesa(prevState, formData) {
   }
 
   const supabase = await createClient();
+  const _akses = await pastikanAdmin(supabase);
+  if (_akses.error) return { error: _akses.error };
   const {
     data: { user },
   } = await supabase.auth.getUser();

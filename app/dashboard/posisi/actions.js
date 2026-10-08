@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { pastikanAdmin } from "@/lib/akses";
 
 export async function tambahSlotPosisi(prevState, formData) {
   const role = formData.get("role");
@@ -12,6 +13,8 @@ export async function tambahSlotPosisi(prevState, formData) {
   }
 
   const supabase = await createClient();
+  const _akses = await pastikanAdmin(supabase);
+  if (_akses.error) return { error: _akses.error };
   const { error } = await supabase.from("posisi_perangkat").insert({ role, wilayah });
 
   if (error) {
@@ -33,7 +36,7 @@ export async function tambahSlotPosisi(prevState, formData) {
       };
     }
     if (error.code === "23514") {
-      return { error: "Nilai role tidak valid (harus Kadus atau Ketua RT)." };
+      return { error: "Nilai role tidak valid (harus Kepala Desa, Kadus, atau Ketua RT)." };
     }
     return { error: `Gagal menambah slot: ${error.message || "penyebab tidak diketahui"}` };
   }
@@ -53,6 +56,8 @@ export async function hapusSlot(prevState, formData) {
   const id = formData.get("id");
 
   const supabase = await createClient();
+  const _akses = await pastikanAdmin(supabase);
+  if (_akses.error) return { error: _akses.error };
   const { error } = await supabase
     .from("posisi_perangkat")
     .delete()
@@ -76,7 +81,7 @@ export async function hapusSlot(prevState, formData) {
 }
 
 /**
- * HANYA admin yang bisa lakukan ini (diproteksi middleware /dashboard).
+ * HANYA admin yang bisa lakukan ini (dicek role di server + RLS database).
  * Sesuai kesepakatan: mengosongkan slot supaya bisa didaftar ulang oleh
  * pemegang baru.
  */
@@ -84,6 +89,8 @@ export async function kosongkanSlot(prevState, formData) {
   const id = formData.get("id");
 
   const supabase = await createClient();
+  const _akses = await pastikanAdmin(supabase);
+  if (_akses.error) return { error: _akses.error };
   const {
     data: { user },
   } = await supabase.auth.getUser();

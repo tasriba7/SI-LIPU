@@ -19,7 +19,7 @@ import {
   IconImage,
   IconKey,
 } from "@/components/icons";
-import { ROLE_BADGE_CLASS, isAdminRole, labelJabatan } from "@/lib/roles";
+import { ROLE_BADGE_CLASS, isAdminRole, bisaMenulis, labelJabatan } from "@/lib/roles";
 
 const MODUL_LAYANAN = [
   { nama: "Pengajuan Layanan", icon: IconMail, href: "/dashboard/layanan" },
@@ -30,6 +30,14 @@ const MODUL_LAYANAN = [
   { nama: "Pendaftaran Akun", icon: IconUserPlus, href: "/dashboard/pendaftaran" },
   { nama: "Pengajuan Surat (lama)", icon: IconMail, href: "/dashboard/surat" },
   { nama: "Pengumuman Desa", icon: IconMegaphone },
+];
+
+// Menu yang hanya muncul untuk Administrator.
+const HREF_KHUSUS_ADMIN = [
+  "/dashboard/posisi",
+  "/dashboard/pendaftaran",
+  "/dashboard/kelola-akun",
+  "/dashboard/pengaturan-desa",
 ];
 
 const MODUL_PENGATURAN = [
@@ -69,11 +77,14 @@ export default function DashboardShell({
   const badgeClass =
     ROLE_BADGE_CLASS[profile?.role] ?? "bg-white/10 text-white/70";
 
+  const adalahAdmin = isAdminRole(profile?.role);
   const modulPengaturan = MODUL_PENGATURAN.filter(
-    (m) =>
-      (m.href !== "/dashboard/kelola-akun" && m.href !== "/dashboard/pengaturan-desa") ||
-      isAdminRole(profile?.role)
+    (m) => !HREF_KHUSUS_ADMIN.includes(m.href) || adalahAdmin
   );
+  const modulLayanan = MODUL_LAYANAN.filter(
+    (m) => !HREF_KHUSUS_ADMIN.includes(m.href) || adalahAdmin
+  );
+  const hanyaLihat = !bisaMenulis(profile?.role);
 
   return (
     <div className="min-h-screen bg-slate-50 md:flex">
@@ -129,7 +140,7 @@ export default function DashboardShell({
             Modul layanan
           </p>
           <ul className="space-y-1">
-            {MODUL_LAYANAN.map(({ nama, icon: Icon, href }) =>
+            {modulLayanan.map(({ nama, icon: Icon, href }) =>
               href ? (
                 <li key={nama}>
                   <Link
@@ -231,6 +242,13 @@ export default function DashboardShell({
             </p>
           </div>
         </header>
+
+        {hanyaLihat && (
+          <div className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-800 md:px-8">
+            Akun Kepala Desa bersifat <strong>hanya lihat</strong>. Perubahan data
+            dilakukan oleh Administrator atau perangkat desa terkait.
+          </div>
+        )}
 
         <main className="flex-1 px-4 py-6 md:px-8">{children}</main>
       </div>

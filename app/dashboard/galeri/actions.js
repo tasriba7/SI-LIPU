@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { pastikanBisaMenulis } from "@/lib/akses";
 
 const EKSTENSI_DIIZINKAN = ["jpg", "jpeg", "png", "webp"];
 const UKURAN_MAKS_MB = 8;
@@ -27,6 +28,8 @@ export async function tambahGaleri(prevState, formData) {
   }
 
   const supabase = await createClient();
+  const _akses = await pastikanBisaMenulis(supabase);
+  if (_akses.error) return { error: _akses.error };
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -76,6 +79,8 @@ export async function hapusGaleri(prevState, formData) {
   }
 
   const supabase = await createClient();
+  const _akses = await pastikanBisaMenulis(supabase);
+  if (_akses.error) return { error: _akses.error };
 
   const { data: item } = await supabase
     .from("galeri_kegiatan")
