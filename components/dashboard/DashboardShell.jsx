@@ -61,11 +61,30 @@ export default function DashboardShell({
 }) {
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Khusus layar laptop/desktop: sidebar bisa disembunyikan supaya konten lebih luas.
+  const [sidebarHidden, setSidebarHidden] = useState(false);
   const [sapaan, setSapaan] = useState("Selamat datang");
 
   useEffect(() => {
     setSapaan(sapaanWaktu(new Date().getHours()));
   }, []);
+
+  // Ingat pilihan sembunyi/tampil sidebar antar halaman & sesi.
+  useEffect(() => {
+    try {
+      setSidebarHidden(localStorage.getItem("si-lipu-sidebar-hidden") === "1");
+    } catch {}
+  }, []);
+
+  function toggleSidebarDesktop() {
+    setSidebarHidden((v) => {
+      const next = !v;
+      try {
+        localStorage.setItem("si-lipu-sidebar-hidden", next ? "1" : "0");
+      } catch {}
+      return next;
+    });
+  }
 
   // Cek ulang badge notifikasi tiap 30 detik supaya pendaftaran baru
   // muncul tanpa admin harus pindah halaman / refresh manual.
@@ -99,9 +118,9 @@ export default function DashboardShell({
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-navy-dark transition-transform duration-200 md:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-navy-dark transition-transform duration-200 ${
+          sidebarHidden ? "md:-translate-x-full" : "md:translate-x-0"
+        } ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div className="flex items-center gap-3 border-b border-white/10 px-5 py-5">
           <Image
@@ -224,12 +243,24 @@ export default function DashboardShell({
       </aside>
 
       {/* Konten utama */}
-      <div className="flex min-h-screen flex-1 flex-col md:ml-64">
+      <div
+        className={`flex min-h-screen min-w-0 flex-1 flex-col transition-[margin] duration-200 ${
+          sidebarHidden ? "md:ml-0" : "md:ml-64"
+        }`}
+      >
         <header className="sticky top-0 z-20 flex items-center gap-3 border-b border-slate-200 bg-white/90 px-4 py-3 backdrop-blur">
           <button
             onClick={() => setSidebarOpen(true)}
             className="text-slate-500 md:hidden"
             aria-label="Buka menu"
+          >
+            <IconMenu className="h-5 w-5" />
+          </button>
+          <button
+            onClick={toggleSidebarDesktop}
+            className="hidden rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 md:inline-flex"
+            aria-label={sidebarHidden ? "Tampilkan menu samping" : "Sembunyikan menu samping"}
+            title={sidebarHidden ? "Tampilkan menu samping" : "Sembunyikan menu samping"}
           >
             <IconMenu className="h-5 w-5" />
           </button>
