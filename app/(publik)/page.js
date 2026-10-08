@@ -291,7 +291,7 @@ export default async function HomePage() {
 
       {/* Statistik kependudukan: sekilas, donut jenis kelamin, dan rincian bertab
           (usia, pekerjaan, agama, status nikah, per dusun) */}
-      <StatistikDetailBeranda detail={statsDetail} perDusun={statsDusun} />
+      <StatistikDetailBeranda detail={statsDetail} perDusun={statsDusun} namaDesa={config.nama_desa} wilayah={wilayah} />
 
       {/* Cara kerja */}
       <section className="bg-white py-16 md:py-24">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { eksporExcel, eksporPdf } from "@/lib/eksporStatistik";
 import {
   IconBook,
   IconHeartHandshake,
@@ -209,7 +210,48 @@ function DaftarBatang({ rows, active }) {
 // Komponen utama
 // ---------------------------------------------------------------------------
 
-export default function StatistikDetailBeranda({ detail, perDusun = [] }) {
+function TombolUnduh({ detail, perDusun, namaDesa, wilayah }) {
+  const [proses, setProses] = useState(null);
+  const [galat, setGalat] = useState(false);
+
+  async function jalankan(jenis) {
+    setProses(jenis);
+    setGalat(false);
+    try {
+      const args = { detail, perDusun, namaDesa, wilayah };
+      await (jenis === "pdf" ? eksporPdf(args) : eksporExcel(args));
+    } catch (e) {
+      console.error(e);
+      setGalat(true);
+    } finally {
+      setProses(null);
+    }
+  }
+
+  const kelas =
+    "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 disabled:cursor-wait disabled:opacity-60";
+  const ikon = (
+    <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" />
+    </svg>
+  );
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <button type="button" disabled={!!proses} onClick={() => jalankan("pdf")}
+        className={`${kelas} border-gold bg-gold text-navy-dark hover:bg-gold-light`}>
+        {ikon}{proses === "pdf" ? "Menyiapkan…" : "Unduh PDF"}
+      </button>
+      <button type="button" disabled={!!proses} onClick={() => jalankan("xlsx")}
+        className={`${kelas} border-white/20 bg-white/[0.06] text-white hover:bg-white/10`}>
+        {ikon}{proses === "xlsx" ? "Menyiapkan…" : "Unduh Excel"}
+      </button>
+      {galat && <span className="text-xs text-red-300">Gagal membuat berkas, coba lagi.</span>}
+    </div>
+  );
+}
+
+export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa = "", wilayah = "" }) {
   const {
     perAgama = [],
     perStatusKawin = [],
@@ -296,6 +338,9 @@ export default function StatistikDetailBeranda({ detail, perDusun = [] }) {
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
             Diperbarui otomatis dari database
           </span>
+        </div>
+        <div className="mt-6">
+          <TombolUnduh detail={detail} perDusun={perDusun} namaDesa={namaDesa} wilayah={wilayah} />
         </div>
 
         {/* Sekilas */}
