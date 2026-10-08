@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import DetailLayananForm from "./DetailLayananForm";
+import { linkWhatsApp } from "@/lib/whatsapp";
+import { STATUS_LABELS, STATUS_BADGE_CLASS } from "@/lib/statusSurat";
 
 export default async function DetailPengajuanLayananPage({ params }) {
   const { id } = await params;
@@ -13,6 +15,20 @@ export default async function DetailPengajuanLayananPage({ params }) {
     .single();
 
   if (!pengajuan) notFound();
+
+  let pemroses = null;
+  if (pengajuan.diproses_oleh) {
+    const { data: prof } = await supabase
+      .from("profiles")
+      .select("nama")
+      .eq("id", pengajuan.diproses_oleh)
+      .single();
+    pemroses = prof?.nama ?? null;
+  }
+  const wa = linkWhatsApp(
+    pengajuan.no_hp,
+    `Halo ${pengajuan.nama_pemohon}, ini kantor desa terkait pengajuan ${pengajuan.kode_tracking}.`
+  );
 
   const formSchema = pengajuan.jenis_layanan_master?.form_schema || [];
 
@@ -26,7 +42,12 @@ export default async function DetailPengajuanLayananPage({ params }) {
       </Link>
 
       <div className="rounded-2xl border border-slate-200 bg-white p-6">
-        <p className="font-mono text-xs text-slate-400">{pengajuan.kode_tracking}</p>
+        <div className="flex items-center justify-between gap-3">
+          <p className="font-mono text-xs text-slate-400">{pengajuan.kode_tracking}</p>
+          <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASS[pengajuan.status]}`}>
+            {STATUS_LABELS[pengajuan.status]}
+          </span>
+        </div>
         <h1 className="mt-1 text-lg font-bold text-slate-800">
           {pengajuan.jenis_layanan_master?.nama_layanan}
         </h1>
@@ -42,7 +63,19 @@ export default async function DetailPengajuanLayananPage({ params }) {
           </div>
           <div>
             <dt className="text-slate-400">No. HP</dt>
-            <dd className="text-slate-700">{pengajuan.no_hp}</dd>
+            <dd className="text-slate-700">
+              {pengajuan.no_hp}
+              {wa && (
+                <a
+                  href={wa}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ml-2 text-xs font-medium text-emerald-600 hover:underline"
+                >
+                  Hubungi via WhatsApp
+                </a>
+              )}
+            </dd>
           </div>
           <div>
             <dt className="text-slate-400">Diajukan</dt>
@@ -50,6 +83,15 @@ export default async function DetailPengajuanLayananPage({ params }) {
               {new Date(pengajuan.created_at).toLocaleString("id-ID")}
             </dd>
           </div>
+          {pengajuan.updated_at !== pengajuan.created_at && (
+            <div className="sm:col-span-2">
+              <dt className="text-slate-400">Terakhir diperbarui</dt>
+              <dd className="text-slate-700">
+                {new Date(pengajuan.updated_at).toLocaleString("id-ID")}
+                {pemroses ? ` oleh ${pemroses}` : ""}
+              </dd>
+            </div>
+          )}
           {pengajuan.keterangan && (
             <div className="sm:col-span-2">
               <dt className="text-slate-400">Keterangan</dt>

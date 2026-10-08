@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { updateStatusPengajuanLayanan } from "../actions";
 import { STATUS_LABELS } from "@/lib/statusSurat";
@@ -20,6 +20,20 @@ function TombolSimpan() {
 
 export default function DetailLayananForm({ pengajuan }) {
   const [state, formAction] = useActionState(updateStatusPengajuanLayanan, {});
+  const statusRef = useRef(null);
+  const catatanRef = useRef(null);
+
+  // Template singkat supaya petugas tidak mengetik berulang.
+  const TEMPLATE = {
+    diproses: "Pengajuan Anda sedang kami proses.",
+    selesai: "Pengajuan selesai. Silakan ambil dokumen di kantor desa pada jam kerja.",
+    ditolak: "Pengajuan ditolak karena: ",
+  };
+  function pilih(s) {
+    statusRef.current.value = s;
+    if (!catatanRef.current.value.trim()) catatanRef.current.value = TEMPLATE[s] ?? "";
+    catatanRef.current.focus();
+  }
 
   return (
     <form
@@ -28,9 +42,24 @@ export default function DetailLayananForm({ pengajuan }) {
     >
       <input type="hidden" name="id" value={pengajuan.id} />
 
+      <div className="flex flex-wrap gap-2">
+        <span className="self-center text-xs text-slate-400">Pilihan cepat:</span>
+        {["diproses", "selesai", "ditolak"].map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => pilih(s)}
+            className="rounded-full border border-slate-200 px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-navy hover:text-navy"
+          >
+            {s === "diproses" ? "Mulai proses" : s === "selesai" ? "Tandai selesai" : "Tolak"}
+          </button>
+        ))}
+      </div>
+
       <div>
         <label className="mb-1 block text-sm text-slate-600">Status</label>
         <select
+          ref={statusRef}
           name="status"
           defaultValue={pengajuan.status}
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy"
@@ -48,6 +77,7 @@ export default function DetailLayananForm({ pengajuan }) {
           Catatan untuk warga (opsional)
         </label>
         <textarea
+          ref={catatanRef}
           name="catatan_admin"
           defaultValue={pengajuan.catatan_admin ?? ""}
           rows={3}

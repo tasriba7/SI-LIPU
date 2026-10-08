@@ -12,6 +12,12 @@ export async function updateStatusPengajuanLayanan(prevState, formData) {
   if (!id || !status) {
     return { error: "Data tidak lengkap." };
   }
+  if (!["diajukan", "diproses", "selesai", "ditolak"].includes(status)) {
+    return { error: "Status tidak valid." };
+  }
+  if (status === "ditolak" && !catatan_admin) {
+    return { error: "Isi catatan alasan penolakan agar warga tahu sebabnya." };
+  }
 
   const supabase = await createClient();
   const _akses = await pastikanBisaMenulis(supabase);

@@ -120,6 +120,11 @@ export default async function DashboardPage() {
     .order("jumlah", { ascending: false })
     .limit(5);
 
+  const { count: menunggu } = await supabase
+    .from("pengajuan_layanan")
+    .select("id", { count: "exact", head: true })
+    .eq("status", "diajukan");
+
   const totalBelumLengkap = (ringkasanKelengkapan ?? []).reduce(
     (a, r) => a + (r.belum_lengkap || 0),
     0
@@ -133,6 +138,25 @@ export default async function DashboardPage() {
           Pilih modul di bawah untuk mulai bekerja.
         </p>
       </div>
+
+      {menunggu > 0 && (
+        <Link
+          href="/dashboard/layanan?status=diajukan"
+          className="flex items-center justify-between gap-4 rounded-2xl border border-gold/50 bg-gold/10 p-5 transition hover:shadow-md"
+        >
+          <div>
+            <h2 className="text-sm font-bold text-navy">
+              {menunggu} pengajuan layanan menunggu diproses
+            </h2>
+            <p className="mt-1 text-xs text-slate-600">
+              Klik untuk membuka daftar pengajuan baru.
+            </p>
+          </div>
+          <span className="shrink-0 rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-white">
+            Proses sekarang
+          </span>
+        </Link>
+      )}
 
       {ringkasanKelengkapan && ringkasanKelengkapan.length > 0 && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
