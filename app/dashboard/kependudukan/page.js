@@ -6,12 +6,21 @@ import ImportWargaButton from "./ImportWargaButton";
 import ExportWargaButton from "./ExportWargaButton";
 import { ringkasKolomKosong } from "@/lib/kelengkapan";
 
-function inisial(nama) {
-  if (!nama) return "?";
-  const kata = nama.trim().split(/\s+/);
-  const depan = kata[0]?.[0] || "";
-  const belakang = kata.length > 1 ? kata[kata.length - 1][0] : "";
-  return (depan + belakang).toUpperCase();
+function formatTanggal(t) {
+  if (!t) return "-";
+  const d = new Date(t);
+  if (isNaN(d)) return "-";
+  return d.toLocaleDateString("id-ID", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
+function labelRole(role) {
+  if (role === "kadus") return "Kadus";
+  if (role === "ketua_rt") return "Ketua RT";
+  return role || "";
 }
 
 export default async function KependudukanPage({ searchParams }) {
@@ -50,9 +59,9 @@ export default async function KependudukanPage({ searchParams }) {
     .gt("jumlah_kosong", 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-5 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex items-start gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy/10 text-navy">
             <IconUsers className="h-5 w-5" />
@@ -79,7 +88,7 @@ export default async function KependudukanPage({ searchParams }) {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+        <div className="flex flex-wrap items-center gap-2 lg:shrink-0 lg:justify-end">
           <Link
             href="/dashboard/kependudukan/kartu-keluarga"
             className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
@@ -142,104 +151,124 @@ export default async function KependudukanPage({ searchParams }) {
       </form>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-400">
-              <tr>
-                <th className="px-4 py-3 font-medium">NIK</th>
-                <th className="px-4 py-3 font-medium">Nama</th>
-                <th className="px-4 py-3 font-medium">Status KK</th>
-                <th className="px-4 py-3 font-medium">Dusun / RT-RW</th>
-                <th className="px-4 py-3 font-medium">Tanggal Lahir</th>
-                <th className="px-4 py-3 font-medium">No. HP</th>
-                <th className="px-4 py-3 font-medium">Ditambahkan oleh</th>
-                <th className="px-4 py-3 font-medium">Kelengkapan</th>
-                <th className="px-4 py-3 font-medium"></th>
+      <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div className="max-h-[calc(100vh-17rem)] min-h-[320px] overflow-auto">
+          <table className="w-full min-w-[1100px] border-separate border-spacing-0 text-[12px] leading-snug">
+            <thead>
+              <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+                {[
+                  ["No", "w-10 text-center"],
+                  ["NIK", ""],
+                  ["Nama Lengkap", ""],
+                  ["L/P", "w-10 text-center"],
+                  ["Tgl. Lahir", ""],
+                  ["Status KK", ""],
+                  ["Dusun", ""],
+                  ["RT/RW", "text-center"],
+                  ["No. HP", ""],
+                  ["Ditambahkan Oleh", ""],
+                  ["Kelengkapan", ""],
+                  ["Aksi", "text-right"],
+                ].map(([label, cls]) => (
+                  <th
+                    key={label}
+                    className={`sticky top-0 z-10 whitespace-nowrap border-b border-slate-200 bg-slate-100 px-3 py-2.5 ${cls}`}
+                  >
+                    {label}
+                  </th>
+                ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {(daftar ?? []).map((w) => (
-                <tr key={w.id} className="transition hover:bg-slate-50/80">
-                  <td className="px-4 py-3 font-mono text-slate-600">{w.nik}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy/10 text-xs font-semibold text-navy">
-                        {inisial(w.nama_lengkap)}
-                      </div>
-                      <div>
-                        <p className="font-medium leading-tight text-slate-800">
-                          {w.nama_lengkap}
-                        </p>
-                        {w.jenis_kelamin && (
-                          <p className="text-[11px] leading-tight text-slate-400">
-                            {w.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+            <tbody className="text-slate-600">
+              {(daftar ?? []).map((w, i) => (
+                <tr
+                  key={w.id}
+                  className="odd:bg-white even:bg-slate-50/60 hover:bg-navy/5"
+                >
+                  <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2 text-center tabular-nums text-slate-400">
+                    {i + 1}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2 font-mono text-[11.5px] tabular-nums text-slate-700">
+                    {w.nik}
+                  </td>
+                  <td className="max-w-[240px] truncate border-b border-slate-100 px-3 py-2 font-medium text-slate-800">
+                    <span title={w.nama_lengkap}>{w.nama_lengkap}</span>
+                  </td>
+                  <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2 text-center">
+                    {w.jenis_kelamin === "L" || w.jenis_kelamin === "P" ? (
+                      <span
+                        className={`inline-block w-5 rounded text-center text-[11px] font-semibold ${
+                          w.jenis_kelamin === "L"
+                            ? "bg-sky-100 text-sky-700"
+                            : "bg-pink-100 text-pink-700"
+                        }`}
+                      >
+                        {w.jenis_kelamin}
+                      </span>
+                    ) : (
+                      <span className="text-slate-300">-</span>
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2 tabular-nums">
+                    {formatTanggal(w.tanggal_lahir)}
+                  </td>
+                  <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2">
                     {w.status_dalam_kk ? (
                       <span
-                        className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                        className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${
                           w.status_dalam_kk === "Kepala Keluarga"
-                            ? "bg-gold/15 text-navy"
-                            : "bg-slate-100 text-slate-500"
+                            ? "bg-gold/20 text-navy"
+                            : "bg-slate-100 text-slate-600"
                         }`}
                       >
                         {w.status_dalam_kk}
                       </span>
                     ) : (
-                      <span className="text-xs text-slate-300">-</span>
+                      <span className="text-slate-300">-</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-slate-500">
-                    {w.dusun || "-"} {w.rt ? `· RT ${w.rt}` : ""} {w.rw ? `/RW ${w.rw}` : ""}
+                  <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2">
+                    {w.dusun || "-"}
                   </td>
-                  <td className="px-4 py-3 text-slate-500">
-                    {w.tanggal_lahir
-                      ? new Date(w.tanggal_lahir).toLocaleDateString("id-ID")
-                      : "-"}
+                  <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2 text-center tabular-nums">
+                    {w.rt || w.rw ? `${w.rt || "-"} / ${w.rw || "-"}` : "-"}
                   </td>
-                  <td className="px-4 py-3 text-slate-500">{w.no_hp || "-"}</td>
-                  <td className="px-4 py-3 text-slate-500">
+                  <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2 tabular-nums">
+                    {w.no_hp || "-"}
+                  </td>
+                  <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2">
                     {w.dibuat_oleh_nama ? (
-                      <>
-                        <p className="leading-tight text-slate-700">{w.dibuat_oleh_nama}</p>
+                      <span title={labelRole(w.dibuat_oleh_role)}>
+                        {w.dibuat_oleh_nama}
                         {w.dibuat_oleh_role && (
-                          <p className="text-[11px] leading-tight text-slate-400">
-                            {w.dibuat_oleh_role === "kadus"
-                              ? "Kadus"
-                              : w.dibuat_oleh_role === "ketua_rt"
-                                ? "Ketua RT"
-                                : w.dibuat_oleh_role}
-                          </p>
+                          <span className="ml-1 text-[11px] text-slate-400">
+                            ({labelRole(w.dibuat_oleh_role)})
+                          </span>
                         )}
-                      </>
-                    ) : (
-                      <span className="text-xs text-slate-300">Data lama / impor</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {w.jumlah_kosong > 0 ? (
-                      <span
-                        className="cursor-help rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-700"
-                        title={`Kolom belum diisi: ${ringkasKolomKosong(w.kolom_kosong, 20)}`}
-                      >
-                        Kurang {w.jumlah_kosong} kolom
                       </span>
                     ) : (
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-emerald-700">
+                      <span className="text-slate-300">Data lama / impor</span>
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2">
+                    {w.jumlah_kosong > 0 ? (
+                      <span
+                        className="cursor-help rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-medium text-amber-700"
+                        title={`Kolom belum diisi: ${ringkasKolomKosong(w.kolom_kosong, 20)}`}
+                      >
+                        Kurang {w.jumlah_kosong}
+                      </span>
+                    ) : (
+                      <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700">
                         Lengkap
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2 text-right">
                     <div className="flex items-center justify-end gap-3">
                       <Link
                         href={`/dashboard/kependudukan/${w.id}/edit`}
-                        className="text-xs font-medium text-navy hover:underline"
+                        className="text-[12px] font-medium text-navy hover:underline"
                       >
                         Edit
                       </Link>
@@ -250,7 +279,7 @@ export default async function KependudukanPage({ searchParams }) {
               ))}
               {(daftar ?? []).length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-16 text-center">
+                  <td colSpan={12} className="px-4 py-16 text-center">
                     <div className="mx-auto flex max-w-xs flex-col items-center gap-2 text-slate-400">
                       <IconUsers className="h-8 w-8" />
                       <p className="text-sm">
