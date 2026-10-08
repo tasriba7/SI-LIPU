@@ -42,29 +42,24 @@ Status: **BAGIAN 1 selesai** (lihat daftar sisa pekerjaan di bawah).
 {{kecamatan}} {{kabupaten}} {{provinsi}}` + setiap `field_key` di `data_tambahan`
 (mis. `{{jenis_usaha}}`). Variabel kosong → string kosong → kolom disorot kuning di editor.
 
-## YANG BELUM (untuk AI/developer berikutnya)
-1. **Template Surat Kelahiran & Kematian** belum di-seed. Keduanya menerangkan ORANG LAIN
-   (bayi/almarhum), bukan pemohon. Perlu: (a) field Form Builder di jenis layanan tsb
-   (nama anak, hari/tanggal lahir, nama ibu, nama ayah; nama almarhum, tanggal/pukul
-   meninggal, usia, penyebab) dengan `field_key` snake_case, (b) template memakai
-   `{{field_key}}` itu. Tidak perlu ubah kode, cukup INSERT ke `template_surat`.
-2. **Halaman admin "Kelola Template Surat"** (`/dashboard/template-surat`, hanya admin):
-   daftar, edit judul/pembuka/biodata/isi/penutup, aktif/nonaktif, tombol "lihat daftar
-   variabel". Saat ini template hanya bisa diubah lewat SQL. Ikuti pola
-   `app/dashboard/jenis-layanan`. Tambahkan menu di sidebar.
-3. **Halaman daftar surat terbit** (`/dashboard/surat-terbit`): cari nomor/nama, cetak ulang
-   dari snapshot tanpa lewat pengajuan.
-4. **Penomoran otomatis** (opsional): format nomor per desa (mis. `470/{urut}/DS/{bulan_romawi}/{tahun}`)
-   dengan counter per tahun yang aman dari balapan (fungsi SQL / sequence). Sekarang manual.
-5. **Surat untuk pengajuan LAMA** (`pengajuan_surat`, modul 0003) belum didukung; hanya
-   `pengajuan_layanan`.
-6. **Warga di `/layanan/cek`**: tampilkan "Surat sudah terbit, silakan ambil" (status
-   `selesai` + catatan sudah otomatis, tapi nomor surat belum ditampilkan). Jangan tampilkan
-   isi surat/NIK ke publik (lihat SECURITY.md).
-7. **Tanda tangan/stempel gambar** (opsional): unggah ke bucket `desa-media`, tampilkan di blok TTD.
-8. **Kolom nomor surat di `/dashboard/layanan`** dan log aktivitas penerbitan.
-9. **Uji manual**: jalankan migrasi 0020, buat pengajuan SKTM dengan NIK terdata, cek pratinjau
-   & cetak A4 (Chrome → Simpan sebagai PDF), uji nomor ganda, uji login Kepala Desa (harus
-   read-only), uji NIK tidak terdata (peringatan kuning muncul).
-10. Update `docs/DATABASE_SCHEMA.md`, `docs/ROADMAP.md`, dan bagian STATUS TERKINI di
-    `docs/AI_HANDOFF.md` (aturan #5) setelah bagian ini dipasang.
+## Pembaruan (sesi lanjutan)
+Selesai: Surat Kelahiran & Kematian (migrasi `0021`), halaman Kelola Template Surat
+(`/dashboard/template-surat`, admin), halaman Surat Terbit (`/dashboard/surat-terbit`),
+komponen cetak bersama `components/dashboard/SuratPratinjau.jsx`, kartu "Buat Surat" di detail
+pengajuan, dan fungsi `bisaTerbitkanSurat` / `pastikanBisaTerbitkanSurat` (sebelumnya belum ada di kode).
+
+Template kini punya 3 kolom opsional: `judul_atas`, `teks_tengah`, `biodata2` (dua blok biodata).
+Field tanggal di Form Builder otomatis menyediakan `{{key}}`, `{{key_angka}}` (22-09-1999) dan
+`{{key_hari}}` (Rabu). `{{usia_almarhum}}` dihitung otomatis; `{{alamat_anak}}`/`{{alamat_almarhum}}`
+jatuh ke alamat pemohon bila kosong.
+
+## YANG BELUM
+1. Tombol "Tambah template baru" di Kelola Template (sementara lewat SQL).
+2. Penomoran otomatis (counter per tahun, aman balapan).
+3. Surat untuk pengajuan LAMA (`pengajuan_surat`).
+4. `/layanan/cek`: tampilkan nomor surat (jangan tampilkan isi/NIK, lihat SECURITY.md).
+5. Tanda tangan/stempel gambar.
+6. Kolom nomor surat di `/dashboard/layanan` + log aktivitas penerbitan.
+7. Uji manual: migrasi 0020 & 0021, ajukan Kelahiran/Kematian, cek pratinjau & cetak A4, nomor ganda,
+   login Kepala Desa (read-only), NIK tak terdata.
+8. Update `docs/DATABASE_SCHEMA.md` (kolom baru `template_surat`, tabel `surat_terbit`).

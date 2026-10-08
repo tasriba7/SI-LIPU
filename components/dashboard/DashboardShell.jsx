@@ -24,6 +24,8 @@ import { ROLE_BADGE_CLASS, isAdminRole, bisaMenulis, labelJabatan } from "@/lib/
 const MODUL_LAYANAN = [
   { nama: "Pengajuan Layanan", icon: IconMail, href: "/dashboard/layanan" },
   { nama: "Kelola Jenis Layanan", icon: IconLayers, href: "/dashboard/jenis-layanan" },
+  { nama: "Surat Terbit", icon: IconMail, href: "/dashboard/surat-terbit" },
+  { nama: "Kelola Template Surat", icon: IconLayers, href: "/dashboard/template-surat" },
   { nama: "Data Kependudukan", icon: IconIdCard, href: "/dashboard/kependudukan" },
   { nama: "Galeri Kegiatan", icon: IconImage, href: "/dashboard/galeri" },
   { nama: "Slot Kadus/Ketua RT", icon: IconUsers, href: "/dashboard/posisi" },
@@ -38,6 +40,7 @@ const HREF_KHUSUS_ADMIN = [
   "/dashboard/pendaftaran",
   "/dashboard/kelola-akun",
   "/dashboard/pengaturan-desa",
+  "/dashboard/template-surat",
 ];
 
 const MODUL_PENGATURAN = [

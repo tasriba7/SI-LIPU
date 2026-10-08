@@ -115,6 +115,11 @@ aturan jika sistem ini direplikasi ke desa lain.
       "Anonim", tombol WhatsApp tidak muncul. **Wajib jalankan `0018_pengaduan_anonim.sql`
       di Supabase.**
 
+- [x] **Surat Otomatis (Modul 4)** — lihat `docs/SURAT_OTOMATIS.md`. Migrasi 0020 + 0021
+      (template Kelahiran & Kematian, dua blok biodata). Halaman: `/dashboard/layanan/[id]/surat`
+      (editor), `/dashboard/template-surat` (admin), `/dashboard/surat-terbit` (arsip & cetak ulang).
+      **Wajib jalankan `0020` lalu `0021` di Supabase.**
+
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,
 tanpa lookup warga, dan tidak ada sistem slot RT. Semua sudah diperbaiki lewat migrasi

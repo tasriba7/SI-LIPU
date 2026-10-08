@@ -10,7 +10,7 @@ export default async function DetailPengajuanLayananPage({ params }) {
   const supabase = await createClient();
   const { data: pengajuan } = await supabase
     .from("pengajuan_layanan")
-    .select("*, jenis_layanan_master(nama_layanan, form_schema)")
+    .select("*, jenis_layanan_master(nama_layanan, kategori, form_schema)")
     .eq("id", id)
     .single();
 
@@ -134,6 +134,21 @@ export default async function DetailPengajuanLayananPage({ params }) {
           ))}
         </dl>
       </div>
+
+      {!pengajuan.anonim && pengajuan.jenis_layanan_master?.kategori === "surat" && (
+        <Link
+          href={`/dashboard/layanan/${id}/surat`}
+          className="flex items-center justify-between rounded-2xl border border-navy/20 bg-navy/5 p-5 transition hover:border-navy"
+        >
+          <div>
+            <p className="font-semibold text-navy">Buat Surat</p>
+            <p className="text-xs text-slate-500">
+              Isi surat terisi otomatis dari data pemohon. Tinggal beri nomor, periksa, lalu cetak.
+            </p>
+          </div>
+          <span className="text-navy">&rarr;</span>
+        </Link>
+      )}
 
       <DetailLayananForm pengajuan={pengajuan} />
     </div>

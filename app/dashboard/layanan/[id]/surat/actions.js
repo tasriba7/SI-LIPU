@@ -28,15 +28,19 @@ export async function terbitkanSurat(payload) {
   if (!draf || typeof draf !== "object") return { error: "Isi surat kosong." };
   if (!ttd?.nama?.trim()) return { error: "Nama penandatangan wajib diisi." };
 
+  const bersihBiodata = (daftar) =>
+    (Array.isArray(daftar) ? daftar : []).slice(0, 30).map((b) => ({
+      label: bersih(b?.label, BATAS.label),
+      value: bersih(b?.value, 500),
+    }));
+
   const isi = {
+    judul_atas: bersih(draf.judul_atas, BATAS.label),
     judul: bersih(draf.judul, BATAS.label),
     pembuka: bersih(draf.pembuka, BATAS.teks),
-    biodata: (Array.isArray(draf.biodata) ? draf.biodata : [])
-      .slice(0, 30)
-      .map((b) => ({
-        label: bersih(b?.label, BATAS.label),
-        value: bersih(b?.value, 500),
-      })),
+    biodata: bersihBiodata(draf.biodata),
+    teks_tengah: bersih(draf.teks_tengah, BATAS.teks),
+    biodata2: bersihBiodata(draf.biodata2),
     isi: bersih(draf.isi, BATAS.teks),
     penutup: bersih(draf.penutup, BATAS.teks),
     penandatangan: {
