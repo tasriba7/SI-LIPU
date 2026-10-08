@@ -11,7 +11,7 @@ export default function GaleriBeranda({ items, totalSemua }) {
   if (!items || items.length === 0) return null;
 
   return (
-    <section className="bg-slate-50/70 py-16 md:py-24">
+    <section className="bg-white/40 py-16 md:py-24">
       <div className="mx-auto max-w-6xl px-6">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
