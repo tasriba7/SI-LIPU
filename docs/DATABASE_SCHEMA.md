@@ -242,6 +242,14 @@ Constraint `surat_terbit_satu_sumber`: tepat satu dari `pengajuan_id` / `pengaju
 
 ---
 
+### RPC publik riwayat ajuan (0023)
+`riwayat_pengajuan_publik(p_nik, p_tanggal_lahir, p_identifier)`: memverifikasi NIK + tanggal lahir ke
+`warga`, mencatat percobaan di `log_pencarian_warga`, lalu mengembalikan maks. 50 pengajuan milik NIK itu
+(kode_tracking, nama_layanan, status, catatan_admin, created_at, updated_at, nomor_surat, tanggal_surat).
+Tidak mengembalikan NIK, no HP, alamat, atau isi keterangan. Baris anonim tidak pernah ikut.
+
+---
+
 ## 9. `log_aktivitas` (dipakai semua modul)
 | Kolom | Tipe | Keterangan |
 |---|---|---|

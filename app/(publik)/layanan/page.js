@@ -73,6 +73,11 @@ export default async function DaftarLayananPage() {
           </Link>
         </div>
         <div className="mt-2 text-center">
+          <Link href="/layanan/riwayat" className="text-sm text-navy underline">
+            Lupa kode? Lihat riwayat ajuan saya
+          </Link>
+        </div>
+        <div className="mt-2 text-center">
           <Link href="/" className="text-xs text-slate-400 hover:text-slate-600">
             Kembali ke beranda
           </Link>

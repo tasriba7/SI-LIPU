@@ -87,8 +87,14 @@ export default function CekStatusLayananPage() {
         )}
 
         <Link
+          href="/layanan/riwayat"
+          className="mt-6 block text-center text-sm font-medium text-navy hover:underline"
+        >
+          Lupa kode tracking? Lihat riwayat ajuan saya
+        </Link>
+        <Link
           href="/layanan"
-          className="mt-6 block text-center text-xs text-slate-400 hover:text-slate-600"
+          className="mt-4 block text-center text-xs text-slate-400 hover:text-slate-600"
         >
           Belum pernah mengajukan? Ajukan layanan di sini
         </Link>

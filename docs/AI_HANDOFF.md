@@ -120,6 +120,12 @@ aturan jika sistem ini direplikasi ke desa lain.
       (editor), `/dashboard/template-surat` (admin), `/dashboard/surat-terbit` (arsip & cetak ulang).
       **Wajib jalankan `0020`, `0021`, lalu `0022` di Supabase** (0022: penomoran otomatis, surat untuk pengajuan lama, nomor di cek status, bucket privat `desa-ttd`).
 
+- [x] **Riwayat Ajuan Warga** (`/layanan/riwayat`, migrasi 0023) — warga memasukkan NIK + tanggal
+      lahir (dua faktor, rate limit 5 gagal/15 menit lewat `hitung_percobaan_gagal`) dan melihat semua
+      pengajuannya (kode tracking, status, catatan, nomor surat) dari `pengajuan_layanan` + `pengajuan_surat`.
+      RPC `riwayat_pengajuan_publik`; "tidak cocok" dan "belum ada pengajuan" sama-sama kosong. Pengaduan
+      anonim tidak muncul. **Wajib jalankan `0023_riwayat_pengajuan_publik.sql`.**
+
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,
 tanpa lookup warga, dan tidak ada sistem slot RT. Semua sudah diperbaiki lewat migrasi
