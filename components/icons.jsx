@@ -273,3 +273,13 @@ export function IconMapPin(props) {
     </svg>
   );
 }
+
+// Sosok lansia bertongkat (kartu statistik Lansia).
+export function IconLansia(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <circle cx="9.5" cy="4.5" r="1.8" />
+      <path d="M9.5 8.5v6.2l-1.8 5.8M9.5 14.7l2.3 5.8M7 11.3l2.5-2.8 3.2 1.6M16.5 10.5v10M14.7 10.5h1.8" />
+    </svg>
+  );
+}
