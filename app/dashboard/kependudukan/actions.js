@@ -20,6 +20,7 @@ export async function tambahWarga(prevState, formData) {
   const status_dalam_kk = formData.get("status_dalam_kk") || null;
   const pekerjaan = formData.get("pekerjaan")?.trim() || null;
   const agama = formData.get("agama") || null;
+  const pendidikan = formData.get("pendidikan") || null;
 
   if (!nik || !nama_lengkap || !tanggal_lahir) {
     return { error: "NIK, nama lengkap, dan tanggal lahir wajib diisi." };
@@ -47,6 +48,7 @@ export async function tambahWarga(prevState, formData) {
     status_dalam_kk,
     pekerjaan,
     agama,
+    pendidikan,
   });
 
   if (error) {
@@ -136,6 +138,7 @@ export async function tambahKeluargaWarga(prevState, formData) {
       status_dalam_kk: a.status_dalam_kk || null,
       pekerjaan: String(a.pekerjaan ?? "").trim() || null,
       agama: a.agama || null,
+      pendidikan: a.pendidikan || null,
     });
   }
 
@@ -182,6 +185,7 @@ export async function editWarga(prevState, formData) {
   const status_dalam_kk = formData.get("status_dalam_kk") || null;
   const pekerjaan = formData.get("pekerjaan")?.trim() || null;
   const agama = formData.get("agama") || null;
+  const pendidikan = formData.get("pendidikan") || null;
 
   if (!id) {
     return { error: "Data warga tidak ditemukan." };
@@ -214,6 +218,7 @@ export async function editWarga(prevState, formData) {
       status_dalam_kk,
       pekerjaan,
       agama,
+      pendidikan,
     })
     .eq("id", id)
     .select("id");
@@ -290,6 +295,7 @@ function bersihkanBarisImport(raw, nomorBaris) {
     no_hp: ambil("no_hp"),
     pekerjaan: ambil("pekerjaan"),
     agama: ambil("agama"),
+    pendidikan: ambil("pendidikan"),
   };
 
   for (const kolom of KOLOM_WAJIB) {
