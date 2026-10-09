@@ -202,6 +202,11 @@ export default function SuratPratinjau({
       <style>{`
         @media print {
           @page { size: A4; margin: 0; }
+          /* Animasi pageIn (template dashboard) meninggalkan transform yang
+             menjadikan pembungkusnya acuan posisi absolute, sehingga surat
+             bergeser turun/kanan sebesar header + padding dashboard. Matikan
+             saat cetak supaya top:0 / left:0 = tepi kertas. */
+          .animate-pageIn { animation: none !important; transform: none !important; }
           body * { visibility: hidden !important; }
           #area-cetak, #area-cetak * { visibility: visible !important; }
           #area-cetak { position: absolute; left: 0; top: 0; width: 100%; }
