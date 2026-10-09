@@ -94,9 +94,6 @@ export default async function HomePage() {
 
   return (
     <main className="bg-white">
-      {/* Hari, tanggal & jam setempat (sampai detik) — paling atas, di bawah header. */}
-      <JamTanggalBeranda />
-
       {/* Hero — identitas desa. Kalau admin sudah unggah foto lewat
           /dashboard/pengaturan-desa, foto itu jadi latar; kalau belum, tetap
           pakai warna navy polos supaya teks tetap kebaca. */}
@@ -115,7 +112,11 @@ export default async function HomePage() {
             kebaca, turunkan kalau foto masih terlalu redup. */}
         <div className="absolute inset-0 bg-gradient-to-b from-navy-dark/55 via-navy-dark/45 to-navy-dark/70" />
 
-        <div className="relative mx-auto max-w-6xl px-6 pt-16 text-center md:pt-24">
+        <div className="relative mx-auto max-w-6xl px-6 pt-5 text-center md:pt-8">
+          {/* Hari, tanggal & jam setempat (sampai detik) — kapsul kecil di atas
+              baris wilayah. Padding atas hero dirapatkan supaya tinggi hero
+              nyaris sama seperti sebelum jam ditambahkan. */}
+          <JamTanggalBeranda />
           <p className="font-mono text-xs uppercase tracking-[0.25em] text-gold">
             {config.jenis_wilayah || "Desa"}
             {wilayah ? ` · ${wilayah}` : ""}
