@@ -49,6 +49,7 @@ export async function GET(request) {
     let query = supabase
       .from("warga")
       .select(KOLOM.join(","))
+      .eq("status_kependudukan", "aktif")
       .order("nama_lengkap")
       .range(dari, dari + UKURAN_HALAMAN - 1);
 
