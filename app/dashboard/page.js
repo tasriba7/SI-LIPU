@@ -11,6 +11,12 @@ import {
 } from "@/components/icons";
 import { createClient } from "@/lib/supabase/server";
 import { ringkasKolomKosong } from "@/lib/kelengkapan";
+import {
+  getStatistikBeranda,
+  getStatistikBerandaDetail,
+  getStatistikPerDusun,
+} from "@/lib/statistikBeranda";
+import StatistikDashboard from "@/components/dashboard/StatistikDashboard";
 
 // Daftar modul disamakan dengan MODUL_LAYANAN & MODUL_PENGATURAN di
 // components/dashboard/DashboardShell.jsx supaya kartu di beranda ini dan
@@ -116,6 +122,13 @@ export default async function DashboardPage() {
   // desa (admin) melihat semua penginput dari semua wilayah — termasuk yang
   // ditambahkan Kadus/Ketua RT — sedangkan Kadus/Ketua RT hanya melihat
   // ringkasan wilayahnya sendiri.
+  // Statistik kependudukan (angka agregat; sama dengan beranda publik).
+  const [statRingkas, statDetail, statDusun] = await Promise.all([
+    getStatistikBeranda(),
+    getStatistikBerandaDetail(),
+    getStatistikPerDusun(),
+  ]);
+
   const { data: ringkasanKelengkapan } = await supabase
     .from("ringkasan_kelengkapan_penginput")
     .select("dibuat_oleh, nama, role, wilayah, total, belum_lengkap")
@@ -220,6 +233,12 @@ export default async function DashboardPage() {
           )}
         </div>
       )}
+
+      <StatistikDashboard
+        ringkas={statRingkas}
+        detail={statDetail}
+        perDusun={statDusun}
+      />
 
       <section>
         <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
