@@ -14,18 +14,19 @@ import { DEFAULT_CONFIG_DESA } from "@/lib/configDesa";
 // muat sejajar dengan nama desa; layar lebar (xl) memakai `nama` penuh.
 const MENU = [
   { nama: "Beranda", pendek: "Beranda", href: "/" },
-  { nama: "Ajukan Layanan", pendek: "Layanan", href: "/layanan" },
-  { nama: "Cek Status", pendek: "Cek Status", href: "/layanan/cek" },
-  { nama: "Riwayat Ajuan", pendek: "Riwayat", href: "/layanan/riwayat" },
+  // Satu menu untuk semua fitur warga. Ajukan Layanan, Cek Status, dan
+  // Riwayat Ajuan kini berupa tab di dalam panel (lihat PanelWargaTabs).
+  { nama: "Panel Warga", pendek: "Panel Warga", href: "/layanan" },
   { nama: "Galeri Kegiatan", pendek: "Galeri", href: "/galeri" },
   { nama: "Pendaftaran Kadus/RT", pendek: "Kadus/RT", href: "/pendaftaran" },
   { nama: "Pengumuman Desa", pendek: "Pengumuman", href: null },
   { nama: "Profil Desa", pendek: "Profil", href: null },
 ];
 
-// "Cek Status" ("/layanan/cek") berada di bawah "/layanan" secara path,
-// jadi dicek dulu sebelum "Ajukan Layanan" — supaya keduanya tidak
-// sama-sama tersorot aktif saat warga sedang di halaman cek status.
+// Menu aktif bila path sama persis atau berada di bawahnya. "Panel Warga"
+// ("/layanan") otomatis aktif di semua halaman panel: ajukan, cek status,
+// dan riwayat. Kalau suatu saat ada menu lain di bawah path yang sama, yang
+// lebih spesifik didahulukan.
 function menuAktif(href, pathname) {
   if (!href || !pathname) return false;
   if (href === "/") return pathname === "/";
