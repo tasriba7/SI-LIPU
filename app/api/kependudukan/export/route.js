@@ -9,13 +9,13 @@ import { createClient } from "@/lib/supabase/server";
 const HEADERS = [
   "NIK", "No. KK", "Nama Lengkap", "Tempat Lahir", "Tanggal Lahir",
   "Jenis Kelamin", "Status Kawin", "Status dalam KK", "Alamat", "Dusun",
-  "RT", "RW", "No. HP", "Pekerjaan", "Agama",
+  "RT", "RW", "No. HP", "Pekerjaan", "Agama", "Pendidikan",
 ];
 
 const KOLOM = [
   "nik", "no_kk", "nama_lengkap", "tempat_lahir", "tanggal_lahir",
   "jenis_kelamin", "status_kawin", "status_dalam_kk", "alamat", "dusun",
-  "rt", "rw", "no_hp", "pekerjaan", "agama",
+  "rt", "rw", "no_hp", "pekerjaan", "agama", "pendidikan",
 ];
 
 const KOLOM_TEKS = new Set(["nik", "no_kk", "rt", "rw", "no_hp"]);
@@ -62,7 +62,7 @@ export async function GET(request) {
   const aoa = [HEADERS, ...semuaBaris.map((w) => KOLOM.map((k) => w[k] ?? ""))];
   const ws = XLSX.utils.aoa_to_sheet(aoa);
 
-  ws["!cols"] = [18, 18, 26, 18, 14, 14, 14, 18, 30, 16, 8, 8, 16, 24, 18].map((wch) => ({ wch }));
+  ws["!cols"] = [18, 18, 26, 18, 14, 14, 14, 18, 30, 16, 8, 8, 16, 24, 18, 28].map((wch) => ({ wch }));
 
   // NIK/No. KK/RT/RW/No. HP dipaksa format teks (angka depan nol atau
   // 16 digit tidak berubah jadi notasi ilmiah saat dibuka di Excel).
