@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { tambahKeluargaWarga } from "../actions";
 import { PEKERJAAN_OPTIONS } from "@/lib/pekerjaanOptions";
+import { PENDIDIKAN_OPTIONS } from "@/lib/pendidikanOptions";
 
 function anggotaKosong() {
   return {
@@ -20,6 +21,7 @@ function anggotaKosong() {
     no_hp: "",
     pekerjaan: "",
     agama: "",
+    pendidikan: "",
   };
 }
 
@@ -288,6 +290,20 @@ export default function TambahWargaPage() {
                     <option>Lainnya</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm text-slate-600">Pendidikan Terakhir</label>
+                <select
+                  value={a.pendidikan}
+                  onChange={(e) => ubahAnggota(idx, "pendidikan", e.target.value)}
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy"
+                >
+                  <option value="" disabled>Pilih</option>
+                  {PENDIDIKAN_OPTIONS.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
               </div>
             </div>
           ))}
