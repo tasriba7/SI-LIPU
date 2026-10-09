@@ -1,4 +1,4 @@
-import { ROLE_LABELS } from "@/lib/roles";
+import { ROLE_LABELS, bisaLihatMenu } from "@/lib/roles";
 import Link from "next/link";
 import {
   IconMail,
@@ -20,49 +20,58 @@ import StatistikDashboard from "@/components/dashboard/StatistikDashboard";
 
 // Daftar modul disamakan dengan MODUL_LAYANAN & MODUL_PENGATURAN di
 // components/dashboard/DashboardShell.jsx supaya kartu di beranda ini dan
-// menu sidebar selalu konsisten (satu sumber kebenaran untuk href tiap modul).
+// menu sidebar selalu konsisten (satu sumber kebenaran untuk href & `akses`
+// tiap modul). `akses`: "semua" | "kantor" | "admin" (lihat bisaLihatMenu di
+// lib/roles.js). Kartu yang tidak sesuai peran tidak ditampilkan.
 const MODUL_LAYANAN = [
   {
     nama: "Pengajuan Layanan",
     deskripsi: "Semua pengajuan warga (surat, pengaduan, dst) dari sistem Form Builder, satu inbox.",
     icon: IconMail,
     href: "/dashboard/layanan",
+    akses: "semua",
   },
   {
     nama: "Kelola Jenis Layanan",
     deskripsi: "Atur jenis layanan apa saja yang bisa diajukan warga lewat menu Ajukan Layanan.",
     icon: IconLayers,
     href: "/dashboard/jenis-layanan",
+    akses: "kantor",
   },
   {
     nama: "Data Kependudukan",
     deskripsi: "Data induk warga: tambah, ubah, dan cari data penduduk desa.",
     icon: IconIdCard,
     href: "/dashboard/kependudukan",
+    akses: "semua",
   },
   {
     nama: "Slot Kadus/Ketua RT",
     deskripsi: "Kelola slot jabatan per wilayah (Kadus, Ketua RT) dan siapa yang mengisinya.",
     icon: IconUsers,
     href: "/dashboard/posisi",
+    akses: "admin",
   },
   {
     nama: "Pendaftaran Akun",
     deskripsi: "Tinjau dan proses pendaftaran akun untuk slot jabatan yang dibuka umum.",
     icon: IconUserPlus,
     href: "/dashboard/pendaftaran",
+    akses: "admin",
   },
   {
     nama: "Pengajuan Surat (lama)",
     deskripsi: "Modul pengajuan surat versi awal, tetap aktif untuk kompatibilitas.",
     icon: IconMail,
     href: "/dashboard/surat",
+    akses: "kantor",
   },
   {
     nama: "Pengumuman Desa",
     deskripsi: "Segera hadir.",
     icon: IconMegaphone,
     href: null,
+    akses: "kantor",
   },
 ];
 
@@ -72,6 +81,7 @@ const MODUL_PENGATURAN = [
     deskripsi: "Identitas desa/kelurahan dan foto latar beranda publik.",
     icon: IconSettings,
     href: "/dashboard/pengaturan-desa",
+    akses: "admin",
   },
 ];
 
@@ -117,6 +127,17 @@ function labelRolePenginput(role) {
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+
+  // Peran akun yang sedang login: menentukan kartu modul yang ditampilkan.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profilSaya } = user
+    ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
+    : { data: null };
+  const peran = profilSaya?.role ?? null;
+  const modulLayanan = MODUL_LAYANAN.filter((m) => bisaLihatMenu(peran, m.akses));
+  const modulPengaturan = MODUL_PENGATURAN.filter((m) => bisaLihatMenu(peran, m.akses));
 
   // Ringkasan data warga belum lengkap PER PENGINPUT. Mengikuti RLS: staf
   // desa (admin) melihat semua penginput dari semua wilayah — termasuk yang
@@ -245,22 +266,24 @@ export default async function DashboardPage() {
           Modul layanan
         </h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {MODUL_LAYANAN.map((modul) => (
+          {modulLayanan.map(({ akses: _akses, ...modul }) => (
             <KartuModul key={modul.nama} {...modul} />
           ))}
         </div>
       </section>
 
-      <section>
-        <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-          Pengaturan
-        </h2>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {MODUL_PENGATURAN.map((modul) => (
-            <KartuModul key={modul.nama} {...modul} />
-          ))}
-        </div>
-      </section>
+      {modulPengaturan.length > 0 && (
+        <section>
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+            Pengaturan
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {modulPengaturan.map(({ akses: _akses, ...modul }) => (
+              <KartuModul key={modul.nama} {...modul} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -19,33 +19,30 @@ import {
   IconImage,
   IconKey,
 } from "@/components/icons";
-import { ROLE_BADGE_CLASS, isAdminRole, bisaMenulis, labelJabatan } from "@/lib/roles";
+import { ROLE_BADGE_CLASS, bisaLihatMenu, bisaMenulis, labelJabatan } from "@/lib/roles";
 
+// Tingkat akses tiap menu (lihat bisaLihatMenu di lib/roles.js):
+//   "semua"  -> semua staf (termasuk Kadus & Ketua RT; datanya dibatasi RLS per wilayah)
+//   "kantor" -> perangkat kantor desa saja (menu yang berlaku se-desa)
+//   "admin"  -> hanya Administrator
+// Menu tanpa `akses` dianggap "semua". Samakan dengan penjaga di layout.js
+// folder halaman terkait dan di lib/akses.js.
 const MODUL_LAYANAN = [
-  { nama: "Pengajuan Layanan", icon: IconMail, href: "/dashboard/layanan" },
-  { nama: "Kelola Jenis Layanan", icon: IconLayers, href: "/dashboard/jenis-layanan" },
-  { nama: "Surat Terbit", icon: IconMail, href: "/dashboard/surat-terbit" },
-  { nama: "Kelola Template Surat", icon: IconLayers, href: "/dashboard/template-surat" },
-  { nama: "Data Kependudukan", icon: IconIdCard, href: "/dashboard/kependudukan" },
-  { nama: "Galeri Kegiatan", icon: IconImage, href: "/dashboard/galeri" },
-  { nama: "Slot Kadus/Ketua RT", icon: IconUsers, href: "/dashboard/posisi" },
-  { nama: "Pendaftaran Akun", icon: IconUserPlus, href: "/dashboard/pendaftaran" },
-  { nama: "Pengajuan Surat (lama)", icon: IconMail, href: "/dashboard/surat" },
-  { nama: "Pengumuman Desa", icon: IconMegaphone },
-];
-
-// Menu yang hanya muncul untuk Administrator.
-const HREF_KHUSUS_ADMIN = [
-  "/dashboard/posisi",
-  "/dashboard/pendaftaran",
-  "/dashboard/kelola-akun",
-  "/dashboard/pengaturan-desa",
-  "/dashboard/template-surat",
+  { nama: "Pengajuan Layanan", icon: IconMail, href: "/dashboard/layanan", akses: "semua" },
+  { nama: "Kelola Jenis Layanan", icon: IconLayers, href: "/dashboard/jenis-layanan", akses: "kantor" },
+  { nama: "Surat Terbit", icon: IconMail, href: "/dashboard/surat-terbit", akses: "kantor" },
+  { nama: "Kelola Template Surat", icon: IconLayers, href: "/dashboard/template-surat", akses: "admin" },
+  { nama: "Data Kependudukan", icon: IconIdCard, href: "/dashboard/kependudukan", akses: "semua" },
+  { nama: "Galeri Kegiatan", icon: IconImage, href: "/dashboard/galeri", akses: "kantor" },
+  { nama: "Slot Kadus/Ketua RT", icon: IconUsers, href: "/dashboard/posisi", akses: "admin" },
+  { nama: "Pendaftaran Akun", icon: IconUserPlus, href: "/dashboard/pendaftaran", akses: "admin" },
+  { nama: "Pengajuan Surat (lama)", icon: IconMail, href: "/dashboard/surat", akses: "kantor" },
+  { nama: "Pengumuman Desa", icon: IconMegaphone, akses: "kantor" },
 ];
 
 const MODUL_PENGATURAN = [
-  { nama: "Kelola Akun Staf", icon: IconKey, href: "/dashboard/kelola-akun" },
-  { nama: "Pengaturan Desa", icon: IconSettings, href: "/dashboard/pengaturan-desa" },
+  { nama: "Kelola Akun Staf", icon: IconKey, href: "/dashboard/kelola-akun", akses: "admin" },
+  { nama: "Pengaturan Desa", icon: IconSettings, href: "/dashboard/pengaturan-desa", akses: "admin" },
 ];
 
 function sapaanWaktu(jam) {
@@ -99,12 +96,11 @@ export default function DashboardShell({
   const badgeClass =
     ROLE_BADGE_CLASS[profile?.role] ?? "bg-white/10 text-white/70";
 
-  const adalahAdmin = isAdminRole(profile?.role);
-  const modulPengaturan = MODUL_PENGATURAN.filter(
-    (m) => !HREF_KHUSUS_ADMIN.includes(m.href) || adalahAdmin
+  const modulPengaturan = MODUL_PENGATURAN.filter((m) =>
+    bisaLihatMenu(profile?.role, m.akses)
   );
-  const modulLayanan = MODUL_LAYANAN.filter(
-    (m) => !HREF_KHUSUS_ADMIN.includes(m.href) || adalahAdmin
+  const modulLayanan = MODUL_LAYANAN.filter((m) =>
+    bisaLihatMenu(profile?.role, m.akses)
   );
   const hanyaLihat = !bisaMenulis(profile?.role);
 
@@ -204,22 +200,26 @@ export default function DashboardShell({
             )}
           </ul>
 
-          <p className="mb-2 mt-6 px-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-            Pengaturan
-          </p>
-          <ul className="space-y-1">
-            {modulPengaturan.map(({ nama, icon: Icon, href }) => (
-              <li key={nama}>
-                <Link
-                  href={href}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="flex-1">{nama}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          {modulPengaturan.length > 0 && (
+            <>
+              <p className="mb-2 mt-6 px-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
+                Pengaturan
+              </p>
+              <ul className="space-y-1">
+                {modulPengaturan.map(({ nama, icon: Icon, href }) => (
+                  <li key={nama}>
+                    <Link
+                      href={href}
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span className="flex-1">{nama}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
         </nav>
 
         <div className="border-t border-white/10 p-3">
