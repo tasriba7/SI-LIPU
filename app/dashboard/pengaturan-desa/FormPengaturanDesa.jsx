@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { simpanPengaturanDesa } from "./actions";
+import { namaKabupatenTanpaAwalan } from "@/lib/suratTemplate";
 
 // API publik data wilayah administratif Indonesia (Kemendagri, Permendagri
 // 72/2019) — tanpa API key, dipakai supaya admin desa tidak perlu ketik
@@ -204,7 +205,7 @@ export default function FormPengaturanDesa({ config }) {
               {namaDesa ? `${jenisWilayah} ${namaDesa}` : "Nama Desa/Kelurahan"}
             </h1>
             <p className="mt-3 text-sm text-white/70 sm:text-base">
-              {[kecamatanNama && `Kec. ${kecamatanNama}`, kabupatenNama && `Kab. ${kabupatenNama}`, provinsiNama && `Prov. ${provinsiNama}`]
+              {[kecamatanNama && `Kec. ${kecamatanNama}`, kabupatenNama && `Kab. ${namaKabupatenTanpaAwalan(kabupatenNama)}`, provinsiNama && `Prov. ${provinsiNama}`]
                 .filter(Boolean)
                 .join(", ") || "Kecamatan, Kabupaten, Provinsi"}
             </p>

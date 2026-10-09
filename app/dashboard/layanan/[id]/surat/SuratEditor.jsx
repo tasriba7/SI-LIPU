@@ -340,7 +340,7 @@ export default function SuratEditor({
       {/* ====== Pratinjau = area cetak ====== */}
       <div className="overflow-x-auto">
         {draf ? (
-          <SuratPratinjau draf={draf} nomor={nomor || (nomorSaran ? `${nomorSaran} (otomatis)` : "")} tanggal={tanggal} kota={kota} ttd={ttd} config={config} gambar={gambar} />
+          <SuratPratinjau draf={draf} nomor={nomor || nomorSaran || ""} petunjukNomor={!nomor && nomorSaran ? "(otomatis)" : ""} tanggal={tanggal} kota={kota} ttd={ttd} config={config} gambar={gambar} />
         ) : (
           <p className="rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-400">
             Pilih jenis surat di sebelah kiri untuk melihat pratinjau.
