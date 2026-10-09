@@ -32,6 +32,7 @@ export default async function DashboardLayout({ children }) {
   const { count: jumlahDataKurang } = await supabase
     .from("warga_kelengkapan")
     .select("id", { count: "exact", head: true })
+    .eq("status_kependudukan", "aktif")
     .gt("jumlah_kosong", 0);
 
   // Pengajuan layanan baru -> badge di menu "Pengajuan Layanan". Hanya terisi
