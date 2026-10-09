@@ -12,6 +12,22 @@ import {
 import { maskNama, maskWilayah } from "@/lib/masking";
 
 /**
+ * Apakah satu baris pendaftaran (hasil join posisi_perangkat) berarti
+ * pemiliknya masih menjabat? Syaratnya: disetujui, slot masih "terisi", dan
+ * slot itu diisi oleh persetujuan ini (diisi_pada <= tanggal_diproses; saat
+ * approve, slot dikunci lebih dulu baru pendaftaran ditandai disetujui).
+ * Kalau slot sempat dikosongkan lalu diisi orang lain, diisi_pada-nya lebih
+ * baru, jadi pemegang lama tidak ikut terblokir.
+ */
+function sedangMenjabat(r) {
+  if (r.status !== "disetujui") return false;
+  const posisi = Array.isArray(r.posisi_perangkat) ? r.posisi_perangkat[0] : r.posisi_perangkat;
+  if (posisi?.status !== "terisi") return false;
+  if (!posisi.diisi_pada || !r.tanggal_diproses) return true;
+  return new Date(posisi.diisi_pada) <= new Date(r.tanggal_diproses);
+}
+
+/**
  * Pencarian data warga untuk mengisi otomatis form pendaftaran. Aturannya
  * sama dengan form Ajukan Layanan (docs/SECURITY.md): dua faktor NIK +
  * tanggal lahir, dibatasi percobaan gagal, pesan gagal digeneralisasi, dan
@@ -125,16 +141,31 @@ export async function daftarPosisi(prevState, formData) {
     if (w?.nama_lengkap) nama_lengkap = w.nama_lengkap;
   }
 
-  // Cegah antrian admin dibanjiri: satu NIK hanya boleh punya satu pendaftaran
-  // berstatus menunggu untuk posisi yang sama.
-  const { count } = await supabase
+  // Satu NIK = satu jabatan. Tolak kalau NIK ini:
+  //  (a) sudah menjabat: pendaftarannya pernah disetujui dan slot yang dipegang
+  //      masih terisi oleh akun hasil persetujuan itu, atau
+  //  (b) masih punya pendaftaran menunggu persetujuan (posisi mana pun).
+  // Slot yang sudah dikosongkan admin (atau akunnya dihapus) tidak dihitung,
+  // jadi pemegang lama boleh mendaftar lagi.
+  const { data: riwayatNik, error: errRiwayat } = await supabase
     .from("pendaftaran_akun")
-    .select("id", { count: "exact", head: true })
-    .eq("posisi_id", posisi_id)
+    .select("status, tanggal_diproses, posisi_perangkat(status, diisi_pada)")
     .eq("nik", nik)
-    .eq("status", "pending");
-  if (count > 0) {
-    return { error: "Pendaftaran Anda untuk posisi ini sudah masuk dan sedang menunggu persetujuan admin." };
+    .in("status", ["pending", "disetujui"]);
+  if (errRiwayat) {
+    return { error: "Gagal memeriksa data pendaftaran. Coba lagi." };
+  }
+  if ((riwayatNik ?? []).some((r) => sedangMenjabat(r))) {
+    return {
+      error:
+        "NIK ini sudah terdaftar sebagai Kepala Desa/Kadus/Ketua RT. Satu orang hanya boleh memegang satu jabatan. Hubungi admin desa kalau ada yang keliru.",
+    };
+  }
+  if ((riwayatNik ?? []).some((r) => r.status === "pending")) {
+    return {
+      error:
+        "Pendaftaran dengan NIK ini sudah masuk dan sedang menunggu persetujuan admin.",
+    };
   }
 
   const { error } = await supabase.from("pendaftaran_akun").insert({
@@ -151,6 +182,13 @@ export async function daftarPosisi(prevState, formData) {
     if (error.message?.includes("SLOT_TERISI")) {
       return {
         error: "Slot untuk posisi & wilayah ini sudah terisi. Hubungi admin desa.",
+      };
+    }
+    // Pengaman di database (migrasi 0031) kalau dua permintaan berbarengan.
+    if (error.message?.includes("NIK_SUDAH_")) {
+      return {
+        error:
+          "NIK ini sudah terdaftar sebagai pemegang jabatan atau sedang menunggu persetujuan admin.",
       };
     }
     return { error: "Gagal mengirim pendaftaran. Coba lagi." };
