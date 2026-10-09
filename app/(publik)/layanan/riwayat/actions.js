@@ -1,7 +1,7 @@
 "use server";
 
-import { headers } from "next/headers";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { ambilIdentifier } from "@/lib/lookupWarga";
 
 const BATAS_GAGAL = 5;
 const JENDELA_MENIT = 15;
@@ -10,6 +10,9 @@ const JENDELA_MENIT = 15;
  * Riwayat pengajuan milik warga, lewat NIK + tanggal lahir (dua faktor).
  * Ikuti docs/SECURITY.md: rate limit di server, pesan generik, tanpa
  * membedakan "data salah" dan "belum ada pengajuan".
+ *
+ * Fungsi database hanya bisa dijalankan service_role (migrasi 0029), jadi
+ * batas percobaan di bawah tidak bisa dilewati lewat API Supabase langsung.
  */
 export async function cariRiwayat(prevState, formData) {
   const nik = String(formData.get("nik") ?? "").trim();
@@ -19,15 +22,15 @@ export async function cariRiwayat(prevState, formData) {
   if (!/^\d{16}$/.test(nik)) return { error: "NIK harus berupa 16 digit angka." };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)) return { error: "Tanggal lahir tidak valid." };
 
-  const h = await headers();
-  const identifier = h.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  const supabase = await createClient();
+  const identifier = await ambilIdentifier();
+  const supabase = createAdminClient();
 
   const { data: jumlahGagal, error: errHitung } = await supabase.rpc("hitung_percobaan_gagal", {
     p_identifier: identifier,
     p_menit: JENDELA_MENIT,
   });
-  if (!errHitung && jumlahGagal >= BATAS_GAGAL) {
+  // Gagal-tertutup: kalau batas tidak bisa dicek, jangan lanjut mencari.
+  if (errHitung || jumlahGagal >= BATAS_GAGAL) {
     return { error: "Terlalu banyak percobaan. Coba lagi dalam beberapa menit." };
   }
 

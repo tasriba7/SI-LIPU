@@ -35,7 +35,13 @@ export async function GET(request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const cari = searchParams.get("cari")?.trim() || "";
+  // Buang karakter yang bisa menyuntikkan filter PostgREST lewat .or()
+  // (sama seperti bersihkanKataKunci di halaman Kartu Keluarga).
+  const cari = (searchParams.get("cari") ?? "")
+    .replace(/[,()*\\%]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 60);
 
   const semuaBaris = [];
   let dari = 0;

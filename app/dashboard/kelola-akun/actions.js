@@ -5,10 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { pastikanAdmin as pastikanAdminBersama } from "@/lib/akses";
 import { ROLE_BISA_DIBUAT_ADMIN, ROLE_LABELS } from "@/lib/roles";
-
-function buatPasswordAcak() {
-  return crypto.randomUUID().slice(0, 12);
-}
+import { buatPasswordAcak, PASSWORD_MINIMAL } from "@/lib/passwordAcak";
 
 async function pastikanAdmin() {
   const supabase = await createClient();
@@ -34,8 +31,8 @@ export async function aturPasswordAkun(prevState, formData) {
 
   let passwordBaru;
   if (mode === "manual") {
-    if (passwordManual.length < 6) {
-      return { error: "Password manual minimal 6 karakter." };
+    if (passwordManual.length < PASSWORD_MINIMAL) {
+      return { error: `Password manual minimal ${PASSWORD_MINIMAL} karakter.` };
     }
     passwordBaru = passwordManual;
   } else {
@@ -119,8 +116,8 @@ export async function buatAkunStaf(prevState, formData) {
         "Role ini tidak dibuat dari sini. Kadus & Ketua RT dibuat lewat Slot Posisi + Pendaftaran Akun.",
     };
   }
-  if (mode === "manual" && passwordManual.length < 6) {
-    return { error: "Password manual minimal 6 karakter." };
+  if (mode === "manual" && passwordManual.length < PASSWORD_MINIMAL) {
+    return { error: `Password manual minimal ${PASSWORD_MINIMAL} karakter.` };
   }
 
   const passwordBaru = mode === "manual" ? passwordManual : buatPasswordAcak();
@@ -130,8 +127,11 @@ export async function buatAkunStaf(prevState, formData) {
     email,
     password: passwordBaru,
     email_confirm: true,
-    user_metadata: {
-      nama,
+    // Role & jabatan lewat app_metadata (hanya bisa ditulis server). JANGAN
+    // taruh role di user_metadata: user_metadata bisa diisi sendiri oleh
+    // pendaftar (lihat migrasi 0029, trigger handle_new_user).
+    user_metadata: { nama },
+    app_metadata: {
       role,
       jabatan: jabatanInput || ROLE_LABELS[role],
     },

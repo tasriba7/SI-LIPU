@@ -1,21 +1,23 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { buatKodeTracking } from "@/lib/kodeTracking";
+import { adalahNoHp, ambilTeks } from "@/lib/validasiPengajuan";
 
 /**
- * Server Action untuk warga mengajukan surat lewat form publik, TANPA
- * login. Dipanggil dari <form action={formAction}> di app/layanan/surat/page.js.
- * Dijamin aman lewat RLS policy insert di supabase/migrations/0003_pengajuan_surat.sql
- * (warga cuma bisa insert baris baru, tidak bisa lihat/ubah data warga lain).
+ * Server Action untuk warga mengajukan surat lewat form publik (jalur lama),
+ * TANPA login. Dipanggil dari <form action={formAction}> di app/layanan/surat/page.js.
+ *
+ * Insert memakai client service-role karena tabel tidak lagi menerima insert
+ * langsung dari publik (migrasi 0029). Semua isian divalidasi & dibatasi di sini.
  */
 export async function ajukanSurat(prevState, formData) {
-  const jenis_surat = formData.get("jenis_surat")?.trim();
-  const nama_pemohon = formData.get("nama_pemohon")?.trim();
-  const nik = formData.get("nik")?.trim();
-  const alamat = formData.get("alamat")?.trim();
-  const no_hp = formData.get("no_hp")?.trim();
-  const keperluan = formData.get("keperluan")?.trim();
+  const jenis_surat = ambilTeks(formData, "jenis_surat", 100);
+  const nama_pemohon = ambilTeks(formData, "nama_pemohon", 120);
+  const nik = ambilTeks(formData, "nik", 16);
+  const alamat = ambilTeks(formData, "alamat", 300);
+  const no_hp = ambilTeks(formData, "no_hp", 20);
+  const keperluan = ambilTeks(formData, "keperluan", 2000);
 
   if (!jenis_surat || !nama_pemohon || !nik || !alamat || !no_hp || !keperluan) {
     return { error: "Semua kolom wajib diisi." };
@@ -24,25 +26,30 @@ export async function ajukanSurat(prevState, formData) {
   if (!/^\d{16}$/.test(nik)) {
     return { error: "NIK harus berupa 16 digit angka." };
   }
-
-  const supabase = await createClient();
-  const kode_tracking = buatKodeTracking("SRT");
-
-  const { error } = await supabase.from("pengajuan_surat").insert({
-    kode_tracking,
-    jenis_surat,
-    nama_pemohon,
-    nik,
-    alamat,
-    no_hp,
-    keperluan,
-  });
-
-  if (error) {
-    return {
-      error: "Gagal mengirim pengajuan. Coba lagi sebentar, atau hubungi kantor desa.",
-    };
+  if (!adalahNoHp(no_hp)) {
+    return { error: "Nomor HP tidak valid. Gunakan angka, spasi, tanda + atau -." };
   }
 
-  return { success: true, kode_tracking };
+  const supabase = createAdminClient();
+
+  for (let i = 0; i < 3; i++) {
+    const kode_tracking = buatKodeTracking("SRT");
+    const { error } = await supabase.from("pengajuan_surat").insert({
+      kode_tracking,
+      jenis_surat,
+      nama_pemohon,
+      nik,
+      alamat,
+      no_hp,
+      keperluan,
+    });
+
+    if (!error) return { success: true, kode_tracking };
+    // 23505 = kode tracking kebetulan kembar -> coba kode baru.
+    if (error.code !== "23505") break;
+  }
+
+  return {
+    error: "Gagal mengirim pengajuan. Coba lagi sebentar, atau hubungi kantor desa.",
+  };
 }

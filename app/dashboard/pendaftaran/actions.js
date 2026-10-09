@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { pastikanAdmin } from "@/lib/akses";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ROLE_LABELS } from "@/lib/roles";
+import { buatPasswordAcak, PASSWORD_MINIMAL } from "@/lib/passwordAcak";
 
 /**
  * Setujui pendaftaran Kadus/Ketua RT: buat akun Supabase Auth (lewat
@@ -12,10 +13,6 @@ import { ROLE_LABELS } from "@/lib/roles";
  * Trigger handle_new_user (migration 0001/0002) otomatis membuat baris di
  * `profiles` begitu user Auth dibuat.
  */
-function buatPasswordAcak() {
-  return crypto.randomUUID().slice(0, 12);
-}
-
 /**
  * Proses satu pendaftaran yang sudah dipastikan valid & pending: buat akun
  * Auth + kunci slot + update status. Dipakai baik oleh approve satuan
@@ -28,8 +25,10 @@ async function prosesSatuPendaftaran(supabase, adminClient, adminId, pendaftaran
     email: pendaftaran.email,
     password: passwordBaru,
     email_confirm: true,
-    user_metadata: {
-      nama: pendaftaran.nama_lengkap,
+    // Role/jabatan/wilayah lewat app_metadata (hanya bisa ditulis server),
+    // bukan user_metadata (lihat migrasi 0029, trigger handle_new_user).
+    user_metadata: { nama: pendaftaran.nama_lengkap },
+    app_metadata: {
       role: posisi.role,
       jabatan: ROLE_LABELS[posisi.role],
       dusun: posisi.wilayah,
@@ -97,8 +96,8 @@ export async function setujuiPendaftaran(prevState, formData) {
     return { error: "Slot ini sudah keburu terisi oleh pendaftar lain." };
   }
 
-  if (mode === "manual" && passwordManual.length < 6) {
-    return { error: "Password manual minimal 6 karakter." };
+  if (mode === "manual" && passwordManual.length < PASSWORD_MINIMAL) {
+    return { error: `Password manual minimal ${PASSWORD_MINIMAL} karakter.` };
   }
 
   const adminClient = createAdminClient();

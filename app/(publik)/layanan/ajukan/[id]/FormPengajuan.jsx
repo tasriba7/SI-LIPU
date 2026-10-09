@@ -105,6 +105,7 @@ export default function FormPengajuan({ jenisLayanan }) {
   const [wargaTerpilih, setWargaTerpilih] = useState(null); // { warga_id, nama_lengkap, dusun, rt, rw }
   const [nikDicoba, setNikDicoba] = useState("");
   const [bukti, setBukti] = useState(""); // bukti verifikasi dari server (khusus pengaduan)
+  const [buktiWarga, setBuktiWarga] = useState(""); // bukti server yang mengikat warga_id + NIK
   const [ditolak, setDitolak] = useState(null); // hasil lookup yang dijawab "Bukan saya"
   const [dataTambahan, setDataTambahan] = useState({});
   const [jenisPengaduan, setJenisPengaduan] = useState("");
@@ -197,6 +198,7 @@ export default function FormPengajuan({ jenisLayanan }) {
                 onClick={() => {
                   setWargaTerpilih(lookupState.data);
                   setBukti(lookupState.bukti || "");
+                  setBuktiWarga(lookupState.buktiWarga || "");
                   setTahap(bolehAnonim ? "pilih" : "isi");
                 }}
                 className="flex-1 rounded-lg bg-navy py-2.5 font-medium text-white hover:bg-navy-light"
@@ -327,6 +329,7 @@ export default function FormPengajuan({ jenisLayanan }) {
           <input type="hidden" name="anonim" value={anonim ? "1" : "0"} />
           <input type="hidden" name="bukti_verifikasi" value={bolehAnonim ? bukti : ""} />
           <input type="hidden" name="warga_id" value={anonim ? "" : wargaTerpilih?.warga_id || ""} />
+          <input type="hidden" name="bukti_warga" value={anonim ? "" : buktiWarga} />
           <input
             type="hidden"
             name="data_tambahan_json"
