@@ -49,6 +49,7 @@ Detail Keluarga (admin/staf) — selesai:
 - `/dashboard/kependudukan/keluarga/[no_kk]` — jumlah anggota (L/P), jumlah anak, susunan keluarga, rentang usia, pendidikan tertinggi, tabel seluruh anggota (hubungan, usia, status kawin, pendidikan, pekerjaan, agama, No. HP), rincian per pendidikan/pekerjaan/status kawin/agama, dan peringatan data belum lengkap. Warga yang dicari disorot.
 - Kolom baru `warga.pendidikan` (dropdown di form Tambah/Edit, ikut impor & ekspor Excel). Migrasi: `supabase/migrations/0026_pendidikan_warga.sql` — **wajib dijalankan** sebelum memakai halaman ini.
 - Statistik kelompok usia diselaraskan dengan batas lansia 60 tahun: kelompok teratas kini `56-59` dan `60+` (sebelumnya `56-65` dan `65+`). Migrasi: `supabase/migrations/0027_kelompok_usia_lansia_60.sql`.
+- Statistik kelompok usia juga memisahkan balita (bawah lima tahun): kelompok `0-6` dipecah menjadi `0-4` (balita) dan `5-6`. Migrasi: `supabase/migrations/0031_kelompok_usia_balita.sql` — jalankan setelah 0027.
 
 Fase 1c (Sistem Slot Kadus & Ketua RT) — selesai:
 - `/dashboard/posisi` — admin daftarkan wilayah (dusun/RT-RW) sebagai slot kosong
