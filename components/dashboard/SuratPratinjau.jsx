@@ -101,20 +101,20 @@ export default function SuratPratinjau({
     <>
       <div
         id="area-cetak"
-        className="mx-auto w-full max-w-[210mm] bg-white p-[18mm] shadow print:max-w-none print:p-0 print:shadow-none"
+        className="mx-auto w-full max-w-[210mm] bg-white px-[18mm] pb-[18mm] pt-[30mm] shadow print:max-w-none print:p-0 print:shadow-none"
         style={{ fontFamily: FONT_KOP, fontSize: "12pt", color: "#000", lineHeight: 1.5 }}
       >
         {/*
           Saat dicetak, margin halaman (@page) = 0 supaya browser tidak mencetak
-          tanggal, judul, alamat web, dan nomor halaman. Jarak atas & bawah
-          dikembalikan oleh baris pengisi (thead/tfoot, berulang di tiap
+          tanggal, judul, alamat web, dan nomor halaman. Jarak atas (3 cm) & bawah
+          (1,8 cm) dikembalikan oleh baris pengisi (thead/tfoot, berulang di tiap
           lembar), jarak samping oleh padding sel isi. Di layar semua itu
           tidak tampil; jaraknya dari padding area-cetak di atas.
         */}
         <table className="w-full" style={{ borderCollapse: "collapse" }}>
           <thead className="hidden print:table-header-group">
             <tr>
-              <td style={{ height: "18mm", padding: 0 }} />
+              <td style={{ height: "30mm", padding: 0 }} />
             </tr>
           </thead>
           <tbody>
