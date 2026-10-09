@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { eksporExcel, eksporPdf } from "@/lib/eksporStatistik";
 import { cariLansia, KELOMPOK_LANSIA, BATAS_LANSIA } from "@/lib/lansia";
+import { cariBalita, KELOMPOK_BALITA, BATAS_BALITA } from "@/lib/balita";
 import {
   IconBook,
   IconHeartHandshake,
@@ -11,6 +12,7 @@ import {
   IconBriefcase,
   IconMapPin,
   IconLansia,
+  IconBalita,
 } from "@/components/icons";
 
 const BELUM = "Belum Diisi";
@@ -197,6 +199,8 @@ function DaftarBatang({ rows, active }) {
                 className={`h-full rounded-full transition-[width] duration-700 ease-out motion-reduce:transition-none ${
                   belum
                     ? "bg-white/25"
+                    : sorot === "balita"
+                    ? "bg-gradient-to-r from-teal-400 to-teal-300"
                     : sorot
                     ? "bg-gradient-to-r from-violet-400 to-violet-300"
                     : unggul
@@ -291,6 +295,11 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
     ...(belumJk > 0 ? [{ label: BELUM, jumlah: belumJk, warna: "rgba(255,255,255,0.3)" }] : []),
   ];
   const lansia = cariLansia(perRentangUsia);
+  const balita = cariBalita(perRentangUsia);
+  const jumlahKartuKhusus = (lansia.tersedia ? 1 : 0) + (balita.tersedia ? 1 : 0);
+  const kolomSekilas = { 0: "lg:grid-cols-4", 1: "lg:grid-cols-5", 2: "lg:grid-cols-6" }[jumlahKartuKhusus];
+  // Satu kartu khusus saja -> penuh selebar baris di ponsel; dua -> berdampingan.
+  const spanKhusus = jumlahKartuKhusus === 1 ? "col-span-2 lg:col-span-1" : "col-span-1";
   const rasio = perempuan > 0 ? Math.round((laki / perempuan) * 100) : null;
 
   // --- Tab -------------------------------------------------------------
@@ -305,7 +314,9 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
         perRentangUsia.map((r) =>
           r.label === KELOMPOK_LANSIA
             ? { ...r, sub: `Lansia, usia ${BATAS_LANSIA} tahun ke atas`, sorot: true }
-            : r
+            : r.label === KELOMPOK_BALITA
+              ? { ...r, sub: `Balita, usia di bawah ${BATAS_BALITA} tahun`, sorot: "balita" }
+              : r
         )
       ) },
     { id: "pekerjaan", nama: "Pekerjaan", icon: IconBriefcase, judul: "Pekerjaan", ket: "8 pekerjaan terbanyak, sisanya digabung di “Lainnya”", rows: urutkan(perPekerjaan) },
@@ -360,9 +371,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
         {/* Sekilas */}
         {sekilas.length > 0 && (
           <div
-            className={`mt-10 grid grid-cols-2 gap-3 ${
-              lansia.tersedia ? "lg:grid-cols-5" : "lg:grid-cols-4"
-            }`}
+            className={`mt-10 grid grid-cols-2 gap-3 ${kolomSekilas}`}
           >
             {sekilas.map((s) => (
               <button
@@ -381,11 +390,29 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
                 </p>
               </button>
             ))}
+            {balita.tersedia && (
+              <button
+                type="button"
+                onClick={() => setTabAktif("usia")}
+                className={`group ${spanKhusus} rounded-2xl border border-teal-300/25 bg-teal-400/[0.08] p-4 text-center transition duration-300 hover:border-teal-300/50 hover:bg-teal-400/[0.12] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 sm:text-left lg:col-span-1`}
+              >
+                <p className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-widest text-teal-200/70 sm:justify-start">
+                  <IconBalita className="h-3.5 w-3.5" />
+                  Penduduk balita
+                </p>
+                <p className="mt-2 font-display text-lg font-semibold tabular-nums text-white sm:text-xl">
+                  {fmt(balita.jumlah)} orang
+                </p>
+                <p className="mt-1 text-xs text-teal-200">
+                  {fmtPersen(balita.jumlah, totalPenduduk)} · usia di bawah {BATAS_BALITA} tahun
+                </p>
+              </button>
+            )}
             {lansia.tersedia && (
               <button
                 type="button"
                 onClick={() => setTabAktif("usia")}
-                className="group col-span-2 rounded-2xl border border-violet-300/25 bg-violet-400/[0.08] p-4 text-center transition duration-300 hover:border-violet-300/50 hover:bg-violet-400/[0.12] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 sm:text-left lg:col-span-1"
+                className={`group ${spanKhusus} rounded-2xl border border-violet-300/25 bg-violet-400/[0.08] p-4 text-center transition duration-300 hover:border-violet-300/50 hover:bg-violet-400/[0.12] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 sm:text-left lg:col-span-1`}
               >
                 <p className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-widest text-violet-200/70 sm:justify-start">
                   <IconLansia className="h-3.5 w-3.5" />
