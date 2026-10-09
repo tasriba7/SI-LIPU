@@ -140,6 +140,14 @@ aturan jika sistem ini direplikasi ke desa lain.
       dihidupkan lagi. Pembukaan atomik (UPDATE bersyarat) di server pakai `SUPABASE_SECRET_KEY`.
       **Wajib jalankan `0024_tautan_data_sekali_pakai.sql` di Supabase.**
 
+- [x] **Statistik Kependudukan di beranda dashboard** — komponen `components/dashboard/StatistikDashboard.jsx`
+      (client, murni SVG/CSS, tanpa library grafik) dipasang di `app/dashboard/page.js` di atas daftar modul.
+      Isi: 4 kartu angka (penduduk, KK, laki-laki, perempuan) dengan count-up, sorotan singkat (usia/pekerjaan
+      terbanyak, dusun terpadat, data jenis kelamin belum terisi), lalu grafik donat jenis kelamin & status nikah,
+      batang kelompok usia, batang per dusun (L/P), dan batang agama & pekerjaan. Grafik bisa disembunyikan
+      (diingat di localStorage). Data dari RPC yang sama dengan beranda publik (`lib/statistikBeranda.js`),
+      jadi **tanpa migrasi baru**. Responsif HP & laptop, menghormati "kurangi gerakan".
+
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,
 tanpa lookup warga, dan tidak ada sistem slot RT. Semua sudah diperbaiki lewat migrasi
