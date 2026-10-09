@@ -63,7 +63,7 @@ export default async function KependudukanPage({ searchParams }) {
     let q = supabase
       .from("warga_kelengkapan")
       .select(
-        "id, nik, nama_lengkap, jenis_kelamin, dusun, rt, rw, tanggal_lahir, no_hp, status_dalam_kk, dibuat_oleh_nama, dibuat_oleh_role, jumlah_kosong, kolom_kosong",
+        "id, nik, no_kk, nama_lengkap, jenis_kelamin, dusun, rt, rw, tanggal_lahir, no_hp, status_dalam_kk, dibuat_oleh_nama, dibuat_oleh_role, jumlah_kosong, kolom_kosong",
         { count: "exact" }
       )
       .order("nama_lengkap")
@@ -321,6 +321,15 @@ export default async function KependudukanPage({ searchParams }) {
                   </td>
                   <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2 text-right">
                     <div className="flex items-center justify-end gap-3">
+                      {w.no_kk && (
+                        <Link
+                          href={`/dashboard/kependudukan/keluarga/${w.no_kk}?warga=${w.id}`}
+                          className="text-[12px] font-medium text-slate-500 hover:text-navy hover:underline"
+                          title="Lihat seluruh anggota keluarga ini"
+                        >
+                          Keluarga
+                        </Link>
+                      )}
                       <Link
                         href={`/dashboard/kependudukan/${w.id}/edit`}
                         className="text-[12px] font-medium text-navy hover:underline"
