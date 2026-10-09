@@ -61,7 +61,7 @@ aturan jika sistem ini direplikasi ke desa lain.
 ## 3. STATUS TERKINI
 > ⚠️ AI/developer yang mengerjakan WAJIB mengedit bagian ini setiap selesai kerja.
 
-**Terakhir diupdate:** 9 Oktober 2026 (setelah implementasi Tautan Bagikan Data sekali pakai)
+**Terakhir diupdate:** 10 Oktober 2026 (setelah implementasi Mutasi Penduduk tahap 2)
 **Fase sekarang:** Fase 0, 1, 1.5, dan 1c selesai. Fase 2 (Surat) berjalan lewat 2 jalur
 (lama & baru — lihat catatan migrasi di bawah).
 
@@ -147,6 +147,13 @@ aturan jika sistem ini direplikasi ke desa lain.
       batang kelompok usia, batang per dusun (L/P), dan batang agama & pekerjaan. Grafik bisa disembunyikan
       (diingat di localStorage). Data dari RPC yang sama dengan beranda publik (`lib/statistikBeranda.js`),
       jadi **tanpa migrasi baru**. Responsif HP & laptop, menghormati "kurangi gerakan".
+
+- [x] **Status Penduduk & Mutasi (tahap 1 + 2)** — lihat `docs/STATUS_PENDUDUK.md`. Penduduk yang
+      meninggal/pindah tidak dihapus, hanya statusnya berubah (`warga.status_kependudukan`) dan tidak
+      dihitung. Tahap 1: meninggal lewat Surat Kematian (migrasi 0032). Tahap 2: **Catat Pindah Keluar**,
+      **Catat Datang** (penduduk baru / datang kembali) dan **Ringkasan per Bulan** di
+      `/dashboard/kependudukan/mutasi/...` (migrasi 0033). **Wajib jalankan `0032` lalu `0033` di Supabase
+      sebelum deploy.**
 
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,
