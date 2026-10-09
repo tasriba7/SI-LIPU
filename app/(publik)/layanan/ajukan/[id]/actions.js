@@ -11,7 +11,10 @@ import {
   lepasBuktiVerifikasi,
   buatBuktiWarga,
   cekBuktiWarga,
+  buatTiketKonfirmasi,
+  bacaTiketKonfirmasi,
 } from "@/lib/buktiVerifikasi";
+import { maskNama, maskWilayah } from "@/lib/masking";
 import { JENIS_PENGADUAN, JENIS_LAINNYA } from "@/lib/jenisPengaduan";
 import {
   adalahUuid,
@@ -54,14 +57,61 @@ export async function cariWargaUntukLayanan(prevState, formData) {
     };
   }
 
+  // SECURITY.md poin 1.4: yang dikirim ke browser HANYA versi tersamar.
+  // Data lengkap baru keluar lewat konfirmasiWargaUntukLayanan, setelah
+  // warga menekan "Ya, ini saya".
+  const { warga_id, nama_lengkap, dusun, rt } = hasil.data;
   return {
     found: true,
-    data: hasil.data,
     nikDicoba: nik,
+    pratinjau: {
+      nama: maskNama(nama_lengkap),
+      dusun: maskWilayah(dusun),
+      rt: rt ? maskWilayah(rt) : "",
+    },
+    tiket: buatTiketKonfirmasi(warga_id, nik),
+  };
+}
+
+/**
+ * Step 1b: warga menekan "Ya, ini saya". Hanya dengan tiket sah dari
+ * cariWargaUntukLayanan (terikat NIK, kedaluwarsa 10 menit) server mengirim
+ * data lengkap + bukti-bukti yang dibutuhkan untuk langkah berikutnya.
+ */
+export async function konfirmasiWargaUntukLayanan(nik, tiket) {
+  const nikBersih = String(nik ?? "").trim();
+  if (!/^\d{16}$/.test(nikBersih)) {
+    return { error: "Konfirmasi tidak valid. Ulangi pencarian." };
+  }
+
+  const wargaId = bacaTiketKonfirmasi(tiket, nikBersih);
+  if (!wargaId || !adalahUuid(wargaId)) {
+    return { error: "Konfirmasi sudah kedaluwarsa. Ulangi pencarian." };
+  }
+
+  const admin = createAdminClient();
+  const { data: w } = await admin
+    .from("warga")
+    .select("id, nama_lengkap, dusun, rt, rw")
+    .eq("id", wargaId)
+    .maybeSingle();
+
+  if (!w) {
+    return { error: "Data tidak ditemukan. Ulangi pencarian." };
+  }
+
+  return {
+    data: {
+      warga_id: w.id,
+      nama_lengkap: w.nama_lengkap,
+      dusun: w.dusun,
+      rt: w.rt,
+      rw: w.rw,
+    },
     // Sekali pakai, tanpa identitas: syarat mengirim pengaduan.
     bukti: buatBuktiVerifikasi(),
     // Mengikat warga_id + NIK: syarat menautkan pengajuan ke data warga.
-    buktiWarga: buatBuktiWarga(hasil.data.warga_id, nik),
+    buktiWarga: buatBuktiWarga(w.id, nikBersih),
   };
 }
 

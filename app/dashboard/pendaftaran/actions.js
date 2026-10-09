@@ -39,6 +39,9 @@ async function prosesSatuPendaftaran(supabase, adminClient, adminId, pendaftaran
     return { error: `Gagal membuat akun: ${errBuatUser.message}` };
   }
 
+  const pesanManual = `Akun ${pendaftaran.email} sempat dibuat tapi gagal dibatalkan otomatis. Cek manual di Supabase Dashboard (Authentication > Users) dan hapus akun itu sebelum mencoba lagi.`;
+
+  // Langkah 1: kunci slot. Kalau gagal, akun yang baru dibuat langsung dihapus.
   const { error: errPosisi } = await supabase
     .from("posisi_perangkat")
     .update({
@@ -48,6 +51,15 @@ async function prosesSatuPendaftaran(supabase, adminClient, adminId, pendaftaran
     })
     .eq("id", posisi.id);
 
+  if (errPosisi) {
+    const { error: errHapus } = await adminClient.auth.admin.deleteUser(userBaru.user.id);
+    if (errHapus) return { error: pesanManual };
+    return { error: "Gagal mengunci slot posisi. Tidak ada akun yang dibuat, silakan coba lagi." };
+  }
+
+  // Langkah 2: tandai pendaftaran disetujui. Kalau gagal, slot dikembalikan
+  // ke kosong dulu (profile_id memakai foreign key, jadi harus dilepas
+  // sebelum akunnya dihapus), baru akun dihapus.
   const { error: errPendaftaran } = await supabase
     .from("pendaftaran_akun")
     .update({
@@ -57,10 +69,20 @@ async function prosesSatuPendaftaran(supabase, adminClient, adminId, pendaftaran
     })
     .eq("id", pendaftaran.id);
 
-  if (errPosisi || errPendaftaran) {
+  if (errPendaftaran) {
+    const { error: errLepas } = await supabase
+      .from("posisi_perangkat")
+      .update({ status: "kosong", profile_id: null, diisi_pada: null })
+      .eq("id", posisi.id);
+    if (errLepas) {
+      return {
+        error: `Gagal memperbarui status pendaftaran dan gagal mengosongkan slot. Akun ${pendaftaran.email} sudah dibuat dan slot masih terisi. Cek manual di Supabase Dashboard.`,
+      };
+    }
+    const { error: errHapus } = await adminClient.auth.admin.deleteUser(userBaru.user.id);
+    if (errHapus) return { error: pesanManual };
     return {
-      error:
-        "Akun berhasil dibuat, tapi gagal update status slot/pendaftaran. Cek manual di Supabase Dashboard.",
+      error: "Gagal memperbarui status pendaftaran. Semua perubahan dibatalkan, silakan coba lagi.",
     };
   }
 

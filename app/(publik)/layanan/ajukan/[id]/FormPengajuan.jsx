@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useActionState } from "react";
+import { useState, useEffect, useActionState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
-import { cariWargaUntukLayanan, ajukanLayanan } from "./actions";
-import { maskNama, maskWilayah } from "@/lib/masking";
+import { cariWargaUntukLayanan, konfirmasiWargaUntukLayanan, ajukanLayanan } from "./actions";
 import { JENIS_PENGADUAN, JENIS_LAINNYA } from "@/lib/jenisPengaduan";
 
 function TombolAksi({ children, pendingText }) {
@@ -111,6 +110,9 @@ export default function FormPengajuan({ jenisLayanan }) {
   const [jenisPengaduan, setJenisPengaduan] = useState("");
   const [jenisLainnya, setJenisLainnya] = useState("");
 
+  const [konfirmasiError, setKonfirmasiError] = useState("");
+  const [konfirmasiPending, startKonfirmasi] = useTransition();
+
   const [lookupState, lookupAction] = useActionState(cariWargaUntukLayanan, {});
   const [submitState, submitAction] = useActionState(ajukanLayanan, {});
 
@@ -122,6 +124,11 @@ export default function FormPengajuan({ jenisLayanan }) {
       setNikDicoba(lookupState.nikDicoba);
     }
   }, [lookupState, tahap]);
+
+  // Hapus pesan konfirmasi lama begitu pencarian baru selesai.
+  useEffect(() => {
+    setKonfirmasiError("");
+  }, [lookupState]);
 
   function ubahFieldTambahan(key, value) {
     setDataTambahan((prev) => ({ ...prev, [key]: value }));
@@ -167,6 +174,11 @@ export default function FormPengajuan({ jenisLayanan }) {
                 {lookupState.error}
               </p>
             )}
+            {konfirmasiError && (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+                {konfirmasiError}
+              </p>
+            )}
             {lookupState?.notFound && (
               <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
                 {lookupState.message}
@@ -184,26 +196,40 @@ export default function FormPengajuan({ jenisLayanan }) {
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm">
               <p className="text-slate-500">Data ditemukan:</p>
               <p className="mt-1 font-semibold text-slate-800">
-                {maskNama(lookupState.data.nama_lengkap)}
+                {lookupState.pratinjau.nama}
               </p>
               <p className="text-slate-500">
-                Dusun {maskWilayah(lookupState.data.dusun)}
-                {lookupState.data.rt ? `, RT ${maskWilayah(lookupState.data.rt)}` : ""}
+                Dusun {lookupState.pratinjau.dusun}
+                {lookupState.pratinjau.rt ? `, RT ${lookupState.pratinjau.rt}` : ""}
               </p>
               <p className="mt-2 font-medium text-slate-700">Apakah ini Anda?</p>
             </div>
             <div className="flex gap-3">
               <button
                 type="button"
+                disabled={konfirmasiPending}
                 onClick={() => {
-                  setWargaTerpilih(lookupState.data);
-                  setBukti(lookupState.bukti || "");
-                  setBuktiWarga(lookupState.buktiWarga || "");
-                  setTahap(bolehAnonim ? "pilih" : "isi");
+                  setKonfirmasiError("");
+                  startKonfirmasi(async () => {
+                    // Data lengkap baru diminta dari server SETELAH konfirmasi.
+                    const r = await konfirmasiWargaUntukLayanan(
+                      lookupState.nikDicoba,
+                      lookupState.tiket
+                    );
+                    if (r?.error) {
+                      setKonfirmasiError(r.error);
+                      setDitolak(lookupState);
+                      return;
+                    }
+                    setWargaTerpilih(r.data);
+                    setBukti(r.bukti || "");
+                    setBuktiWarga(r.buktiWarga || "");
+                    setTahap(bolehAnonim ? "pilih" : "isi");
+                  });
                 }}
-                className="flex-1 rounded-lg bg-navy py-2.5 font-medium text-white hover:bg-navy-light"
+                className="flex-1 rounded-lg bg-navy py-2.5 font-medium text-white hover:bg-navy-light disabled:opacity-60"
               >
-                Ya, ini saya
+                {konfirmasiPending ? "Memproses..." : "Ya, ini saya"}
               </button>
               <button
                 type="button"
