@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { STATUS_LABELS, STATUS_BADGE_CLASS } from "@/lib/statusSurat";
 import { linkWhatsApp } from "@/lib/whatsapp";
+import { bisaTerbitkanSurat } from "@/lib/roles";
+import { IconPlus } from "@/components/icons";
 
 const FILTER = ["semua", "diajukan", "diproses", "selesai", "ditolak"];
 const BATAS = 200;
@@ -19,6 +21,14 @@ export default async function DaftarPengajuanLayananPage({ searchParams }) {
   // Buang karakter yang bisa merusak filter .or() PostgREST.
   const q = (sp?.q ?? "").trim().replace(/[,()%*]/g, " ").slice(0, 60);
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profil } = user
+    ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
+    : { data: null };
+  const bolehBuatSurat = bisaTerbitkanSurat(profil?.role);
 
   let query = supabase
     .from("pengajuan_layanan")
@@ -62,11 +72,22 @@ export default async function DaftarPengajuanLayananPage({ searchParams }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-bold text-slate-800">Pengajuan Layanan</h1>
-        <p className="text-sm text-slate-500">
-          Semua pengajuan warga, terbaru di atas. Klik kode untuk memproses.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-bold text-slate-800">Pengajuan Layanan</h1>
+          <p className="text-sm text-slate-500">
+            Semua pengajuan warga, terbaru di atas. Klik kode untuk memproses.
+          </p>
+        </div>
+        {bolehBuatSurat && (
+          <Link
+            href="/dashboard/layanan/buat"
+            className="flex shrink-0 items-center gap-1.5 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-light"
+          >
+            <IconPlus className="h-4 w-4" />
+            Buat Surat Langsung
+          </Link>
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

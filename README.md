@@ -38,6 +38,12 @@ Fase 2, Modul 3 (Form Builder — "Ajukan Layanan" generik) — selesai:
 - `/dashboard/layanan` — inbox admin generik untuk semua jenis layanan
 - Tabel `jenis_layanan_master` + `pengajuan_layanan` + RPC `cek_status_pengajuan_layanan`, sudah diisi data awal (jenis surat yang ada + Pengaduan Warga). Migrasi: `supabase/migrations/0005_form_builder_layanan.sql`
 
+Buat Surat Langsung oleh petugas (tanpa ajuan warga) — selesai:
+- `/dashboard/layanan/buat` — petugas pilih **jenis surat apa saja** (semua jenis layanan berkategori Surat, termasuk yang tidak dibuka untuk warga) lalu cari penduduk dari Data Kependudukan (nama/NIK). Nama, NIK, No. HP, dan `warga_id` **diambil dari tabel `warga` di server**, bukan dari isian form; data lain (tempat/tanggal lahir, alamat, pekerjaan, dst.) terisi otomatis di editor surat.
+- Sistem membuat baris `pengajuan_layanan` berstatus **diproses**, lalu mengarahkan ke editor "Buat Surat" yang sudah ada (nomor otomatis, tanda tangan, cetak, arsip Surat Terbit ikut dipakai). Jalur ajuan warga tidak berubah.
+- Hanya role penerbit surat (admin, Sekretaris Desa, Kaur, Kasi) — dicek di server action. **Tanpa migrasi database baru.**
+- Tombol masuk: "Buat Surat Langsung" di `/dashboard/layanan` dan `/dashboard/surat-terbit`.
+
 Fase 1c (Sistem Slot Kadus & Ketua RT) — selesai:
 - `/dashboard/posisi` — admin daftarkan wilayah (dusun/RT-RW) sebagai slot kosong
 - `/pendaftaran` — calon Kadus/Ketua RT daftar mandiri, memilih wilayahnya; **otomatis ditolak lewat trigger database** kalau slot itu sudah terisi

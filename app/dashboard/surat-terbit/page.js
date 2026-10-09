@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatTanggalId } from "@/lib/suratTemplate";
+import { bisaTerbitkanSurat } from "@/lib/roles";
 
 const BATAS_TAMPIL = 200;
 
@@ -9,6 +10,15 @@ export default async function SuratTerbitPage({ searchParams }) {
   const kata = String(q).trim().toLowerCase().slice(0, 80);
 
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profil } = user
+    ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
+    : { data: null };
+  const bolehBuatSurat = bisaTerbitkanSurat(profil?.role);
+
   const { data } = await supabase
     .from("surat_terbit")
     .select(
@@ -43,12 +53,22 @@ export default async function SuratTerbitPage({ searchParams }) {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-lg font-bold text-slate-800">Surat Terbit</h1>
-        <p className="text-sm text-slate-500">
-          Arsip surat yang sudah diterbitkan. Cetak ulang memakai salinan final, jadi isinya
-          sama persis dengan saat diterbitkan.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-bold text-slate-800">Surat Terbit</h1>
+          <p className="text-sm text-slate-500">
+            Arsip surat yang sudah diterbitkan. Cetak ulang memakai salinan final, jadi isinya
+            sama persis dengan saat diterbitkan.
+          </p>
+        </div>
+        {bolehBuatSurat && (
+          <Link
+            href="/dashboard/layanan/buat"
+            className="shrink-0 rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-light"
+          >
+            + Buat Surat Langsung
+          </Link>
+        )}
       </div>
 
       <form className="flex gap-2" action="/dashboard/surat-terbit">
