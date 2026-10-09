@@ -1,4 +1,6 @@
-import { ROLE_LABELS, bisaLihatMenu } from "@/lib/roles";
+import { ROLE_LABELS, bisaLihatMenu, terimaPemberitahuanLayanan } from "@/lib/roles";
+import { ambilPemberitahuanLayanan } from "@/lib/pemberitahuanLayanan";
+import PemberitahuanLayanan from "@/components/dashboard/PemberitahuanLayanan";
 import Link from "next/link";
 import {
   IconMail,
@@ -168,6 +170,13 @@ export default async function DashboardPage() {
     .select("id", { count: "exact", head: true })
     .eq("status", "diajukan");
 
+  // Kepala Desa & Ketua RT: pemberitahuan pengajuan baru (siapa yang mengajukan;
+  // pengaduan anonim tanpa identitas). Role lain tetap memakai banner "menunggu".
+  const adaPemberitahuan = terimaPemberitahuanLayanan(peran);
+  const pemberitahuan = adaPemberitahuan
+    ? await ambilPemberitahuanLayanan(supabase, peran, { tampil: 8 })
+    : null;
+
   const totalBelumLengkap = (ringkasanKelengkapan ?? []).reduce(
     (a, r) => a + (r.belum_lengkap || 0),
     0
@@ -182,7 +191,9 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      {menunggu > 0 && (
+      {pemberitahuan && <PemberitahuanLayanan {...pemberitahuan} />}
+
+      {!adaPemberitahuan && menunggu > 0 && (
         <Link
           href="/dashboard/layanan?status=diajukan"
           className="flex items-center justify-between gap-4 rounded-2xl border border-gold/50 bg-gold/10 p-5 transition hover:shadow-md"

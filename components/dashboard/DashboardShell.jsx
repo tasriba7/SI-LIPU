@@ -57,6 +57,7 @@ export default function DashboardShell({
   logoutAction,
   jumlahPendaftaran = 0,
   jumlahDataKurang = 0,
+  jumlahPengajuanBaru = 0,
   children,
 }) {
   const router = useRouter();
@@ -173,6 +174,15 @@ export default function DashboardShell({
                         className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white"
                       >
                         {jumlahPendaftaran > 99 ? "99+" : jumlahPendaftaran}
+                      </span>
+                    )}
+                    {href === "/dashboard/layanan" && jumlahPengajuanBaru > 0 && (
+                      <span
+                        aria-label={`${jumlahPengajuanBaru} pengajuan layanan baru`}
+                        title="Ada pengajuan layanan baru dari warga"
+                        className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-sky-500 px-1 text-[10px] font-bold leading-none text-white"
+                      >
+                        {jumlahPengajuanBaru > 99 ? "99+" : jumlahPengajuanBaru}
                       </span>
                     )}
                     {href === "/dashboard/kependudukan" && jumlahDataKurang > 0 && (
