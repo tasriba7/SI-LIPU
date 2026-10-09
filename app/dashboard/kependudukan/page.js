@@ -1,3 +1,4 @@
+import { ROLE_LABELS } from "@/lib/roles";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { IconPlus, IconUsers, IconSearch } from "@/components/icons";
@@ -21,7 +22,7 @@ function formatTanggal(t) {
 function labelRole(role) {
   if (role === "kadus") return "Kadus";
   if (role === "ketua_rt") return "Ketua RT";
-  return role || "";
+  return ROLE_LABELS[role] ?? role ?? "";
 }
 
 const PILIHAN_TAMPIL = [25, 50, 100, 200];

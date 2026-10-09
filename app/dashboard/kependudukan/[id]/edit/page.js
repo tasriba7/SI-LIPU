@@ -1,10 +1,11 @@
+import { ROLE_LABELS } from "@/lib/roles";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import EditWargaForm from "./EditWargaForm";
 import { labelKolomKosong } from "@/lib/kelengkapan";
 
-const LABEL_ROLE = { kadus: "Kadus", ketua_rt: "Ketua RT" };
+const LABEL_ROLE = { ...ROLE_LABELS, kadus: "Kadus", ketua_rt: "Ketua RT" };
 
 export default async function EditWargaPage({ params }) {
   const { id } = await params;

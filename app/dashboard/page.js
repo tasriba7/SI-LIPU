@@ -1,3 +1,4 @@
+import { ROLE_LABELS } from "@/lib/roles";
 import Link from "next/link";
 import {
   IconMail,
@@ -100,6 +101,14 @@ function KartuModul({ nama, deskripsi, icon: Icon, href }) {
   );
 }
 
+// Label peran penginput. Kadus/Ketua RT dipersingkat; peran lain pakai label
+// resmi dari lib/roles (mis. "Administrator", "Kepala Desa"), bukan teks mentah.
+function labelRolePenginput(role) {
+  if (role === "kadus") return "Kadus";
+  if (role === "ketua_rt") return "Ketua RT";
+  return ROLE_LABELS[role] ?? role ?? "";
+}
+
 export default async function DashboardPage() {
   const supabase = await createClient();
 
@@ -190,7 +199,7 @@ export default async function DashboardPage() {
                   </p>
                   <p className="text-xs text-slate-400">
                     {[
-                      r.role === "kadus" ? "Kadus" : r.role === "ketua_rt" ? "Ketua RT" : r.role,
+                      labelRolePenginput(r.role),
                       r.wilayah,
                     ]
                       .filter(Boolean)
