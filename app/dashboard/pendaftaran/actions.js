@@ -21,6 +21,12 @@ import { buatPasswordAcak, PASSWORD_MINIMAL } from "@/lib/passwordAcak";
 async function prosesSatuPendaftaran(supabase, adminClient, adminId, pendaftaran, passwordBaru) {
   const posisi = pendaftaran.posisi_perangkat;
 
+  // Tanpa data posisi/role, akun akan dibuat tanpa profil staf (lihat
+  // handle_new_user, migrasi 0029). Tolak sebelum membuat akun apa pun.
+  if (!posisi?.role || !posisi?.id) {
+    return { error: "Data posisi untuk pendaftaran ini tidak lengkap. Tidak ada akun yang dibuat." };
+  }
+
   const { data: userBaru, error: errBuatUser } = await adminClient.auth.admin.createUser({
     email: pendaftaran.email,
     password: passwordBaru,
@@ -37,6 +43,37 @@ async function prosesSatuPendaftaran(supabase, adminClient, adminId, pendaftaran
 
   if (errBuatUser) {
     return { error: `Gagal membuat akun: ${errBuatUser.message}` };
+  }
+
+  // Profil staf biasanya dibuat otomatis oleh trigger handle_new_user. Kalau
+  // ternyata tidak terbentuk (trigger hilang/berbeda), buat di sini supaya
+  // kunci slot (foreign key ke profiles) tidak gagal.
+  const { data: profilAda } = await adminClient
+    .from("profiles")
+    .select("id")
+    .eq("id", userBaru.user.id)
+    .maybeSingle();
+
+  if (!profilAda) {
+    const { error: errProfil } = await adminClient.from("profiles").insert({
+      id: userBaru.user.id,
+      nama: pendaftaran.nama_lengkap,
+      role: posisi.role,
+      jabatan: ROLE_LABELS[posisi.role],
+      dusun: posisi.wilayah,
+    });
+    if (errProfil) {
+      console.error("prosesSatuPendaftaran: gagal membuat profil", errProfil);
+      const { error: errHapusProfil } = await adminClient.auth.admin.deleteUser(userBaru.user.id);
+      if (errHapusProfil) {
+        return {
+          error: `Akun ${pendaftaran.email} sempat dibuat tapi profilnya gagal dibuat dan akun gagal dibatalkan otomatis. Hapus akun itu di Supabase Dashboard (Authentication > Users) sebelum mencoba lagi.`,
+        };
+      }
+      return {
+        error: `Gagal membuat profil staf (${errProfil.code ?? "tanpa kode"}: ${errProfil.message}). Tidak ada akun yang dibuat.`,
+      };
+    }
   }
 
   const pesanManual = `Akun ${pendaftaran.email} sempat dibuat tapi gagal dibatalkan otomatis. Cek manual di Supabase Dashboard (Authentication > Users) dan hapus akun itu sebelum mencoba lagi.`;
