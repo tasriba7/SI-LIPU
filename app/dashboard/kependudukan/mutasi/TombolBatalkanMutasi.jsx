@@ -4,13 +4,20 @@ import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { batalkanMutasi } from "./actions";
 
-export default function TombolBatalkanMutasi({ id, nama }) {
+// Akibat pembatalan berbeda per jenis catatan.
+const AKIBAT = {
+  meninggal: "Penduduk ini akan berstatus aktif lagi dan dihitung kembali.",
+  pindah_keluar: "Penduduk ini akan berstatus aktif lagi dan dihitung kembali.",
+  datang: "Penduduk ini akan dikeluarkan lagi dari jumlah penduduk (status pindah keluar).",
+};
+
+export default function TombolBatalkanMutasi({ id, nama, jenis }) {
   const [pending, mulai] = useTransition();
   const router = useRouter();
 
   function klik() {
     const alasan = window.prompt(
-      `Batalkan catatan untuk "${nama}"? Penduduk ini akan berstatus aktif lagi dan dihitung kembali.\n\nTulis alasan pembatalan:`
+      `Batalkan catatan untuk "${nama}"? ${AKIBAT[jenis] || AKIBAT.meninggal}\n\nTulis alasan pembatalan:`
     );
     if (alasan === null) return;
     if (alasan.trim().length < 3) {

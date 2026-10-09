@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { isAdminRole } from "@/lib/roles";
+import { isAdminRole, bisaTerbitkanSurat } from "@/lib/roles";
 import { LABEL_MUTASI } from "@/lib/statusPenduduk";
 import { IconUsers } from "@/components/icons";
 import TombolBatalkanMutasi from "./TombolBatalkanMutasi";
@@ -43,6 +43,7 @@ export default async function MutasiPendudukPage({ searchParams }) {
     ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
     : { data: null };
   const bisaBatalkan = isAdminRole(profil?.role);
+  const bisaCatat = bisaTerbitkanSurat(profil?.role);
 
   function saring(q) {
     if (tahun !== "semua") q = q.gte("tanggal", `${tahun}-01-01`).lte("tanggal", `${tahun}-12-31`);
@@ -53,7 +54,7 @@ export default async function MutasiPendudukPage({ searchParams }) {
     supabase
       .from("mutasi_penduduk")
       .select(
-        "id, jenis, tanggal, keterangan, surat_terbit_id, dicatat_oleh_nama, dibatalkan_pada, alasan_batal, warga(id, nik, nama_lengkap, dusun, rt, rw)"
+        "id, jenis, tanggal, keterangan, asal_tujuan, surat_terbit_id, dicatat_oleh_nama, dibatalkan_pada, alasan_batal, warga(id, nik, nama_lengkap, dusun, rt, rw)"
       )
   )
     .order("tanggal", { ascending: false })
@@ -89,11 +90,36 @@ export default async function MutasiPendudukPage({ searchParams }) {
           <div>
             <h1 className="text-lg font-bold text-slate-800">Mutasi Penduduk</h1>
             <p className="mt-0.5 max-w-2xl text-sm text-slate-500">
-              Riwayat penduduk yang meninggal. Penduduk di sini tidak dihitung dalam jumlah
-              penduduk, tetapi datanya tetap tersimpan. Penandaan dilakukan otomatis saat
-              Surat Keterangan Kematian disimpan.
+              Riwayat penduduk yang meninggal, pindah keluar, dan datang. Yang meninggal atau pindah
+              keluar tidak dihitung dalam jumlah penduduk, tetapi datanya tetap tersimpan. Meninggal
+              ditandai otomatis saat Surat Keterangan Kematian disimpan; pindah keluar dan datang
+              dicatat lewat tombol di bawah.
             </p>
           </div>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {bisaCatat && (
+            <>
+              <Link
+                href="/dashboard/kependudukan/mutasi/pindah-keluar"
+                className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-light"
+              >
+                Catat Pindah Keluar
+              </Link>
+              <Link
+                href="/dashboard/kependudukan/mutasi/datang"
+                className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-light"
+              >
+                Catat Datang
+              </Link>
+            </>
+          )}
+          <Link
+            href="/dashboard/kependudukan/mutasi/ringkasan"
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
+          >
+            Ringkasan per Bulan
+          </Link>
         </div>
       </div>
 
@@ -101,7 +127,8 @@ export default async function MutasiPendudukPage({ searchParams }) {
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           <p className="font-medium">Riwayat mutasi belum bisa dimuat.</p>
           <p className="mt-0.5">
-            Pastikan migrasi <code className="font-mono">0032_status_penduduk_dan_mutasi.sql</code>{" "}
+            Pastikan migrasi <code className="font-mono">0032</code> dan{" "}
+            <code className="font-mono">0033_pindah_datang_dan_ringkasan_mutasi.sql</code>{" "}
             sudah dijalankan di Supabase (SQL Editor), lalu muat ulang halaman ini.
           </p>
         </div>
@@ -123,9 +150,6 @@ export default async function MutasiPendudukPage({ searchParams }) {
                 <p className="mt-1 text-2xl font-semibold tabular-nums text-slate-800">
                   {jumlah[j].toLocaleString("id-ID")}
                 </p>
-                {j !== "meninggal" && (
-                  <p className="mt-1 text-[11px] text-slate-400">Pencatatan menyusul di tahap berikutnya</p>
-                )}
               </Link>
             ))}
           </div>
@@ -213,8 +237,14 @@ export default async function MutasiPendudukPage({ searchParams }) {
                           )}
                         </td>
                         <td className="max-w-[260px] border-b border-slate-100 px-3 py-2">
+                          {m.asal_tujuan && (
+                            <span className="block truncate" title={m.asal_tujuan}>
+                              {m.jenis === "datang" ? "Dari: " : "Ke: "}
+                              {m.asal_tujuan}
+                            </span>
+                          )}
                           <span className="block truncate" title={m.keterangan || ""}>
-                            {m.keterangan || "-"}
+                            {m.keterangan || (m.asal_tujuan ? "" : "-")}
                           </span>
                           {batal && m.alasan_batal && (
                             <span className="block text-[11px] text-red-500">Alasan batal: {m.alasan_batal}</span>
@@ -232,8 +262,8 @@ export default async function MutasiPendudukPage({ searchParams }) {
                           {m.dicatat_oleh_nama || "-"}
                         </td>
                         <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2 text-right">
-                          {bisaBatalkan && !batal && (m.jenis === "meninggal" || m.jenis === "pindah_keluar") && (
-                            <TombolBatalkanMutasi id={m.id} nama={w?.nama_lengkap ?? "penduduk ini"} />
+                          {bisaBatalkan && !batal && JENIS.includes(m.jenis) && (
+                            <TombolBatalkanMutasi id={m.id} nama={w?.nama_lengkap ?? "penduduk ini"} jenis={m.jenis} />
                           )}
                         </td>
                       </tr>
