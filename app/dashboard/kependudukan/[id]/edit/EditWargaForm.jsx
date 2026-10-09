@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { editWarga } from "../../actions";
 import { PEKERJAAN_OPTIONS } from "@/lib/pekerjaanOptions";
+import { PENDIDIKAN_OPTIONS } from "@/lib/pendidikanOptions";
 
 function TombolSimpan() {
   const { pending } = useFormStatus();
@@ -28,6 +29,11 @@ export default function EditWargaForm({ warga }) {
   // dropdown) — kalau nilainya tidak ada di daftar standar, tetap
   // tampilkan sebagai opsi tambahan supaya data lama tidak hilang/kosong
   // saat form dibuka.
+  const pendidikanTersimpan = warga.pendidikan || "";
+  const pendidikanOpsiLengkap =
+    pendidikanTersimpan && !PENDIDIKAN_OPTIONS.includes(pendidikanTersimpan)
+      ? [pendidikanTersimpan, ...PENDIDIKAN_OPTIONS]
+      : PENDIDIKAN_OPTIONS;
   const pekerjaanTersimpan = warga.pekerjaan || "";
   const pekerjaanOpsiLengkap =
     pekerjaanTersimpan && !PEKERJAAN_OPTIONS.includes(pekerjaanTersimpan)
@@ -248,6 +254,24 @@ export default function EditWargaForm({ warga }) {
             <option>Lainnya</option>
           </select>
         </div>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-sm text-slate-600">Pendidikan Terakhir</label>
+        <select
+          name="pendidikan"
+          defaultValue={pendidikanTersimpan}
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy"
+        >
+          <option value="" disabled>
+            Pilih
+          </option>
+          {pendidikanOpsiLengkap.map((p) => (
+            <option key={p} value={p}>
+              {p}
+            </option>
+          ))}
+        </select>
       </div>
 
       {state?.error && (
