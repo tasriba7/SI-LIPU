@@ -1,0 +1,280 @@
+> ⚠️ **Dokumen ini adalah RENCANA/tujuan akhir, bukan cerminan kode yang sudah jalan.**
+> Untuk status implementasi sebenarnya & penyimpangan yang sudah terjadi, baca dulu
+> bagian **PENYIMPANGAN DARI RENCANA** di `AI_HANDOFF.md`.
+
+# DATABASE_SCHEMA.md — Skema Database Inti
+
+> Tabel-tabel ini adalah MASTER DATA. Semua modul (surat, keuangan, kependudukan, dan modul
+> masa depan) WAJIB memakai tabel ini, bukan membuat versi sendiri-sendiri.
+
+## 1. `warga` (master penduduk)
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| nik | varchar(16) | unique |
+| no_kk | varchar(16) | nomor KK |
+| nama_lengkap | text | |
+| tempat_lahir | text | |
+| tanggal_lahir | date | |
+| jenis_kelamin | enum | L/P |
+| alamat | text | |
+| rt | varchar(5) | |
+| rw | varchar(5) | |
+| dusun | text | |
+| status_kawin | enum | |
+| pekerjaan | text | |
+| agama | text | |
+| status_dalam_kk | text | Kepala Keluarga/Anggota |
+| created_at | timestamp | |
+| updated_at | timestamp | |
+
+## 2. `perangkat_desa` (master pengguna sistem/staf)
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key, terhubung ke Supabase Auth user id |
+| nama_lengkap | text | |
+| jabatan | text | Kades, Sekdes, Kaur, Kadus, dst |
+| role_id | uuid | foreign key ke `role` |
+| nomor_hp | text | |
+| status_aktif | boolean | |
+
+## 3. `role`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| nama_role | text | Kepala Desa, Sekretaris, Kaur, Kadus, Ketua RT, dst |
+| hak_akses | jsonb | daftar permission per modul, misal `{"surat": ["read","write","approve"]}` |
+| butuh_wilayah | boolean | true untuk role yang punya banyak slot per wilayah (Kadus, Ketua RT); false untuk role tunggal se-desa (Kades, Sekdes) |
+| pendaftaran_terbuka | boolean | true = orangnya boleh daftar sendiri (misal Ketua RT); false = HANYA admin yang bisa buat akun (Kades, Sekdes, Kaur) |
+
+## 3a. `posisi_perangkat` (slot jabatan spesifik, WAJIB untuk role dengan `butuh_wilayah = true`)
+> Ini yang mencegah duplikasi: satu slot = satu wilayah + satu role. "Ketua RT" di RT 01/RW 02
+> adalah slot berbeda dari "Ketua RT" di RT 02/RW 02, jadi keduanya bisa terisi bersamaan.
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| role_id | uuid | FK ke `role` |
+| wilayah | text | contoh: "RT 01/RW 02", "Dusun Pantai" — null jika role tidak butuh wilayah |
+| status | enum | kosong / terisi |
+| perangkat_desa_id | uuid | FK ke `perangkat_desa`, null jika status kosong |
+| diisi_pada | timestamp | |
+| dikosongkan_oleh | uuid | FK ke `perangkat_desa` (admin), diisi saat admin reset slot |
+| dikosongkan_pada | timestamp | |
+
+## 3b. `pendaftaran_akun` (khusus role dengan `pendaftaran_terbuka = true`, misal Ketua RT)
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| posisi_id | uuid | FK ke `posisi_perangkat` — slot spesifik yang didaftar |
+| nama_lengkap | text | |
+| nik | varchar(16) | untuk verifikasi identitas pendaftar |
+| nomor_hp | text | |
+| status | enum | pending / disetujui / ditolak |
+| catatan_admin | text | alasan jika ditolak |
+| tanggal_daftar | timestamp | |
+| diproses_oleh | uuid | FK ke `perangkat_desa` (admin yang approve/reject) |
+| tanggal_diproses | timestamp | |
+
+> **Aturan wajib:** saat submit pendaftaran, sistem WAJIB cek `posisi_perangkat.status` dulu.
+> Jika `terisi` → tolak otomatis saat itu juga (tidak masuk `pendaftaran_akun` sama sekali),
+> tampilkan pesan: "Slot [Role] [Wilayah] sudah terisi, hubungi admin desa." Jika `kosong` →
+> boleh lanjut submit, masuk status `pending` menunggu admin.
+
+## 4. `surat` (modul surat-menyurat)
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| nomor_surat | text | auto-generate |
+| jenis_surat | text | SKTM, Domisili, Usaha, dst |
+| warga_id | uuid | FK ke `warga` |
+| diajukan_oleh | uuid | FK ke `perangkat_desa` (jika input oleh operator) |
+| status | enum | diajukan / diproses / disetujui / ditolak / selesai |
+| disetujui_oleh | uuid | FK ke `perangkat_desa` |
+| tanggal_pengajuan | timestamp | |
+| tanggal_selesai | timestamp | |
+| file_surat | text | link ke file PDF hasil |
+
+## 5. `apbdes_anggaran` (modul keuangan)
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| tahun_anggaran | int | |
+| bidang | text | Penyelenggaraan Pemerintahan, Pembangunan, dst (sesuai Permendagri) |
+| kegiatan | text | |
+| jenis | enum | pendapatan / belanja / pembiayaan |
+| anggaran | numeric | jumlah dianggarkan |
+| realisasi | numeric | jumlah terpakai (running total) |
+
+## 6. `apbdes_transaksi` (detail realisasi)
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| anggaran_id | uuid | FK ke `apbdes_anggaran` |
+| tanggal | date | |
+| uraian | text | |
+| jumlah | numeric | |
+| bukti_file | text | link nota/kwitansi hasil scan |
+| diinput_oleh | uuid | FK ke `perangkat_desa` |
+
+## 7. `jenis_layanan_master` (daftar semua jenis layanan yang bisa diajukan warga)
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| nama_layanan | text | "SKTM", "Pengaduan Jalan Rusak", "Bantuan Sosial", dst |
+| kategori | text | surat / pengaduan / bansos / lainnya |
+| icon | text | nama ikon untuk ditampilkan di menu "Ajukan Layanan" |
+| form_schema | jsonb | daftar field tambahan (dinamis) yang harus diisi warga khusus jenis ini — dibuat lewat Form Builder di admin, lihat contoh struktur di bawah |
+| aktif | boolean | tampil/tidak di menu warga |
+| dibuat_oleh | uuid | FK ke `perangkat_desa`, admin yang membuat jenis layanan ini |
+| created_at | timestamp | |
+
+### Struktur `form_schema` (contoh isi JSON)
+Field standar (NIK, Nama, Nomor HP) TIDAK perlu ditulis di sini — sudah otomatis ada di semua
+jenis layanan lewat sistem inti. `form_schema` hanya berisi field TAMBAHAN yang spesifik untuk
+jenis layanan tsb, disusun admin lewat Form Builder (bukan ditulis manual sebagai JSON — itu
+representasi hasil di database saja).
+
+```json
+[
+  {
+    "field_key": "nama_usaha",
+    "label": "Nama Usaha",
+    "tipe": "teks_pendek",
+    "wajib": true
+  },
+  {
+    "field_key": "jenis_usaha",
+    "label": "Jenis Usaha",
+    "tipe": "pilihan",
+    "wajib": true,
+    "opsi": ["Kios/Toko", "Warung Makan", "Bengkel", "Lainnya"]
+  },
+  {
+    "field_key": "foto_lokasi",
+    "label": "Foto Lokasi Usaha",
+    "tipe": "upload_file",
+    "wajib": false
+  }
+]
+```
+
+**Tipe field yang didukung:** `teks_pendek`, `teks_panjang`, `angka`, `tanggal`, `pilihan`
+(dropdown, butuh `opsi`), `upload_file`.
+
+## 8. `pengajuan_layanan` (SATU tabel generik untuk SEMUA jenis pengajuan warga)
+> Ini jantung dari menu "Ajukan Layanan" 1-klik. Semua jenis layanan (surat, pengaduan, bansos,
+> dan jenis baru di masa depan) masuk ke tabel ini — bukan bikin tabel terpisah per jenis.
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| kode_pengajuan | text | unik, format `PL-YYYYMMDD-####`, dipakai warga untuk cek status tanpa login |
+| jenis_layanan_id | uuid | FK ke `jenis_layanan_master` |
+| nik | varchar(16) | diisi manual oleh warga tiap pengajuan (tanpa login) |
+| tanggal_lahir_input | date | diisi manual, dipakai bersama NIK sebagai kunci verifikasi (lihat `SECURITY.md`) |
+| warga_id | uuid | FK ke `warga`, diisi OTOMATIS oleh sistem jika NIK + Tanggal Lahir cocok |
+| nama_pemohon | text | fallback kalau NIK belum ada di `warga` (warga baru/belum terdata) |
+| nomor_hp | text | dipakai juga untuk verifikasi saat cek status |
+| data_tambahan | jsonb | isian sesuai `form_schema` dari jenis layanan terkait |
+| status | enum | diajukan / diproses / disetujui / ditolak / selesai |
+| catatan_petugas | text | |
+| diproses_oleh | uuid | FK ke `perangkat_desa` |
+| tanggal_pengajuan | timestamp | |
+| tanggal_update | timestamp | |
+
+> Catatan: tabel `surat` (poin 4) tetap ada untuk data surat yang sudah jadi/final (nomor surat
+> resmi, file PDF). `pengajuan_layanan` adalah tahap "permintaan masuk" sebelum diproses jadi
+> surat resmi atau tindak lanjut lain. Alur: warga ajukan lewat `pengajuan_layanan` →
+> disetujui → sistem generate record di `surat` (jika jenisnya surat) atau tindak lanjut lain
+> (jika pengaduan/bansos).
+
+> **Pengaduan anonim (migration 0018):** tabel `pengajuan_layanan` punya kolom `anonim`
+> (boolean). Jika `true`, kolom `nama_pemohon`, `nik`, `no_hp`, `warga_id` WAJIB `null`
+> (dijaga constraint + trigger). Hanya boleh untuk `jenis_layanan_master.kategori = 'pengaduan'`.
+> Kolom `nama_pemohon`/`nik`/`no_hp` sekarang boleh null (khusus baris anonim).
+
+## 8b. Modul Surat Otomatis (migration 0020, 0021, 0022)
+
+### `template_surat` — redaksi surat, dikelola admin di `/dashboard/template-surat`
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| kode | text | unik, mis. `sktm`, `kelahiran` |
+| nama | text | nama di dropdown |
+| kata_kunci | text[] | dicocokkan ke nama jenis layanan untuk memilih template otomatis |
+| judul_atas | text | teks miring di atas judul (mis. "UNTUK YANG BERSANGKUTAN"), boleh kosong (0021) |
+| judul | text | judul surat |
+| pembuka | text | paragraf pembuka, boleh memakai `{{variabel}}` |
+| biodata | jsonb | `[{label, value}]` blok biodata pertama |
+| teks_tengah | text | kalimat penghubung antara dua blok biodata (0021) |
+| biodata2 | jsonb | blok biodata kedua, default `[]` (0021) |
+| isi / penutup | text | paragraf isi (pisah dengan baris kosong) / kalimat penutup |
+| format_nomor | text | format nomor otomatis, penanda `{urut} {urut3} {bulan} {bulan_romawi} {tahun}`; kosong = manual (0022) |
+| kelompok_nomor | text | template dengan kelompok sama berbagi satu urutan, default `umum` (0022) |
+| aktif | boolean | |
+
+### `counter_nomor_surat` (0022)
+Primary key `(kelompok, tahun)`, kolom `terakhir int`. RLS aktif tanpa policy: hanya dipakai fungsi
+`security definer` `intip_nomor_surat` (melihat nomor berikutnya) dan `ambil_nomor_surat`
+(memakai nomor, atomik lewat `insert ... on conflict do update`), keduanya khusus
+`akses_tulis_penuh()`. Urutan reset per tahun menurut tanggal surat.
+
+### `surat_terbit` — salinan final (snapshot) surat
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| pengajuan_id | uuid | FK `pengajuan_layanan`, unik, boleh null (0022) |
+| pengajuan_surat_id | uuid | FK `pengajuan_surat` (pengajuan LAMA), unik, boleh null (0022) |
+| template_id | uuid | FK `template_surat` (on delete set null) |
+| nomor_surat | text | unik tanpa peka huruf besar/kecil & spasi pinggir |
+| tanggal_surat | date | |
+| isi | jsonb | snapshot: judul_atas, judul, pembuka, biodata, teks_tengah, biodata2, isi, penutup, penandatangan, kota, tampil_ttd, tampil_stempel |
+| diterbitkan_oleh | uuid | FK `profiles` |
+
+Constraint `surat_terbit_satu_sumber`: tepat satu dari `pengajuan_id` / `pengajuan_surat_id` terisi.
+
+### Tambahan pada `config_desa` (0022)
+`ttd_kades_path`, `ttd_sekdes_path`, `stempel_path` (text): path file di bucket **privat** `desa-ttd`
+(bukan `desa-media`). Ditampilkan lewat signed URL 1 jam; hanya admin yang boleh mengunggah.
+
+### RPC publik cek status (0022)
+`cek_status_pengajuan_layanan` dan `cek_status_pengajuan_surat` kini juga mengembalikan
+`nomor_surat` dan `tanggal_surat` (null bila surat belum terbit). Isi surat & NIK tidak pernah ikut.
+
+---
+
+### RPC publik riwayat ajuan (0023)
+`riwayat_pengajuan_publik(p_nik, p_tanggal_lahir, p_identifier)`: memverifikasi NIK + tanggal lahir ke
+`warga`, mencatat percobaan di `log_pencarian_warga`, lalu mengembalikan maks. 50 pengajuan milik NIK itu
+(kode_tracking, nama_layanan, status, catatan_admin, created_at, updated_at, nomor_surat, tanggal_surat).
+Tidak mengembalikan NIK, no HP, alamat, atau isi keterangan. Baris anonim tidak pernah ikut.
+
+---
+
+## 9. `log_aktivitas` (dipakai semua modul)
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | uuid | primary key |
+| user_id | uuid | FK ke `perangkat_desa` |
+| modul | text | surat/keuangan/kependudukan/dst |
+| aksi | text | "membuat surat baru", "update anggaran", dst |
+| waktu | timestamp | |
+
+---
+
+## Aturan Perluasan Tabel
+- Modul baru butuh tabel baru? **Boleh**, tapi harus tetap referensi ke `warga` dan
+  `perangkat_desa` lewat foreign key — jangan duplikasi data warga/staf.
+- Tambah kolom ke tabel yang sudah ada **boleh**, tapi jangan hapus/ubah tipe kolom yang sudah
+  dipakai modul lain tanpa cek dampaknya dulu.
+
+> **Jenis pengaduan (migration 0019):** `pengajuan_layanan.jenis_pengaduan` (text, null untuk
+> non-pengaduan) menyimpan kategori dropdown (daftar di `lib/jenisPengaduan.js`), atau
+> `Lainnya: <teks warga>`. Isi pengaduan disimpan di kolom `keterangan`.
+
+
+## Tabel `tautan_data` (migrasi 0024)
+Tautan bagikan data sekali pakai. Kolom: `id`, `token_hash` (SHA-256, unik), `instansi`, `keperluan`,
+`seksi text[]` (penduduk_lengkap | data_keluarga | statistik_penduduk), `status` (aktif | dibuka | dibatalkan),
+`dibuat_oleh`, `dibuat_oleh_nama`, `dibuat_pada`, `kedaluwarsa_pada`, `dibuka_pada`.
+"Kedaluwarsa" dihitung dari waktu, tidak disimpan sebagai status. RLS: hanya admin (select/insert/update),
+tanpa policy delete. Data warga TIDAK disalin ke tabel ini.
