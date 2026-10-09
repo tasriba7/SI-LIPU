@@ -50,6 +50,8 @@ const ALIAS_HEADER = {
   no_hp: "no_hp",
   pekerjaan: "pekerjaan",
   agama: "agama",
+  pendidikan: "pendidikan",
+  "pendidikan terakhir": "pendidikan",
 };
 
 function normalisasiHeader(h) {
