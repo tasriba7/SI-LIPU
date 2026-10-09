@@ -6,6 +6,7 @@ import StatistikDetailBeranda from "@/components/StatistikDetailBeranda";
 import Reveal from "@/components/Reveal";
 import AuroraBackground from "@/components/AuroraBackground";
 import GaleriBeranda from "@/components/GaleriBeranda";
+import JamTanggalBeranda from "@/components/JamTanggalBeranda";
 import {
   IconMail,
   IconMegaphone,
@@ -93,6 +94,9 @@ export default async function HomePage() {
 
   return (
     <main className="bg-white">
+      {/* Hari, tanggal & jam setempat (sampai detik) — paling atas, di bawah header. */}
+      <JamTanggalBeranda />
+
       {/* Hero — identitas desa. Kalau admin sudah unggah foto lewat
           /dashboard/pengaturan-desa, foto itu jadi latar; kalau belum, tetap
           pakai warna navy polos supaya teks tetap kebaca. */}
