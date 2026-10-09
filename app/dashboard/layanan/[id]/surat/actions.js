@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import { pastikanBisaTerbitkanSurat } from "@/lib/akses";
 
 const BATAS = { nomor: 100, teks: 4000, label: 120 };
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ISO_TANGGAL = /^\d{4}-\d{2}-\d{2}$/;
 
 function bersih(v, maks) {
   return String(v ?? "").replace(/\r\n/g, "\n").trim().slice(0, maks);
@@ -37,6 +39,33 @@ export async function intipNomor({ templateId, tanggal }) {
     p_tanggal: tanggal,
   });
   return { nomor: data || null };
+}
+
+/**
+ * Cari penduduk AKTIF yang meninggal untuk dihubungkan ke Surat Keterangan
+ * Kematian (nama atau NIK, minimal 3 huruf). Hanya untuk penerbit surat;
+ * hasil mengikuti RLS tabel `warga`.
+ */
+export async function cariAlmarhum(kata) {
+  const q = String(kata ?? "").trim().replace(/[,()%*\\]/g, " ").slice(0, 60);
+  if (q.length < 3) return { hasil: [] };
+
+  const supabase = await createClient();
+  const akses = await pastikanBisaTerbitkanSurat(supabase);
+  if (akses.error) return { error: akses.error, hasil: [] };
+
+  const { data, error } = await supabase
+    .from("warga")
+    .select(
+      "id, nik, no_kk, nama_lengkap, jenis_kelamin, tempat_lahir, tanggal_lahir, agama, alamat, dusun, rt, rw, status_dalam_kk"
+    )
+    .eq("status_kependudukan", "aktif")
+    .or(`nama_lengkap.ilike.%${q}%,nik.ilike.%${q}%`)
+    .order("nama_lengkap")
+    .limit(8);
+
+  if (error) return { error: "Gagal mencari data penduduk. Coba lagi.", hasil: [] };
+  return { hasil: data ?? [] };
 }
 
 /**
@@ -161,9 +190,62 @@ export async function terbitkanSurat(payload) {
     })
     .eq("id", pengajuanId);
 
+  // ---- Surat Keterangan Kematian: hubungkan ke data penduduk ----------------
+  // Dijalankan SETELAH surat tersimpan. Kalau gagal, surat tetap tersimpan dan
+  // petugas diberi peringatan (bukan membatalkan surat yang sudah jadi).
+  let mutasi = null;
+  let peringatan = null;
+  const minta = payload?.mutasi;
+  if (minta && sumber === SUMBER.layanan) {
+    const wargaId = String(minta.wargaId ?? "");
+    const tglMeninggal = String(minta.tanggalMeninggal ?? "").slice(0, 10);
+
+    const { data: tpl } = templateId
+      ? await supabase.from("template_surat").select("kode").eq("id", templateId).maybeSingle()
+      : { data: null };
+    const { data: terbit } = await supabase
+      .from("surat_terbit")
+      .select("id")
+      .eq(sumber.kolom, pengajuanId)
+      .maybeSingle();
+
+    if (!UUID.test(wargaId) || !ISO_TANGGAL.test(tglMeninggal)) {
+      peringatan = "Penduduk atau tanggal meninggal tidak valid, jadi status penduduk belum diubah.";
+    } else if (tpl?.kode !== "kematian") {
+      peringatan = "Status meninggal hanya bisa diubah dari Surat Keterangan Kematian.";
+    } else if (!terbit?.id) {
+      peringatan = "Surat tersimpan, tetapi status penduduk belum bisa diubah. Simpan ulang surat ini.";
+    } else {
+      const { data: hasil, error: errMutasi } = await supabase.rpc("tandai_meninggal", {
+        p_warga_id: wargaId,
+        p_tanggal: tglMeninggal,
+        p_surat_terbit_id: terbit.id,
+        p_keterangan: `Surat Keterangan Kematian No. ${nomorFinal}`.slice(0, 300),
+      });
+      if (errMutasi) {
+        peringatan =
+          errMutasi.code === "P0001"
+            ? `Surat tersimpan, tetapi status penduduk belum diubah: ${errMutasi.message}`
+            : "Surat tersimpan, tetapi status penduduk belum bisa diubah. Pastikan migrasi 0032 sudah dijalankan di Supabase.";
+      } else {
+        mutasi = {
+          nama: hasil?.nama || "",
+          tanggal: tglMeninggal,
+          diperbarui: !!hasil?.diperbarui,
+          kepalaKeluarga: !!hasil?.kepala_keluarga,
+          sisaAnggota: Number(hasil?.sisa_anggota) || 0,
+        };
+        revalidatePath("/dashboard");
+        revalidatePath("/dashboard/kependudukan");
+        revalidatePath("/dashboard/kependudukan/mutasi");
+        revalidatePath("/");
+      }
+    }
+  }
+
   revalidatePath(sumber.path);
   revalidatePath(`${sumber.path}/${pengajuanId}`);
   revalidatePath(`${sumber.path}/${pengajuanId}/surat`);
   revalidatePath("/dashboard/surat-terbit");
-  return { success: true, nomor: nomorFinal };
+  return { success: true, nomor: nomorFinal, mutasi, peringatan };
 }

@@ -66,6 +66,7 @@ export default async function KependudukanPage({ searchParams }) {
         "id, nik, no_kk, nama_lengkap, jenis_kelamin, dusun, rt, rw, tanggal_lahir, no_hp, status_dalam_kk, dibuat_oleh_nama, dibuat_oleh_role, jumlah_kosong, kolom_kosong",
         { count: "exact" }
       )
+      .eq("status_kependudukan", "aktif") // yang meninggal/pindah ada di Mutasi Penduduk
       .order("nama_lengkap")
       .order("id"); // urutan tambahan supaya paging antar batch stabil
     if (cari) {
@@ -97,10 +98,12 @@ export default async function KependudukanPage({ searchParams }) {
 
   const { count: totalWarga } = await supabase
     .from("warga")
-    .select("id", { count: "exact", head: true });
+    .select("id", { count: "exact", head: true })
+    .eq("status_kependudukan", "aktif");
   const { count: totalKurang } = await supabase
     .from("warga_kelengkapan")
     .select("id", { count: "exact", head: true })
+    .eq("status_kependudukan", "aktif")
     .gt("jumlah_kosong", 0);
 
   return (
@@ -119,7 +122,7 @@ export default async function KependudukanPage({ searchParams }) {
             </p>
             {typeof totalWarga === "number" && (
               <p className="mt-1.5 text-xs font-medium text-navy">
-                {totalWarga.toLocaleString("id-ID")} warga terdaftar
+                {totalWarga.toLocaleString("id-ID")} warga aktif terdaftar
               </p>
             )}
             {typeof totalKurang === "number" && totalKurang > 0 && (
@@ -140,6 +143,12 @@ export default async function KependudukanPage({ searchParams }) {
           >
             <IconUsers className="h-4 w-4" />
             Kartu Keluarga
+          </Link>
+          <Link
+            href="/dashboard/kependudukan/mutasi"
+            className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
+          >
+            Mutasi Penduduk
           </Link>
           <ImportWargaButton />
           <ExportWargaButton cari={cari} />

@@ -58,6 +58,21 @@ export default async function BuatSuratPage({ params }) {
 
   const vars = susunVariabel({ pengajuan, warga, config });
 
+  // Surat kematian: tanggal meninggal dari isian form, dan catatan mutasi bila
+  // surat ini sudah pernah menandai seseorang meninggal (migrasi 0032).
+  const tglIsian = String(pengajuan.data_tambahan?.tanggal_meninggal ?? "").slice(0, 10);
+  const tanggalMeninggalAwal = /^\d{4}-\d{2}-\d{2}$/.test(tglIsian) ? tglIsian : "";
+  let mutasiTerhubung = null;
+  if (suratTerbit?.id) {
+    const { data: mt } = await supabase
+      .from("mutasi_penduduk")
+      .select("tanggal, warga(nama_lengkap)")
+      .eq("surat_terbit_id", suratTerbit.id)
+      .is("dibatalkan_pada", null)
+      .maybeSingle();
+    if (mt) mutasiTerhubung = { nama: mt.warga?.nama_lengkap || "", tanggal: mt.tanggal };
+  }
+
   // Tebak template dari nama layanan (kata kunci di template_surat.kata_kunci).
   const namaLayanan = (pengajuan.jenis_layanan_master?.nama_layanan || "").toLowerCase();
   const tebakan =
@@ -89,6 +104,8 @@ export default async function BuatSuratPage({ params }) {
         wargaTerhubung={!!warga}
         sumber="layanan"
         berkasTtd={berkasTtd}
+        tanggalMeninggalAwal={tanggalMeninggalAwal}
+        mutasiTerhubung={mutasiTerhubung}
       />
     </div>
   );

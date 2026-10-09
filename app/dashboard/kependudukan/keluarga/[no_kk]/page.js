@@ -52,7 +52,7 @@ export default async function DetailKeluargaPage({ params, searchParams }) {
 
   const supabase = await createClient();
 
-  const [{ data: keluarga }, { data: anggotaMentah, error }] = await Promise.all([
+  const [{ data: keluarga }, { data: anggotaMentah, error }, { count: jumlahTidakAktif }] = await Promise.all([
     supabase
       .from("keluarga")
       .select("no_kk, alamat, dusun, rt, rw")
@@ -64,7 +64,14 @@ export default async function DetailKeluargaPage({ params, searchParams }) {
         "id, nik, nama_lengkap, jenis_kelamin, tempat_lahir, tanggal_lahir, status_kawin, status_dalam_kk, pekerjaan, pendidikan, agama, no_hp, alamat, dusun, rt, rw"
       )
       .eq("no_kk", no_kk)
+      .eq("status_kependudukan", "aktif")
       .order("nama_lengkap"),
+    // Anggota yang sudah meninggal/pindah tidak ikut dihitung, hanya diberi catatan.
+    supabase
+      .from("warga")
+      .select("id", { count: "exact", head: true })
+      .eq("no_kk", no_kk)
+      .neq("status_kependudukan", "aktif"),
   ]);
 
   // Kolom `pendidikan` baru ada setelah migrasi 0026 dijalankan.
@@ -77,7 +84,8 @@ export default async function DetailKeluargaPage({ params, searchParams }) {
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           <p className="font-medium">Data keluarga belum bisa dimuat.</p>
           <p className="mt-0.5">
-            Pastikan migrasi <code className="font-mono">0026_pendidikan_warga.sql</code> sudah
+            Pastikan migrasi <code className="font-mono">0026_pendidikan_warga.sql</code> dan{" "}
+            <code className="font-mono">0032_status_penduduk_dan_mutasi.sql</code> sudah
             dijalankan di Supabase (SQL Editor), lalu muat ulang halaman ini.
           </p>
         </div>
@@ -125,6 +133,14 @@ export default async function DetailKeluargaPage({ params, searchParams }) {
                 )}
               </span>
             </p>
+            {jumlahTidakAktif > 0 && (
+              <p className="mt-1.5 text-xs text-slate-400">
+                {jumlahTidakAktif} anggota lain tercatat meninggal/pindah dan tidak ikut dihitung di sini.{" "}
+                <Link href="/dashboard/kependudukan/mutasi" className="font-medium text-navy hover:underline">
+                  Lihat mutasi
+                </Link>
+              </p>
+            )}
           </div>
         </div>
       </div>

@@ -25,6 +25,7 @@ export default async function KartuKeluargaPage({ searchParams }) {
     const { data: cocok } = await supabase
       .from("warga")
       .select("id, no_kk, nama_lengkap, status_dalam_kk")
+      .eq("status_kependudukan", "aktif")
       .or(`nama_lengkap.ilike.%${cari}%,nik.ilike.%${cari}%,no_kk.ilike.%${cari}%`)
       .order("nama_lengkap")
       .limit(200);
@@ -68,6 +69,7 @@ export default async function KartuKeluargaPage({ searchParams }) {
       supabase
         .from("warga")
         .select("no_kk, nama_lengkap, status_dalam_kk")
+        .eq("status_kependudukan", "aktif")
         .in("no_kk", daftarNoKK)
         .limit(5000),
     ]);

@@ -1,9 +1,16 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { buatDraf, buatPenandatangan, hariIniISO, judulKata } from "@/lib/suratTemplate";
+import {
+  buatDraf,
+  buatPenandatangan,
+  hariIniISO,
+  judulKata,
+  variabelAlmarhumDariWarga,
+} from "@/lib/suratTemplate";
 import SuratPratinjau from "@/components/dashboard/SuratPratinjau";
 import { intipNomor, terbitkanSurat } from "./actions";
+import PanelAlmarhum from "./PanelAlmarhum";
 
 const input =
   "w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 focus:border-navy focus:outline-none";
@@ -24,6 +31,8 @@ export default function SuratEditor({
   wargaTerhubung,
   sumber = "layanan",
   berkasTtd = { ttdKades: null, ttdSekdes: null, stempel: null },
+  tanggalMeninggalAwal = "",
+  mutasiTerhubung = null,
 }) {
   const [templateId, setTemplateId] = useState(templateAwalId || "");
   const template = useMemo(
@@ -51,6 +60,11 @@ export default function SuratEditor({
   const [tampilTtd, setTampilTtd] = useState(!!tersimpan?.tampil_ttd);
   const [tampilStempel, setTampilStempel] = useState(!!tersimpan?.tampil_stempel);
   const [nomorSaran, setNomorSaran] = useState(null);
+  // Surat Keterangan Kematian: hubungkan ke data penduduk (opsional).
+  const [almarhum, setAlmarhum] = useState(null);
+  const [tandaiMeninggal, setTandaiMeninggal] = useState(true);
+  const [tglMeninggal, setTglMeninggal] = useState(tanggalMeninggalAwal || "");
+  const [mutasiInfo, setMutasiInfo] = useState(mutasiTerhubung);
   const [pesan, setPesan] = useState(null);
   const [pending, mulai] = useTransition();
 
@@ -100,8 +114,27 @@ export default function SuratEditor({
     }));
   }
 
+  const suratKematian = template?.kode === "kematian";
+
+  function pilihAlmarhum(w) {
+    setAlmarhum(w);
+    if (
+      template &&
+      confirm(
+        "Isi surat akan disusun ulang memakai data penduduk ini (nama, tempat/tanggal lahir, agama, alamat). Perubahan yang sudah Anda ketik akan hilang. Lanjutkan?"
+      )
+    ) {
+      setDraf(buatDraf(template, { ...vars, ...variabelAlmarhumDariWarga(w, tglMeninggal) }));
+    }
+  }
+
   function simpan() {
     setPesan(null);
+    const hubungkan = suratKematian && !mutasiInfo && almarhum && tandaiMeninggal;
+    if (hubungkan && !tglMeninggal) {
+      setPesan({ jenis: "error", teks: "Isi tanggal meninggal pada panel penduduk terlebih dahulu." });
+      return;
+    }
     mulai(async () => {
       const r = await terbitkanSurat({
         sumber,
@@ -114,13 +147,26 @@ export default function SuratEditor({
         kota,
         draf,
         penandatangan: ttd,
+        mutasi: hubungkan ? { wargaId: almarhum.id, tanggalMeninggal: tglMeninggal } : null,
       });
       if (r?.nomor) setNomor(r.nomor);
-      setPesan(
-        r?.error
-          ? { jenis: "error", teks: r.error }
-          : { jenis: "ok", teks: `Surat tersimpan (nomor ${r.nomor}) & pengajuan ditandai selesai. Sekarang bisa dicetak.` }
-      );
+      if (r?.error) {
+        setPesan({ jenis: "error", teks: r.error });
+        return;
+      }
+      let teks = `Surat tersimpan (nomor ${r.nomor}) & pengajuan ditandai selesai. Sekarang bisa dicetak.`;
+      if (r.mutasi) {
+        setMutasiInfo({ nama: r.mutasi.nama, tanggal: r.mutasi.tanggal });
+        teks += ` ${r.mutasi.nama} sudah ditandai meninggal dan tidak dihitung lagi dalam jumlah penduduk.`;
+        if (r.mutasi.kepalaKeluarga && r.mutasi.sisaAnggota > 0) {
+          teks += ` Almarhum adalah Kepala Keluarga: tentukan Kepala Keluarga baru dari ${r.mutasi.sisaAnggota} anggota yang tersisa (Data Kependudukan → Edit).`;
+        }
+      }
+      if (r.peringatan) {
+        setPesan({ jenis: "peringatan", teks: `${teks} ${r.peringatan}`.trim() });
+      } else {
+        setPesan({ jenis: "ok", teks });
+      }
     });
   }
 
@@ -242,6 +288,20 @@ export default function SuratEditor({
           )}
         </div>
 
+        {draf && suratKematian && (bolehTerbitkan || mutasiInfo) && (
+          <PanelAlmarhum
+            terpilih={almarhum}
+            onPilih={pilihAlmarhum}
+            onLepas={() => setAlmarhum(null)}
+            tandai={tandaiMeninggal}
+            onTandai={setTandaiMeninggal}
+            tanggal={tglMeninggal}
+            onTanggal={setTglMeninggal}
+            mutasiInfo={mutasiInfo}
+            disabled={!bolehTerbitkan}
+          />
+        )}
+
         {draf && (
           <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
             <p className="text-sm font-semibold text-slate-700">Isi surat (boleh diedit)</p>
@@ -313,7 +373,11 @@ export default function SuratEditor({
           <div className="space-y-2">
             {pesan && (
               <p className={`rounded-lg p-3 text-sm ${
-                pesan.jenis === "error" ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"}`}>
+                pesan.jenis === "error"
+                  ? "bg-red-50 text-red-700"
+                  : pesan.jenis === "peringatan"
+                    ? "bg-amber-50 text-amber-800"
+                    : "bg-emerald-50 text-emerald-700"}`}>
                 {pesan.teks}
               </p>
             )}

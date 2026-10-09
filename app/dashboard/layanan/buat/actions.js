@@ -25,6 +25,7 @@ export async function cariWargaStaf(kata) {
   const { data, error } = await supabase
     .from("warga")
     .select("id, nik, nama_lengkap, tanggal_lahir, dusun, rt, rw, no_hp")
+    .eq("status_kependudukan", "aktif")
     .or(`nama_lengkap.ilike.%${q}%,nik.ilike.%${q}%`)
     .order("nama_lengkap")
     .limit(8);
@@ -98,8 +99,9 @@ export async function buatSuratLangsung(prevState, formData) {
     .from("warga")
     .select("id, nik, nama_lengkap, no_hp")
     .eq("id", wargaId)
+    .eq("status_kependudukan", "aktif")
     .maybeSingle();
-  if (!warga) return { error: "Data penduduk tidak ditemukan." };
+  if (!warga) return { error: "Data penduduk tidak ditemukan atau sudah tidak aktif." };
 
   const tambahan = periksaDataTambahan(jenis.form_schema, formData.get("data_tambahan_json"));
   if (tambahan.error) return { error: tambahan.error };
