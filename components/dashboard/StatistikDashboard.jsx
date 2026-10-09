@@ -7,11 +7,13 @@ import {
   IconIdCard,
   IconArrowRight,
   IconLansia,
+  IconBalita,
   IconCalendarRange,
   IconBriefcase,
   IconMapPin,
 } from "@/components/icons";
 import { cariLansia, KELOMPOK_LANSIA, BATAS_LANSIA } from "@/lib/lansia";
+import { cariBalita, KELOMPOK_BALITA, BATAS_BALITA } from "@/lib/balita";
 
 // ---------------------------------------------------------------------------
 // Statistik kependudukan untuk beranda dashboard (admin/staf).
@@ -26,6 +28,8 @@ const WARNA_KOSONG = "#CBD5E1";
 const WARNA_LAINNYA = "#94A3B8";
 // Ungu khusus lansia: emas sudah dipakai untuk perempuan, jadi tidak boleh tertukar.
 const WARNA_LANSIA = "#7C3AED";
+// Teal khusus balita: belum dipakai untuk jenis kelamin (biru/emas) maupun lansia (ungu).
+const WARNA_BALITA = "#0D9488";
 const PALET = [
   "#0B2C6B", "#3FA9F5", "#E8B933", "#10B981",
   "#8B5CF6", "#F97316", "#EC4899", "#14B8A6",
@@ -280,6 +284,7 @@ function BatangUsia({ data, total, siap }) {
   const maks = Math.max(...data.map((d) => d.jumlah), 1);
   const singkat = (l) => (adalahKosong(l) ? "?" : l.replace(" Tahun", ""));
   const adaLansia = data.some((d) => d.label === KELOMPOK_LANSIA);
+  const adaBalita = data.some((d) => d.label === KELOMPOK_BALITA);
   return (
     <div>
       <div className="flex h-44 items-end gap-1.5 sm:gap-2.5">
@@ -296,7 +301,9 @@ function BatangUsia({ data, total, siap }) {
                   ? WARNA_KOSONG
                   : d.label === KELOMPOK_LANSIA
                     ? `linear-gradient(to top, ${WARNA_LANSIA}, #A78BFA)`
-                    : "linear-gradient(to top, #0B2C6B, #3FA9F5)",
+                    : d.label === KELOMPOK_BALITA
+                      ? `linear-gradient(to top, ${WARNA_BALITA}, #5EEAD4)`
+                      : "linear-gradient(to top, #0B2C6B, #3FA9F5)",
                 transitionDelay: `${i * 60}ms`,
               }}
               title={`${d.label}: ${fmt(d.jumlah)} (${persen(d.jumlah, total)})`}
@@ -309,7 +316,11 @@ function BatangUsia({ data, total, siap }) {
           <span
             key={d.label}
             className={`min-w-0 flex-1 text-center text-[10px] sm:text-xs ${
-              d.label === KELOMPOK_LANSIA ? "font-semibold text-violet-600" : "text-slate-400"
+              d.label === KELOMPOK_LANSIA
+                ? "font-semibold text-violet-600"
+                : d.label === KELOMPOK_BALITA
+                  ? "font-semibold text-teal-600"
+                  : "text-slate-400"
             }`}
           >
             {singkat(d.label)}
@@ -318,6 +329,12 @@ function BatangUsia({ data, total, siap }) {
       </div>
       <div className="mt-2 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-[11px] text-slate-400">
         <span>Kelompok usia (tahun)</span>
+        {adaBalita && (
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: WARNA_BALITA }} />
+            Balita (di bawah {BATAS_BALITA} tahun)
+          </span>
+        )}
         {adaLansia && (
           <span className="flex items-center gap-1.5">
             <span className="h-2.5 w-2.5 rounded-sm" style={{ backgroundColor: WARNA_LANSIA }} />
@@ -430,6 +447,7 @@ export default function StatistikDashboard({ ringkas, detail, perDusun }) {
   const perempuan = cariJumlah(detail.perJenisKelamin, "Perempuan");
   const belumJk = cariJumlah(detail.perJenisKelamin, "Belum Diisi");
   const lansia = cariLansia(detail.perRentangUsia);
+  const balita = cariBalita(detail.perRentangUsia);
 
   const header = (
     <div className="flex flex-wrap items-end justify-between gap-3">
@@ -485,7 +503,7 @@ export default function StatistikDashboard({ ringkas, detail, perDusun }) {
       {header}
 
       {/* Kartu angka utama */}
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
         <KartuUtama
           gelap
           className="col-span-2 lg:col-span-1"
@@ -494,13 +512,23 @@ export default function StatistikDashboard({ ringkas, detail, perDusun }) {
           ket={rataKK ? `Rata-rata ${rataKK} jiwa per KK` : "Seluruh warga terdata"}
           ikon={<IconUsers className="h-5 w-5" />}
         />
-        <KartuUtama
-          label="Kartu Keluarga"
-          nilai={kk}
-          ket="Jumlah No. KK terdata"
-          warna="#10B981"
-          ikon={<IconIdCard className="h-5 w-5" />}
-        />
+        {balita.tersedia ? (
+          <KartuUtama
+            label={`Balita (<${BATAS_BALITA} th)`}
+            nilai={balita.jumlah}
+            ket={`${persen(balita.jumlah, total)} dari penduduk`}
+            warna={WARNA_BALITA}
+            ikon={<IconBalita className="h-5 w-5" />}
+          />
+        ) : (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4 sm:p-5">
+            <p className="text-xs font-medium text-slate-400">Balita (&lt;{BATAS_BALITA} th)</p>
+            <p className="mt-1 font-display text-3xl font-semibold leading-none text-slate-300 sm:text-4xl">-</p>
+            <p className="mt-2 text-xs text-slate-500">
+              Jalankan migrasi <code className="font-mono">0031</code> di Supabase agar angka balita muncul.
+            </p>
+          </div>
+        )}
         {lansia.tersedia ? (
           <KartuUtama
             label={`Lansia (${BATAS_LANSIA}+)`}
@@ -518,6 +546,14 @@ export default function StatistikDashboard({ ringkas, detail, perDusun }) {
             </p>
           </div>
         )}
+        <KartuUtama
+          className="col-span-2 lg:col-span-1"
+          label="Kartu Keluarga"
+          nilai={kk}
+          ket="Jumlah No. KK terdata"
+          warna="#10B981"
+          ikon={<IconIdCard className="h-5 w-5" />}
+        />
         <KartuJenisKelamin laki={laki} perempuan={perempuan} className="col-span-2 lg:col-span-1" />
       </div>
 
@@ -575,6 +611,13 @@ export default function StatistikDashboard({ ringkas, detail, perDusun }) {
               className="lg:col-span-2"
             >
               <BatangUsia data={detail.perRentangUsia} total={total} siap={siap} />
+              {balita.tersedia && (
+                <p className="mt-4 rounded-xl bg-teal-50 px-3 py-2 text-xs leading-relaxed text-teal-900">
+                  Penduduk balita (usia di bawah {BATAS_BALITA} tahun):{" "}
+                  <b className="font-semibold">{fmt(balita.jumlah)} orang</b>,{" "}
+                  {persen(balita.jumlah, total)} dari seluruh penduduk.
+                </p>
+              )}
               {lansia.tersedia && (
                 <p className="mt-4 rounded-xl bg-violet-50 px-3 py-2 text-xs leading-relaxed text-violet-900">
                   Penduduk lansia (usia {BATAS_LANSIA} tahun ke atas):{" "}
