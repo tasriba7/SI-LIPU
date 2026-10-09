@@ -48,6 +48,16 @@ module.exports = {
           "0%": { opacity: "0", transform: "translateY(6px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        // Angka jam "naik" ala odometer: angka baru masuk dari bawah,
+        // angka lama keluar ke atas (dipakai di JamTanggalBeranda).
+        naikMasuk: {
+          "0%": { opacity: "0", transform: "translateY(100%)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        naikKeluar: {
+          "0%": { opacity: "1", transform: "translateY(0)" },
+          "100%": { opacity: "0", transform: "translateY(-100%)" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.6s ease-out forwards",
@@ -58,6 +68,8 @@ module.exports = {
         // sengaja singkat & tanpa jarak geser besar supaya terasa responsif,
         // bukan bikin pengguna menunggu.
         pageIn: "pageIn 0.28s ease-out forwards",
+        naikMasuk: "naikMasuk 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
+        naikKeluar: "naikKeluar 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards",
       },
     },
   },
