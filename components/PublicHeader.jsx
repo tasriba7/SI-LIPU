@@ -104,17 +104,17 @@ export default function PublicHeader() {
             alt={config.logo_url ? "Logo desa" : "Logo SI-LIPU"}
             width={40}
             height={40}
-            className="h-9 w-9 shrink-0 rounded-full object-contain ring-1 ring-navy/10 transition group-hover:ring-gold/60 sm:h-10 sm:w-10"
+            className="h-10 w-10 shrink-0 rounded-full object-contain ring-1 ring-navy/10 transition group-hover:ring-gold/60 sm:h-11 sm:w-11"
           />
           <span className="leading-tight">
-            <span className="block max-w-[190px] truncate font-display text-[14px] font-semibold tracking-wide text-navy sm:max-w-[320px] sm:text-[15px]">
+            <span className="block max-w-[170px] line-clamp-2 font-display text-[16px] font-semibold leading-tight tracking-wide text-navy sm:line-clamp-none sm:max-w-[320px] sm:truncate sm:text-[19px] lg:max-w-[260px] lg:text-[18px] xl:max-w-[270px] xl:text-[20px]">
               {config.nama_desa
                 ? `${config.jenis_wilayah || "Desa"} ${config.nama_desa}`
                 : "SI-LIPU"}
             </span>
             {/* Subtitle disembunyikan di layar sedang (lg) agar menu muat
                 sejajar; muncul lagi di layar lebar (xl). */}
-            <span className="hidden max-w-[320px] truncate font-mono text-[10px] uppercase tracking-[0.18em] text-slate-400 sm:block lg:hidden xl:block">
+            <span className="hidden max-w-[320px] truncate font-mono text-[11px] uppercase tracking-[0.16em] text-slate-400 sm:block lg:hidden xl:block">
               {config.nama_desa ? "Portal Layanan Digital Desa" : "Sistem Informasi Layanan Interaktif"}
             </span>
           </span>
