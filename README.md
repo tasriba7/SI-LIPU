@@ -44,6 +44,12 @@ Buat Surat Langsung oleh petugas (tanpa ajuan warga) — selesai:
 - Hanya role penerbit surat (admin, Sekretaris Desa, Kaur, Kasi) — dicek di server action. **Tanpa migrasi database baru.**
 - Tombol masuk: "Buat Surat Langsung" di `/dashboard/layanan` dan `/dashboard/surat-terbit`.
 
+Detail Keluarga (admin/staf) — selesai:
+- `/dashboard/kependudukan/kartu-keluarga` — ketik **nama warga / NIK / No. KK** (kepala keluarga, istri, atau anak, siapa pun) lalu sistem membuka keluarganya. Kalau hanya 1 keluarga cocok, langsung dibuka; kalau lebih, tampil daftar pilihan.
+- `/dashboard/kependudukan/keluarga/[no_kk]` — jumlah anggota (L/P), jumlah anak, susunan keluarga, rentang usia, pendidikan tertinggi, tabel seluruh anggota (hubungan, usia, status kawin, pendidikan, pekerjaan, agama, No. HP), rincian per pendidikan/pekerjaan/status kawin/agama, dan peringatan data belum lengkap. Warga yang dicari disorot.
+- Kolom baru `warga.pendidikan` (dropdown di form Tambah/Edit, ikut impor & ekspor Excel). Migrasi: `supabase/migrations/0026_pendidikan_warga.sql` — **wajib dijalankan** sebelum memakai halaman ini.
+- Statistik kelompok usia diselaraskan dengan batas lansia 60 tahun: kelompok teratas kini `56-59` dan `60+` (sebelumnya `56-65` dan `65+`). Migrasi: `supabase/migrations/0027_kelompok_usia_lansia_60.sql`.
+
 Fase 1c (Sistem Slot Kadus & Ketua RT) — selesai:
 - `/dashboard/posisi` — admin daftarkan wilayah (dusun/RT-RW) sebagai slot kosong
 - `/pendaftaran` — calon Kadus/Ketua RT daftar mandiri, memilih wilayahnya; **otomatis ditolak lewat trigger database** kalau slot itu sudah terisi
