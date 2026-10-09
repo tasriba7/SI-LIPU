@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { eksporExcel, eksporPdf } from "@/lib/eksporStatistik";
+import { cariLansia, KELOMPOK_LANSIA, BATAS_LANSIA } from "@/lib/lansia";
 import {
   IconBook,
   IconHeartHandshake,
@@ -9,6 +10,7 @@ import {
   IconCalendarRange,
   IconBriefcase,
   IconMapPin,
+  IconLansia,
 } from "@/components/icons";
 
 const BELUM = "Belum Diisi";
@@ -35,9 +37,11 @@ function urutkan(rows) {
   ];
 }
 
+// "Lainnya" (gabungan pekerjaan di luar 8 teratas) bukan kategori nyata,
+// jadi tidak pernah disebut "terbanyak" (sama seperti di dashboard admin).
 function terbesar(rows) {
   return rows
-    .filter((r) => r.label !== BELUM && r.jumlah > 0)
+    .filter((r) => r.label !== BELUM && r.label !== "Lainnya" && r.jumlah > 0)
     .reduce((a, b) => (!a || b.jumlah > a.jumlah ? b : a), null);
 }
 
@@ -167,6 +171,7 @@ function DaftarBatang({ rows, active }) {
       {rows.map((r) => {
         const belum = r.label === BELUM;
         const unggul = juara && r.label === juara.label;
+        const sorot = !!r.sorot;
         const lebar = tumbuh && active ? Math.max((r.jumlah / maks) * 100, r.jumlah > 0 ? 2 : 0) : 0;
         return (
           <li key={r.label}>
@@ -192,6 +197,8 @@ function DaftarBatang({ rows, active }) {
                 className={`h-full rounded-full transition-[width] duration-700 ease-out motion-reduce:transition-none ${
                   belum
                     ? "bg-white/25"
+                    : sorot
+                    ? "bg-gradient-to-r from-violet-400 to-violet-300"
                     : unggul
                     ? "bg-gradient-to-r from-gold to-gold-light"
                     : "bg-gradient-to-r from-seablue/80 to-seablue/50"
@@ -283,6 +290,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
     { label: "Perempuan", jumlah: perempuan, warna: "#E8B933" },
     ...(belumJk > 0 ? [{ label: BELUM, jumlah: belumJk, warna: "rgba(255,255,255,0.3)" }] : []),
   ];
+  const lansia = cariLansia(perRentangUsia);
   const rasio = perempuan > 0 ? Math.round((laki / perempuan) * 100) : null;
 
   // --- Tab -------------------------------------------------------------
@@ -293,7 +301,13 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
   }));
 
   const TAB = [
-    { id: "usia", nama: "Usia", icon: IconCalendarRange, judul: "Kelompok usia", ket: "Jumlah penduduk menurut rentang umur", rows: urutkan(perRentangUsia) },
+    { id: "usia", nama: "Usia", icon: IconCalendarRange, judul: "Kelompok usia", ket: "Jumlah penduduk menurut rentang umur", rows: urutkan(
+        perRentangUsia.map((r) =>
+          r.label === KELOMPOK_LANSIA
+            ? { ...r, sub: `Lansia, usia ${BATAS_LANSIA} tahun ke atas`, sorot: true }
+            : r
+        )
+      ) },
     { id: "pekerjaan", nama: "Pekerjaan", icon: IconBriefcase, judul: "Pekerjaan", ket: "8 pekerjaan terbanyak, sisanya digabung di “Lainnya”", rows: urutkan(perPekerjaan) },
     { id: "agama", nama: "Agama", icon: IconBook, judul: "Agama", ket: "Jumlah penduduk menurut agama", rows: urutkan(perAgama) },
     { id: "nikah", nama: "Status Nikah", icon: IconHeartHandshake, judul: "Status pernikahan", ket: "Kawin, belum kawin, cerai hidup, cerai mati", rows: urutkan(perStatusKawin) },
@@ -345,7 +359,11 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
 
         {/* Sekilas */}
         {sekilas.length > 0 && (
-          <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div
+            className={`mt-10 grid grid-cols-2 gap-3 ${
+              lansia.tersedia ? "lg:grid-cols-5" : "lg:grid-cols-4"
+            }`}
+          >
             {sekilas.map((s) => (
               <button
                 key={s.label}
@@ -354,21 +372,40 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
                 className="group rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center transition duration-300 hover:-translate-y-0.5 sm:text-left hover:border-gold/40 hover:bg-white/[0.07] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
               >
                 <p className="text-[11px] uppercase tracking-widest text-white/45">{s.label}</p>
-                <p className="mt-2 truncate font-display text-lg font-semibold text-white sm:text-xl" title={s.juara.label}>
-                  {s.juara.label}
+                <p className="mt-2 break-words font-display text-lg font-semibold leading-snug text-white sm:text-xl">
+                  {/* spasi tak terlihat setelah "/" supaya "Nelayan/Perikanan" turun baris di garis miring, bukan di tengah kata */}
+                  {s.juara.label.replace(/\//g, "/\u200B")}
                 </p>
                 <p className="mt-1 text-xs text-gold-light">
                   {fmt(s.juara.jumlah)} orang · {fmtPersen(s.juara.jumlah, totalPenduduk)}
                 </p>
               </button>
             ))}
+            {lansia.tersedia && (
+              <button
+                type="button"
+                onClick={() => setTabAktif("usia")}
+                className="group col-span-2 rounded-2xl border border-violet-300/25 bg-violet-400/[0.08] p-4 text-center transition duration-300 hover:border-violet-300/50 hover:bg-violet-400/[0.12] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 sm:text-left lg:col-span-1"
+              >
+                <p className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-widest text-violet-200/70 sm:justify-start">
+                  <IconLansia className="h-3.5 w-3.5" />
+                  Penduduk lansia
+                </p>
+                <p className="mt-2 font-display text-lg font-semibold tabular-nums text-white sm:text-xl">
+                  {fmt(lansia.jumlah)} orang
+                </p>
+                <p className="mt-1 text-xs text-violet-200">
+                  {fmtPersen(lansia.jumlah, totalPenduduk)} · usia {BATAS_LANSIA} tahun ke atas
+                </p>
+              </button>
+            )}
           </div>
         )}
 
         {/* Donut + Rincian */}
         <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
           {/* Jenis kelamin */}
-          <div className="min-w-0 rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur sm:p-8">
+          <div className="flex min-w-0 flex-col rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur sm:p-8">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-gold-light">
                 <IconGenderBalance className="h-5 w-5" />
@@ -379,7 +416,8 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
               </div>
             </div>
 
-            <div className="mt-6">
+            <div className="my-auto py-6">
+            <div>
               <Donut segmen={segmen} total={totalPenduduk} active={inView} />
             </div>
 
@@ -404,6 +442,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
                 <span className="font-semibold text-gold-light">{rasio}</span>: ada {rasio} laki-laki untuk setiap 100 perempuan.
               </p>
             )}
+            </div>
           </div>
 
           {/* Rincian bertab */}
