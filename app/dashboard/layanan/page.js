@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { STATUS_LABELS } from "@/lib/statusSurat";
+import { STATUS_LABELS, STATUS_BADGE_CLASS } from "@/lib/statusSurat";
 import { linkWhatsApp } from "@/lib/whatsapp";
 import { bisaTerbitkanSurat, bisaMenulis, isAdminRole } from "@/lib/roles";
 import { IconPlus } from "@/components/icons";
