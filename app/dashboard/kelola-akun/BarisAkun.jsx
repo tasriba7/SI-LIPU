@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { aturPasswordAkun } from "./actions";
+import { aturPasswordAkun, hapusAkunWilayah } from "./actions";
 import { ROLE_BADGE_CLASS, labelJabatan } from "@/lib/roles";
 import { IconKey } from "@/components/icons";
 import CopyButton from "@/components/CopyButton";
@@ -13,6 +13,30 @@ export default function BarisAkun({ akun, checked, onToggleCheck }) {
   const [isPending, startTransition] = useTransition();
   const [hasil, setHasil] = useState(null);
   const [error, setError] = useState(null);
+
+  const [hasilHapus, setHasilHapus] = useState(null);
+
+  function handleHapus() {
+    const catatanData =
+      akun.jumlahWarga > 0
+        ? `Akun ini pernah menginput ${akun.jumlahWarga} data penduduk. Data itu TIDAK dihapus dan tetap ada; hanya keterangan penginputnya yang tidak lagi tertaut ke akun.`
+        : "Akun ini belum menginput data penduduk.";
+    if (
+      !confirm(
+        `Hapus akun ${akun.nama} (${akun.email})?\n\n${catatanData}\n\nSlot posisinya akan dikosongkan sehingga bisa didaftar ulang, dan akun ini tidak bisa login lagi. Tindakan ini tidak bisa dibatalkan.`
+      )
+    ) {
+      return;
+    }
+    setError(null);
+    const fd = new FormData();
+    fd.set("user_id", akun.id);
+    startTransition(async () => {
+      const res = await hapusAkunWilayah(null, fd);
+      if (res?.error) setError(res.error);
+      else setHasilHapus(res);
+    });
+  }
 
   const badgeClass = ROLE_BADGE_CLASS[akun.role] ?? "bg-slate-100 text-slate-500";
 
@@ -136,6 +160,27 @@ export default function BarisAkun({ akun, checked, onToggleCheck }) {
             )}
           </div>
         )}
+        {akun.bisaDihapus && !hasilHapus && (
+          <button
+            type="button"
+            onClick={handleHapus}
+            disabled={isPending}
+            className="mt-2 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-60"
+          >
+            {isPending ? "Memproses..." : "Hapus Akun"}
+          </button>
+        )}
+        {hasilHapus && (
+          <p className="mt-2 w-64 rounded-lg border border-emerald-200 bg-emerald-50 p-2 text-xs text-emerald-700">
+            {hasilHapus.dinonaktifkan
+              ? `Akun ${hasilHapus.nama} dinonaktifkan (tidak bisa login) karena masih dirujuk riwayat lain di database.`
+              : `Akun ${hasilHapus.nama} dihapus.`}{" "}
+            {hasilHapus.jumlahWarga > 0
+              ? `${hasilHapus.jumlahWarga} data penduduk tetap tersimpan.`
+              : ""}
+          </p>
+        )}
+        {!buka && error && <p className="mt-2 w-64 text-xs text-red-600">{error}</p>}
       </td>
     </tr>
   );

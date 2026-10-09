@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { tambahSlotPosisi } from "./actions";
 
@@ -19,6 +19,7 @@ function TombolTambah() {
 
 export default function FormTambahSlot() {
   const [state, formAction] = useActionState(tambahSlotPosisi, {});
+  const [role, setRole] = useState("ketua_rt");
 
   return (
     <form
@@ -29,7 +30,8 @@ export default function FormTambahSlot() {
         <label className="mb-1 block text-xs text-slate-500">Role</label>
         <select
           name="role"
-          defaultValue="ketua_rt"
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy"
         >
           <option value="ketua_rt">Ketua RT</option>
@@ -38,16 +40,38 @@ export default function FormTambahSlot() {
         </select>
       </div>
       <div className="flex-1">
-        <label className="mb-1 block text-xs text-slate-500">
-          Wilayah (mis. &quot;RT 01/RW 02&quot;, &quot;Dusun 1&quot;, atau &quot;Desa&quot; untuk Kepala Desa)
-        </label>
-        <input
-          type="text"
-          name="wilayah"
-          required
-          placeholder="RT 01/RW 02"
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy"
-        />
+        {role === "kadus" ? (
+          <>
+            <label className="mb-1 block text-xs text-slate-500">
+              Nama atau nomor dusun (mis. &quot;1&quot; atau &quot;Melati&quot;). Ini juga menjadi
+              pilihan Dusun di data penduduk, jadi isi nama dusunnya saja, bukan jabatan.
+            </label>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-slate-500">Dusun</span>
+              <input
+                type="text"
+                name="wilayah"
+                required
+                maxLength={40}
+                placeholder="1"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy"
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <label className="mb-1 block text-xs text-slate-500">
+              Wilayah (mis. &quot;RT 01/RW 02&quot;, atau &quot;Desa&quot; untuk Kepala Desa)
+            </label>
+            <input
+              type="text"
+              name="wilayah"
+              required
+              placeholder={role === "kepala_desa" ? "Desa" : "RT 01/RW 02"}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy"
+            />
+          </>
+        )}
       </div>
       <TombolTambah />
       {state?.error && <p className="w-full text-sm text-red-600">{state.error}</p>}

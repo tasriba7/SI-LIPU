@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import EditWargaForm from "./EditWargaForm";
 import { labelKolomKosong } from "@/lib/kelengkapan";
+import { ambilPilihanDusun } from "@/lib/wilayah";
 
 const LABEL_ROLE = { ...ROLE_LABELS, kadus: "Kadus", ketua_rt: "Ketua RT" };
 
@@ -22,6 +23,7 @@ export default async function EditWargaPage({ params }) {
   if (!warga) notFound();
 
   const kolomKosong = labelKolomKosong(warga.kolom_kosong);
+  const { pilihan: pilihanDusun } = await ambilPilihanDusun(supabase);
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -60,7 +62,7 @@ export default async function EditWargaPage({ params }) {
         </div>
       )}
 
-      <EditWargaForm warga={warga} />
+      <EditWargaForm warga={warga} pilihanDusun={pilihanDusun} />
     </div>
   );
 }

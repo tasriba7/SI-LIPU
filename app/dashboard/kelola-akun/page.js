@@ -64,9 +64,23 @@ export default async function KelolaAkunPage() {
 
     const authUsers = await ambilSemuaAuthUsers(adminClient);
     const emailById = new Map(authUsers.map((u) => [u.id, u.email]));
+    // Jumlah data penduduk yang diinput tiap akun Kadus/Ketua RT, ditampilkan
+    // di konfirmasi hapus supaya admin tahu data itu tetap aman.
+    const jumlahWargaById = new Map();
+    for (const p of profiles ?? []) {
+      if (p.role !== "kadus" && p.role !== "ketua_rt") continue;
+      const { count } = await adminClient
+        .from("warga")
+        .select("id", { count: "exact", head: true })
+        .eq("dibuat_oleh", p.id);
+      jumlahWargaById.set(p.id, count ?? 0);
+    }
+
     daftar = (profiles ?? []).map((p) => ({
       ...p,
       email: emailById.get(p.id) || "-",
+      bisaDihapus: (p.role === "kadus" || p.role === "ketua_rt") && p.id !== user?.id,
+      jumlahWarga: jumlahWargaById.get(p.id) ?? 0,
     }));
   } catch (e) {
     errAuth = e.message;

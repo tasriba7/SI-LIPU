@@ -3,13 +3,23 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { pastikanAdmin } from "@/lib/akses";
+import { formatNamaDusun } from "@/lib/wilayah";
 
 export async function tambahSlotPosisi(prevState, formData) {
   const role = formData.get("role");
-  const wilayah = formData.get("wilayah")?.trim();
+  let wilayah = formData.get("wilayah")?.trim();
 
   if (!role || !wilayah) {
     return { error: "Role dan wilayah wajib diisi." };
+  }
+
+  // Slot Kepala Dusun = daftar dusun desa. Penulisannya dibakukan di server
+  // ("1", "01", "Dusun 1" -> "Dusun 1") dan nama jabatan ditolak, supaya
+  // cocok dengan isian Dusun di data warga (aturan RLS wilayah_cocok).
+  if (role === "kadus") {
+    const f = formatNamaDusun(wilayah);
+    if (f.error) return { error: f.error };
+    wilayah = f.nilai;
   }
 
   const supabase = await createClient();

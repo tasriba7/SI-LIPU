@@ -21,7 +21,8 @@ function TombolSimpan() {
   );
 }
 
-export default function EditWargaForm({ warga }) {
+export default function EditWargaForm({ warga, pilihanDusun = [] }) {
+  const dusunLamaAsing = warga.dusun && !pilihanDusun.includes(warga.dusun);
   const router = useRouter();
   const [state, formAction] = useActionState(editWarga, {});
 
@@ -176,12 +177,21 @@ export default function EditWargaForm({ warga }) {
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="mb-1 block text-sm text-slate-600">Dusun</label>
-          <input
-            type="text"
+          <select
             name="dusun"
             defaultValue={warga.dusun || ""}
             className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy"
-          />
+          >
+            <option value="">Pilih dusun</option>
+            {dusunLamaAsing && (
+              <option value={warga.dusun}>{warga.dusun} (tidak ada di daftar)</option>
+            )}
+            {pilihanDusun.map((d) => (
+              <option key={d} value={d}>
+                {d}
+              </option>
+            ))}
+          </select>
         </div>
         <div>
           <label className="mb-1 block text-sm text-slate-600">RT</label>

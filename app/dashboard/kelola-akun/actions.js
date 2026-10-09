@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { pastikanAdmin as pastikanAdminBersama } from "@/lib/akses";
 import { ROLE_BISA_DIBUAT_ADMIN, ROLE_LABELS } from "@/lib/roles";
 import { buatPasswordAcak, PASSWORD_MINIMAL } from "@/lib/passwordAcak";
+import { adalahUuid } from "@/lib/validasiPengajuan";
 
 async function pastikanAdmin() {
   const supabase = await createClient();
@@ -143,4 +144,108 @@ export async function buatAkunStaf(prevState, formData) {
 
   revalidatePath("/dashboard/kelola-akun");
   return { success: true, email, password: passwordBaru, userId: data.user.id };
+}
+
+/**
+ * Hapus akun Kepala Dusun / Ketua RT (hanya admin).
+ *
+ * Pengamanan:
+ *  - Hanya role kadus & ketua_rt; akun sendiri dan role lain ditolak.
+ *  - Data penduduk yang pernah diinput akun ini TIDAK ikut terhapus: kolom
+ *    warga.dibuat_oleh memakai ON DELETE SET NULL, dan nama/peran/wilayah
+ *    penginput sudah tersalin sebagai teks di baris warga (migrasi 0015).
+ *    Data tetap terlihat oleh admin dan oleh Kadus/RT pengganti di wilayah itu.
+ *  - Slot posisi dikosongkan lebih dulu (profile_id memakai foreign key) supaya
+ *    wilayahnya bisa didaftar ulang oleh orang lain.
+ *  - Kalau akun tidak bisa dihapus karena masih dirujuk riwayat lain di
+ *    database, akun DINONAKTIFKAN (tidak bisa login) alih-alih dihapus paksa.
+ *  - Kalau keduanya gagal, slot dikembalikan seperti semula.
+ */
+export async function hapusAkunWilayah(prevState, formData) {
+  const cek = await pastikanAdmin();
+  if (cek.error) return { error: cek.error };
+
+  const userId = String(formData.get("user_id") ?? "");
+  if (!adalahUuid(userId)) return { error: "Akun tidak ditemukan." };
+  if (userId === cek.user.id) return { error: "Anda tidak bisa menghapus akun Anda sendiri." };
+
+  const adminClient = createAdminClient();
+
+  const { data: profil } = await adminClient
+    .from("profiles")
+    .select("id, nama, role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!profil) return { error: "Akun tidak ditemukan." };
+  if (!["kadus", "ketua_rt"].includes(profil.role)) {
+    return { error: "Hanya akun Kepala Dusun dan Ketua RT yang bisa dihapus dari sini." };
+  }
+
+  const { count: jumlahWarga } = await adminClient
+    .from("warga")
+    .select("id", { count: "exact", head: true })
+    .eq("dibuat_oleh", userId);
+
+  // 1) Kosongkan slot yang dipegang akun ini.
+  const { data: slotLama, error: errSlot } = await adminClient
+    .from("posisi_perangkat")
+    .select("id, status, profile_id, diisi_pada")
+    .eq("profile_id", userId);
+  if (errSlot) return { error: "Gagal memeriksa slot posisi. Tidak ada yang diubah." };
+
+  const idSlot = (slotLama ?? []).map((x) => x.id);
+  if (idSlot.length > 0) {
+    const { error } = await adminClient
+      .from("posisi_perangkat")
+      .update({
+        status: "kosong",
+        profile_id: null,
+        dikosongkan_oleh: cek.user.id,
+        dikosongkan_pada: new Date().toISOString(),
+      })
+      .in("id", idSlot);
+    if (error) return { error: "Gagal mengosongkan slot posisi. Tidak ada yang diubah." };
+  }
+
+  async function kembalikanSlot() {
+    for (const x of slotLama ?? []) {
+      await adminClient
+        .from("posisi_perangkat")
+        .update({
+          status: x.status,
+          profile_id: x.profile_id,
+          diisi_pada: x.diisi_pada,
+          dikosongkan_oleh: null,
+          dikosongkan_pada: null,
+        })
+        .eq("id", x.id);
+    }
+  }
+
+  // 2) Hapus akun Auth (profil ikut terhapus lewat cascade).
+  const { error: errHapus } = await adminClient.auth.admin.deleteUser(userId);
+
+  if (!errHapus) {
+    revalidatePath("/dashboard/kelola-akun");
+    revalidatePath("/dashboard/posisi");
+    revalidatePath("/dashboard/kependudukan");
+    return { success: true, nama: profil.nama, jumlahWarga: jumlahWarga ?? 0, dinonaktifkan: false };
+  }
+
+  // 3) Cadangan: nonaktifkan (blokir login) kalau penghapusan ditolak database.
+  const { error: errBan } = await adminClient.auth.admin.updateUserById(userId, {
+    ban_duration: "876000h",
+  });
+
+  if (errBan) {
+    await kembalikanSlot();
+    return {
+      error: `Akun tidak bisa dihapus (${errHapus.message}) dan tidak bisa dinonaktifkan. Slot dikembalikan seperti semula.`,
+    };
+  }
+
+  revalidatePath("/dashboard/kelola-akun");
+  revalidatePath("/dashboard/posisi");
+  return { success: true, nama: profil.nama, jumlahWarga: jumlahWarga ?? 0, dinonaktifkan: true };
 }

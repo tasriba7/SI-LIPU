@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { pastikanBisaMenulis } from "@/lib/akses";
+import { ambilDaftarDusun, periksaDusun } from "@/lib/wilayah";
 
 export async function tambahWarga(prevState, formData) {
   const nik = formData.get("nik")?.trim();
@@ -12,7 +13,7 @@ export async function tambahWarga(prevState, formData) {
   const tanggal_lahir = formData.get("tanggal_lahir");
   const jenis_kelamin = formData.get("jenis_kelamin") || null;
   const alamat = formData.get("alamat")?.trim() || null;
-  const dusun = formData.get("dusun")?.trim() || null;
+  const dusunInput = formData.get("dusun")?.trim() || null;
   const rt = formData.get("rt")?.trim() || null;
   const rw = formData.get("rw")?.trim() || null;
   const no_hp = formData.get("no_hp")?.trim() || null;
@@ -32,6 +33,12 @@ export async function tambahWarga(prevState, formData) {
   const supabase = await createClient();
   const _akses = await pastikanBisaMenulis(supabase);
   if (_akses.error) return { error: _akses.error };
+
+  // Dusun harus salah satu dari daftar yang dibuat Administrator.
+  const cekDusun = periksaDusun(dusunInput, await ambilDaftarDusun(supabase));
+  if (cekDusun.error) return { error: cekDusun.error };
+  const dusun = cekDusun.nilai;
+
   const { error } = await supabase.from("warga").insert({
     nik,
     no_kk,
@@ -80,7 +87,7 @@ export async function tambahWarga(prevState, formData) {
 export async function tambahKeluargaWarga(prevState, formData) {
   const no_kk = formData.get("no_kk")?.trim() || null;
   const alamat = formData.get("alamat")?.trim() || null;
-  const dusun = formData.get("dusun")?.trim() || null;
+  const dusunInput = formData.get("dusun")?.trim() || null;
   const rt = formData.get("rt")?.trim() || null;
   const rw = formData.get("rw")?.trim() || null;
 
@@ -145,6 +152,11 @@ export async function tambahKeluargaWarga(prevState, formData) {
   const supabase = await createClient();
   const _akses = await pastikanBisaMenulis(supabase);
   if (_akses.error) return { error: _akses.error };
+
+  const cekDusun = periksaDusun(dusunInput, await ambilDaftarDusun(supabase));
+  if (cekDusun.error) return { error: cekDusun.error };
+  for (const baris of barisSiap) baris.dusun = cekDusun.nilai;
+
   const { error } = await supabase.from("warga").insert(barisSiap);
 
   if (error) {
@@ -177,7 +189,7 @@ export async function editWarga(prevState, formData) {
   const tanggal_lahir = formData.get("tanggal_lahir");
   const jenis_kelamin = formData.get("jenis_kelamin") || null;
   const alamat = formData.get("alamat")?.trim() || null;
-  const dusun = formData.get("dusun")?.trim() || null;
+  const dusunInput = formData.get("dusun")?.trim() || null;
   const rt = formData.get("rt")?.trim() || null;
   const rw = formData.get("rw")?.trim() || null;
   const no_hp = formData.get("no_hp")?.trim() || null;
@@ -200,6 +212,18 @@ export async function editWarga(prevState, formData) {
   const supabase = await createClient();
   const _akses = await pastikanBisaMenulis(supabase);
   if (_akses.error) return { error: _akses.error };
+
+  // Data lama yang ejaan dusunnya tidak ada di daftar boleh tetap disimpan
+  // selama dusunnya tidak diubah; kalau diubah, harus memilih dari daftar.
+  const { data: lama } = await supabase.from("warga").select("dusun").eq("id", id).maybeSingle();
+  const cekDusun = periksaDusun(
+    dusunInput,
+    await ambilDaftarDusun(supabase),
+    lama?.dusun ?? null
+  );
+  if (cekDusun.error) return { error: cekDusun.error };
+  const dusun = cekDusun.nilai;
+
   const { data: baruTersimpan, error } = await supabase
     .from("warga")
     .update({
@@ -361,6 +385,7 @@ export async function importWarga(prevState, formData) {
   const supabase = await createClient();
   const _akses = await pastikanBisaMenulis(supabase);
   if (_akses.error) return { error: _akses.error };
+  const daftarDusun = await ambilDaftarDusun(supabase);
   const gagal = [];
   const siap = []; // { baris, nomorBaris }
   const nikTerlihat = new Set();
@@ -373,6 +398,12 @@ export async function importWarga(prevState, formData) {
       continue;
     }
     const baris = hasilBersih.data;
+    const cekDusun = periksaDusun(baris.dusun, daftarDusun);
+    if (cekDusun.error) {
+      gagal.push(`Baris ${nomorBaris}: ${cekDusun.error}`);
+      continue;
+    }
+    baris.dusun = cekDusun.nilai;
     if (nikTerlihat.has(baris.nik)) {
       gagal.push(`Baris ${nomorBaris}: NIK "${baris.nik}" duplikat di dalam file yang diunggah.`);
       continue;
