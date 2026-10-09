@@ -1,15 +1,56 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { IconCalendarRange, IconClock } from "@/components/icons";
+import { IconCalendarRange } from "@/components/icons";
 import { formatWaktuBeranda } from "@/lib/waktuLokal";
 
-// Strip hari, tanggal, dan jam (sampai detik) di puncak beranda, tepat di
-// bawah header. Waktu mengikuti zona waktu perangkat pengunjung.
+// Satu angka yang "naik" ala odometer: saat nilainya berubah, angka lama
+// bergeser keluar ke atas sementara angka baru masuk dari bawah.
+// Semua digit memakai lebar tetap (1ch, font mono) sehingga tidak bergoyang.
+function AngkaNaik({ nilai }) {
+  const [s, setS] = useState({ sekarang: nilai, sebelum: null, n: 0 });
+  // Pola "turunan dari props": simpan angka lama selama animasi berjalan.
+  if (s.sekarang !== nilai) {
+    setS({ sekarang: nilai, sebelum: s.sekarang, n: s.n + 1 });
+  }
+  return (
+    <span className="relative inline-block h-[1.25em] w-[1ch] overflow-hidden align-middle leading-[1.25em]">
+      {s.sebelum !== null && (
+        <span
+          key={`lama-${s.n}`}
+          aria-hidden="true"
+          className="absolute inset-x-0 top-0 block animate-naikKeluar text-center motion-reduce:hidden"
+          onAnimationEnd={() => setS((x) => ({ ...x, sebelum: null }))}
+        >
+          {s.sebelum}
+        </span>
+      )}
+      <span
+        key={`baru-${s.n}`}
+        className="block animate-naikMasuk text-center motion-reduce:animate-none"
+      >
+        {s.sekarang}
+      </span>
+    </span>
+  );
+}
+
+function DuaAngka({ teks }) {
+  return (
+    <>
+      <AngkaNaik nilai={teks[0]} />
+      <AngkaNaik nilai={teks[1]} />
+    </>
+  );
+}
+
+// Hari, tanggal, dan jam (sampai detik) dalam satu kapsul kecil — dipasang di
+// dalam hero beranda, tepat di atas baris "Desa · Kec. …". Waktu mengikuti
+// zona waktu perangkat pengunjung.
 //
-// Saat render di server, waktu belum diketahui (zona server ≠ zona warga),
-// jadi yang tampil dulu hanya kerangka dengan tinggi tetap — begitu dimuat
-// di browser, waktu langsung terisi tanpa membuat halaman bergeser.
+// Di server waktu belum diketahui (zona server ≠ zona warga), jadi awalnya
+// hanya kerangka dengan ukuran tetap; begitu dimuat di browser, waktu terisi
+// tanpa membuat halaman bergeser.
 export default function JamTanggalBeranda() {
   const [w, setW] = useState(null);
 
@@ -17,7 +58,7 @@ export default function JamTanggalBeranda() {
     let timer;
     const perbarui = () => setW(formatWaktuBeranda(new Date()));
     // Tiap tick dijadwalkan tepat di pergantian detik berikutnya, supaya
-    // angka detik tidak tertinggal/loncat seperti setInterval biasa.
+    // detik tidak tertinggal/loncat seperti setInterval biasa.
     const tick = () => {
       perbarui();
       timer = setTimeout(tick, 1000 - (Date.now() % 1000) + 5);
@@ -35,64 +76,51 @@ export default function JamTanggalBeranda() {
   }, []);
 
   return (
-    <div className="relative border-b border-gold/25 bg-gradient-to-r from-navy-dark via-navy to-navy-dark">
-      {/* Kilau tipis di tepi atas, aksen "kop surat" senada header. */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+    <div className="mb-4 flex justify-center md:mb-5">
+      <div className="inline-flex h-9 max-w-full items-center gap-2.5 whitespace-nowrap rounded-full bg-navy-dark/85 px-3.5 shadow-lg shadow-black/25 ring-1 ring-gold/50 backdrop-blur-sm sm:h-11 sm:gap-3.5 sm:px-5">
+        <IconCalendarRange className="hidden h-4 w-4 shrink-0 text-gold-light sm:block" />
 
-      <div className="mx-auto flex min-h-[58px] max-w-6xl items-center justify-between gap-3 px-5 py-2 sm:min-h-[64px] sm:px-6">
-        {/* Hari & tanggal */}
-        <div className="flex min-w-0 items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10 text-gold-light ring-1 ring-gold/30 sm:h-10 sm:w-10">
-            <IconCalendarRange className="h-[18px] w-[18px] sm:h-5 sm:w-5" />
-          </span>
-          <div className="min-w-0 leading-tight">
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-gold sm:text-[11px]">
-              {w ? w.hari : "\u00A0"}
-            </p>
-            <p className="truncate text-[13px] font-medium text-white sm:text-[15px]">
-              {w ? w.tanggal : "\u00A0"}
-            </p>
-          </div>
-        </div>
+        {/* Hari & tanggal — di HP memakai singkatan agar muat satu baris. */}
+        <p className="text-[12px] font-medium text-white sm:text-[14px]">
+          <span className="text-gold-light">
+            <span className="sm:hidden">{w ? w.hariPendek : "···"}</span>
+            <span className="hidden sm:inline">{w ? w.hari : "······"}</span>,
+          </span>{" "}
+          <span className="sm:hidden">{w ? w.tanggalPendek : "·· ··· ····"}</span>
+          <span className="hidden sm:inline">{w ? w.tanggal : "·· ······· ····"}</span>
+        </p>
 
-        {/* Jam sampai detik */}
-        <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
-          <span className="hidden items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 font-mono text-[10px] font-semibold tracking-widest text-gold-light ring-1 ring-gold/30 min-[400px]:inline-flex sm:text-[11px]">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-gold opacity-70 motion-safe:animate-ping" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-gold" />
-            </span>
-            {w ? w.zona : "···"}
-          </span>
+        <span className="h-4 w-px shrink-0 bg-white/25 sm:h-5" aria-hidden="true" />
 
-          <div className="flex items-center gap-2">
-            <IconClock className="hidden h-5 w-5 text-gold-light/80 sm:block" />
-            {/* Angka jam berubah tiap detik: disembunyikan dari pembaca layar
-                (agar tidak dibacakan terus-menerus); yang dibacakan hanya
-                jam & menit lewat teks sr-only di bawah. */}
-            <p
-              aria-hidden="true"
-              className="font-mono text-[22px] font-semibold leading-none tracking-wider text-white tabular-nums sm:text-[28px]"
-            >
-              {w ? (
-                <>
-                  {w.jam}
-                  <span className="mx-px text-gold motion-safe:animate-pulse">:</span>
-                  {w.menit}
-                  <span className="mx-px text-gold motion-safe:animate-pulse">:</span>
-                  <span className="text-gold-light">{w.detik}</span>
-                </>
-              ) : (
-                <span className="text-white/30">––:––:––</span>
-              )}
-            </p>
-            {w && (
-              <span className="sr-only">
-                Pukul {w.jam}.{w.menit} {w.zona}
+        {/* Jam sampai detik. Disembunyikan dari pembaca layar karena berubah
+            tiap detik; yang dibacakan hanya jam & menit lewat teks sr-only. */}
+        <p
+          aria-hidden="true"
+          className="font-mono text-[17px] font-semibold leading-none tracking-wide text-white sm:text-[21px]"
+        >
+          {w ? (
+            <>
+              <DuaAngka teks={w.jam} />
+              <span className="mx-px text-gold">:</span>
+              <DuaAngka teks={w.menit} />
+              <span className="mx-px text-gold">:</span>
+              <span className="text-gold-light">
+                <DuaAngka teks={w.detik} />
               </span>
-            )}
-          </div>
-        </div>
+            </>
+          ) : (
+            <span className="text-white/30">––:––:––</span>
+          )}
+        </p>
+        {w && (
+          <span className="sr-only">
+            Pukul {w.jam}.{w.menit} {w.zona}
+          </span>
+        )}
+
+        <span className="rounded-md bg-gold/15 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-widest text-gold-light ring-1 ring-gold/30 sm:text-[10px]">
+          {w ? w.zona : "···"}
+        </span>
       </div>
     </div>
   );
