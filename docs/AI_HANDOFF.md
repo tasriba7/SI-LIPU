@@ -61,7 +61,7 @@ aturan jika sistem ini direplikasi ke desa lain.
 ## 3. STATUS TERKINI
 > ⚠️ AI/developer yang mengerjakan WAJIB mengedit bagian ini setiap selesai kerja.
 
-**Terakhir diupdate:** 22 Agustus 2026 (setelah implementasi Galeri Kegiatan Desa)
+**Terakhir diupdate:** 9 Oktober 2026 (setelah implementasi Tautan Bagikan Data sekali pakai)
 **Fase sekarang:** Fase 0, 1, 1.5, dan 1c selesai. Fase 2 (Surat) berjalan lewat 2 jalur
 (lama & baru — lihat catatan migrasi di bawah).
 
@@ -125,6 +125,20 @@ aturan jika sistem ini direplikasi ke desa lain.
       pengajuannya (kode tracking, status, catatan, nomor surat) dari `pengajuan_layanan` + `pengajuan_surat`.
       RPC `riwayat_pengajuan_publik`; "tidak cocok" dan "belum ada pengajuan" sama-sama kosong. Pengaduan
       anonim tidak muncul. **Wajib jalankan `0023_riwayat_pengajuan_publik.sql`.**
+
+- [x] **Tautan Bagikan Data (sekali pakai)** — admin: `/dashboard/pengaturan-desa/bagikan-data`
+      (kartu di Pengaturan Desa). Admin isi nama instansi + keperluan, centang isi yang dibagikan
+      (data penduduk lengkap / data Kartu Keluarga / statistik saja), pilih batas waktu 1/3/7 hari,
+      lalu salin tautan (tampil SEKALI). Penerima membuka `/data-bersama/[token]` (publik, tanpa login):
+      mula-mula muncul **halaman peringatan sekali pakai** (membaca halaman ini TIDAK menghanguskan
+      tautan, jadi pratinjau WhatsApp aman), baru setelah centang + tombol "Buka Data Sekarang"
+      tautan hangus dan data tampil + tombol unduh (Excel untuk penduduk/KK, Excel & PDF untuk
+      statistik; dibuat di browser dari data yang sudah dimuat, tidak memanggil server lagi).
+      Tautan yang sudah dibuka/kedaluwarsa/dibatalkan/tidak dikenal menampilkan pesan "Mohon maaf"
+      yang berbeda-beda dan jelas. Tabel `tautan_data` (migrasi 0024): hanya HASH token disimpan,
+      data tidak disalin (diambil saat dibuka), riwayat tidak bisa dihapus, trigger mencegah tautan
+      dihidupkan lagi. Pembukaan atomik (UPDATE bersyarat) di server pakai `SUPABASE_SECRET_KEY`.
+      **Wajib jalankan `0024_tautan_data_sekali_pakai.sql` di Supabase.**
 
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,

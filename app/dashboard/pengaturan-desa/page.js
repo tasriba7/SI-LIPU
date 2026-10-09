@@ -51,6 +51,19 @@ export default async function PengaturanDesaPage() {
         <span className="text-navy">&rarr;</span>
       </Link>
 
+      <Link
+        href="/dashboard/pengaturan-desa/bagikan-data"
+        className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-sm transition hover:border-navy"
+      >
+        <span>
+          <span className="font-semibold text-slate-700">Bagikan Data ke Instansi</span>
+          <span className="block text-xs text-slate-400">
+            Buat tautan sekali pakai untuk lembaga yang meminta data desa
+          </span>
+        </span>
+        <span className="text-navy">&rarr;</span>
+      </Link>
+
       <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6">
         <FormPengaturanDesa config={config} />
       </div>

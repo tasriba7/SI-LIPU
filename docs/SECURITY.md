@@ -96,3 +96,21 @@ pemilik proyek sebelum melanjutkan, karena kebocoran data kependudukan adalah ri
   memasukkan NIK/warga_id ke dalam bukti, karena akan merusak anonimitas.
 - Catatan: pencarian NIK tetap tercatat di `log_pencarian_warga` (NIK, IP, waktu) sesuai aturan
   audit di atas; log ini tidak ditautkan ke baris pengaduan.
+
+
+---
+
+## Tautan Bagikan Data ke Instansi (WAJIB DIPATUHI)
+- Hanya role `admin` yang boleh membuat/membatalkan tautan (dicek di server action + RLS `adalah_admin()`).
+- Token = 256-bit acak (`crypto.randomBytes`), tidak turunan dari data apa pun. Di database hanya
+  disimpan **hash SHA-256**-nya; tautan asli hanya tampil sekali ke admin saat dibuat.
+- **Sekali pakai, atomik**: hangus lewat satu perintah `UPDATE ... WHERE status='aktif' AND kedaluwarsa_pada > now()`.
+  Jangan diganti dengan "baca dulu lalu tulis" (celah balapan dua pembuka).
+- Halaman `/data-bersama/[token]` (GET) **hanya membaca**, tidak boleh menghanguskan tautan atau memuat data
+  pribadi. Data baru dikirim setelah penerima menekan tombol konfirmasi di halaman peringatan.
+  Jangan memindahkan data ke render halaman awal (pratinjau tautan/crawler akan memakai jatah satu kali).
+- Data diambil dari tabel sumber saat dibuka (tidak disalin ke `tautan_data`), hanya isi yang dicentang.
+- Unduhan dibuat di browser dari data yang sudah termuat. Jangan menambah endpoint unduhan terpisah yang
+  bisa dipanggil setelah tautan hangus.
+- Halaman diberi `noindex`, `no-referrer`, dan `force-dynamic`. Riwayat (`tautan_data`) tidak punya policy
+  delete = jejak audit siapa membagikan apa ke siapa dan kapan dibuka.

@@ -270,3 +270,11 @@ Tidak mengembalikan NIK, no HP, alamat, atau isi keterangan. Baris anonim tidak 
 > **Jenis pengaduan (migration 0019):** `pengajuan_layanan.jenis_pengaduan` (text, null untuk
 > non-pengaduan) menyimpan kategori dropdown (daftar di `lib/jenisPengaduan.js`), atau
 > `Lainnya: <teks warga>`. Isi pengaduan disimpan di kolom `keterangan`.
+
+
+## Tabel `tautan_data` (migrasi 0024)
+Tautan bagikan data sekali pakai. Kolom: `id`, `token_hash` (SHA-256, unik), `instansi`, `keperluan`,
+`seksi text[]` (penduduk_lengkap | data_keluarga | statistik_penduduk), `status` (aktif | dibuka | dibatalkan),
+`dibuat_oleh`, `dibuat_oleh_nama`, `dibuat_pada`, `kedaluwarsa_pada`, `dibuka_pada`.
+"Kedaluwarsa" dihitung dari waktu, tidak disimpan sebagai status. RLS: hanya admin (select/insert/update),
+tanpa policy delete. Data warga TIDAK disalin ke tabel ini.

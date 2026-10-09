@@ -79,3 +79,10 @@ kecuali diminta pemilik proyek.
 ## Catatan Penting
 - Jangan mulai Fase 2/3 sebelum Fase 0 & 1 benar-benar stabil — modul lain bergantung ke situ.
 - Setiap akhir fase, update bagian "STATUS TERKINI" di `AI_HANDOFF.md`.
+
+
+## Tambahan — Berbagi data ke instansi luar
+- [x] Tautan Bagikan Data sekali pakai (admin centang isi data, peringatan sebelum buka, unduh Excel/PDF,
+      pesan tautan hangus yang jelas) — migrasi 0024
+- [ ] (Ide lanjutan) Opsi samarkan sebagian NIK/No. HP pada tautan; tambah isi yang bisa dibagikan
+      (rekap layanan, surat terbit); notifikasi ke admin saat tautan dibuka
