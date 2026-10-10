@@ -18,6 +18,7 @@ import {
   IconSettings,
   IconImage,
   IconKey,
+  IconHeartHandshake,
 } from "@/components/icons";
 import { ROLE_BADGE_CLASS, bisaLihatMenu, bisaMenulis, labelJabatan } from "@/lib/roles";
 
@@ -33,6 +34,7 @@ const MODUL_LAYANAN = [
   { nama: "Surat Terbit", icon: IconMail, href: "/dashboard/surat-terbit", akses: "kantor" },
   { nama: "Kelola Template Surat", icon: IconLayers, href: "/dashboard/template-surat", akses: "admin" },
   { nama: "Data Kependudukan", icon: IconIdCard, href: "/dashboard/kependudukan", akses: "semua" },
+  { nama: "Bantuan Desa", icon: IconHeartHandshake, href: "/dashboard/bantuan", akses: "admin" },
   { nama: "Galeri Kegiatan", icon: IconImage, href: "/dashboard/galeri", akses: "kantor" },
   { nama: "Slot Kadus/Ketua RT", icon: IconUsers, href: "/dashboard/posisi", akses: "admin" },
   { nama: "Pendaftaran Akun", icon: IconUserPlus, href: "/dashboard/pendaftaran", akses: "admin" },

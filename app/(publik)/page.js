@@ -13,6 +13,7 @@ import {
   IconUsers,
   IconCheck,
   IconArrowRight,
+  IconHeartHandshake,
 } from "@/components/icons";
 import {
   getStatistikBeranda,
@@ -32,6 +33,14 @@ const LAYANAN = [
       "Surat domisili, SKTM, pengaduan, dan layanan lain — isi form, dapat kode tracking. Jenis layanan terus bertambah.",
     icon: IconMail,
     href: "/layanan",
+  },
+  {
+    nama: "Cek Penerima Bantuan",
+    deskripsi:
+      "PKH, BLT Dana Desa, sembako, dan bantuan lain — lihat daftar nama penerima yang ditampilkan pemerintah desa.",
+    icon: IconHeartHandshake,
+    href: "/layanan/bantuan",
+    cta: "Cek daftar penerima",
   },
   {
     nama: "Pendaftaran Kadus/Ketua RT",
@@ -264,7 +273,7 @@ export default async function HomePage() {
           </Reveal>
 
           <div className="mt-9 grid gap-5 sm:grid-cols-2">
-            {LAYANAN.map(({ nama, deskripsi, icon: Icon, href }, idx) => {
+            {LAYANAN.map(({ nama, deskripsi, icon: Icon, href, cta }, idx) => {
               const Wrapper = href ? Link : "div";
               return (
                 <Reveal key={nama} delay={idx * 140} className="h-full">
@@ -307,7 +316,7 @@ export default async function HomePage() {
                     <p className="mt-2 text-sm leading-relaxed text-slate-500">{deskripsi}</p>
                     {href && (
                       <span className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-navy transition-colors group-hover:text-navy-light">
-                        Mulai ajukan
+                        {cta ?? "Mulai ajukan"}
                         <IconArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                       </span>
                     )}

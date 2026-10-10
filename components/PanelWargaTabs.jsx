@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-// Bilah tab "Panel Warga" — menyatukan tiga fitur warga (Ajukan Layanan,
-// Cek Status, Riwayat Ajuan) dalam satu panel. Dipasang oleh
+// Bilah tab "Panel Warga" — menyatukan fitur warga (Ajukan Layanan,
+// Cek Status, Riwayat Ajuan, Cek Bantuan) dalam satu panel. Dipasang oleh
 // app/(publik)/layanan/layout.js sehingga tampil di semua halaman panel.
 //
 // Alamat halaman SENGAJA tidak diubah (/layanan, /layanan/cek,
@@ -30,6 +30,11 @@ const TAB = [
     href: "/layanan/riwayat",
     aktif: (p) => p.startsWith("/layanan/riwayat"),
   },
+  {
+    nama: "Cek Bantuan",
+    href: "/layanan/bantuan",
+    aktif: (p) => p.startsWith("/layanan/bantuan"),
+  },
 ];
 
 export default function PanelWargaTabs() {
@@ -38,7 +43,7 @@ export default function PanelWargaTabs() {
   return (
     <nav
       aria-label="Panel Warga"
-      className="mx-auto flex max-w-md items-center gap-0.5 overflow-x-auto rounded-full bg-slate-100/90 p-1 ring-1 ring-slate-200/70 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="mx-auto flex max-w-xl items-center gap-0.5 overflow-x-auto rounded-full bg-slate-100/90 p-1 ring-1 ring-slate-200/70 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {TAB.map((t) => {
         const aktif = t.aktif(pathname);

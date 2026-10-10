@@ -1,6 +1,15 @@
-Sejarah desa tanpa batas panjang - cara pasang
-1. Jalankan supabase/migrations/0036_sejarah_desa_tanpa_batas.sql di Supabase SQL Editor.
-2. Timpa 3 file (path sama): lib/profilDesa.js,
-   app/dashboard/pengaturan-desa/profil/actions.js,
-   app/dashboard/pengaturan-desa/profil/FormProfilDesa.jsx
-3. Restart npm run dev.
+Menu Bantuan Desa (admin) + Cek Bantuan (warga) - cara pasang
+1. Jalankan supabase/migrations/0037_bantuan_desa.sql di Supabase SQL Editor
+   (membuat tabel jenis_bantuan [sudah terisi 17 jenis umum], penerima_bantuan,
+   dan 2 fungsi baca publik yang hanya bisa dipanggil server).
+2. Pastikan SUPABASE_SECRET_KEY sudah diset di environment (sudah dipakai fitur lain).
+3. Timpa/tambahkan file berikut (path sama):
+   - supabase/migrations/0037_bantuan_desa.sql
+   - lib/bantuan.js, lib/bantuanPublik.js
+   - app/dashboard/bantuan/** (page, actions, tambah/, jenis/, komponen tombol)
+   - app/(publik)/layanan/bantuan/page.js
+   - components/PanelWargaTabs.jsx, components/dashboard/DashboardShell.jsx
+   - app/(publik)/page.js
+   - docs/SECURITY.md (catatan pengecualian daftar nama bantuan)
+4. Restart npm run dev. Menu "Bantuan Desa" muncul di sidebar akun admin;
+   warga mengeceknya lewat tab "Cek Bantuan" di Panel Warga dan kartu di beranda.

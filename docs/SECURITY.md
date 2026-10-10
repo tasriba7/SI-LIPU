@@ -114,3 +114,22 @@ pemilik proyek sebelum melanjutkan, karena kebocoran data kependudukan adalah ri
   bisa dipanggil setelah tautan hangus.
 - Halaman diberi `noindex`, `no-referrer`, dan `force-dynamic`. Riwayat (`tautan_data`) tidak punya policy
   delete = jejak audit siapa membagikan apa ke siapa dan kapan dibuka.
+
+
+---
+
+## Daftar Penerima Bantuan Desa (PENGECUALIAN YANG DISETUJUI PEMILIK)
+Halaman publik `/layanan/bantuan` ("Cek Bantuan" di Panel Warga) menampilkan **nama lengkap** penerima
+bantuan tanpa login. Ini pengecualian sadar terhadap aturan "jangan list warga ke publik" di atas,
+diputuskan oleh pemilik proyek (transparansi bantuan desa). Batasannya WAJIB dijaga:
+- Hanya baris `penerima_bantuan.tampil_publik = true` yang keluar; bawaan baris baru = **disembunyikan**.
+  Hanya role `admin` yang boleh mengubahnya (server action `pastikanAdmin` + RLS `adalah_admin()`).
+- Yang dikembalikan HANYA nama, dusun/RT/RW, nama bantuan, dan periode. **Jangan pernah** menambah NIK,
+  tanggal lahir, No. HP, atau kolom lain ke fungsi `bantuan_publik_daftar` / `bantuan_publik_ringkasan`.
+- Kedua fungsi itu hanya bisa dipanggil `service_role` (dari server Next.js lewat `lib/bantuanPublik.js`),
+  tidak dari browser/anon key. Jangan memberi `grant execute` ke `anon`/`authenticated`.
+- Maksimal 50 baris per permintaan (dikunci di fungsi database), 20 per halaman di tampilan. Pencarian
+  nama dipicu tombol (bukan typeahead), minimal 3 huruf. Jangan menambah fitur unduh/ekspor massal publik.
+- Warga berstatus meninggal/pindah otomatis tidak ikut tampil. Halaman diberi `noindex`.
+- Kalau kebijakan desa berubah ingin lebih ketat (nama disamarkan atau cek pribadi NIK + tanggal lahir),
+  ubah di `lib/bantuanPublik.js` dan halaman tersebut; gunakan `lib/masking.js` / `lib/lookupWarga.js`.
