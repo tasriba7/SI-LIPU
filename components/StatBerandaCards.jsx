@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Reveal, { useInView } from "@/components/Reveal";
 import { IconUsers, IconIdCard, IconClipboardCheck } from "@/components/icons";
 
 // Konfigurasi kartu didefinisikan DI SINI (bukan di page.js) karena
@@ -17,10 +18,12 @@ const STAT_CARDS = [
 // (terangkat tipis, border menyala) — elegan, bukan ramai.
 function StatCard({ icon: Icon, label, value, suffix = "" }) {
   const [displayValue, setDisplayValue] = useState(0);
+  const [ref, inView] = useInView({ threshold: 0.3, rootMargin: "0px" });
 
   // Animasi count-up dari 0 ke nilai asli, dengan easing supaya tidak
   // terasa kaku/linear.
   useEffect(() => {
+    if (!inView) return; // jangan mulai hitung sebelum kartu terlihat
     const target = Number(value) || 0;
     if (target === 0) {
       setDisplayValue(0);
@@ -38,10 +41,10 @@ function StatCard({ icon: Icon, label, value, suffix = "" }) {
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [value]);
+  }, [value, inView]);
 
   return (
-    <div className="group flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-5 text-center transition-all sm:flex-row sm:gap-4 sm:text-left duration-300 ease-out hover:-translate-y-1 hover:border-gold/40 hover:bg-white/[0.05]">
+    <div ref={ref} className="group flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-5 text-center transition-all sm:flex-row sm:gap-4 sm:text-left duration-300 ease-out hover:-translate-y-1 hover:border-gold/40 hover:bg-white/[0.05]">
       <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/5 text-gold-light transition-colors duration-300 group-hover:bg-gold/15">
         <Icon className="h-5 w-5" />
       </div>
@@ -60,8 +63,10 @@ function StatCard({ icon: Icon, label, value, suffix = "" }) {
 export default function StatBerandaCards({ stats }) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
-      {STAT_CARDS.map((c) => (
-        <StatCard key={c.key} {...c} value={stats[c.key]} />
+      {STAT_CARDS.map((c, i) => (
+        <Reveal key={c.key} delay={i * 130} variant="up" className="h-full">
+          <StatCard {...c} value={stats[c.key]} />
+        </Reveal>
       ))}
     </div>
   );
