@@ -7,6 +7,8 @@ import Reveal from "@/components/Reveal";
 import AuroraBackground from "@/components/AuroraBackground";
 import GaleriBeranda from "@/components/GaleriBeranda";
 import WisataBeranda from "@/components/WisataBeranda";
+import BeritaBeranda from "@/components/BeritaBeranda";
+import ApbdesBeranda from "@/components/ApbdesBeranda";
 import JamTanggalBeranda from "@/components/JamTanggalBeranda";
 import JedaAnimasiDiluarLayar from "@/components/JedaAnimasiDiluarLayar";
 import {
@@ -26,10 +28,13 @@ import {
 import { getConfigDesa, labelWilayah } from "@/lib/configDesa";
 import { getGaleri, getGaleriCount } from "@/lib/galeri";
 import { getWisata, getWisataCount } from "@/lib/wisata";
+import { getBeritaTerbit } from "@/lib/berita";
+import { getRingkasanApbdesTerbaru } from "@/lib/apbdes";
 import { createClient } from "@/lib/supabase/server";
 
 const JUMLAH_GALERI_BERANDA = 8;
 const JUMLAH_WISATA_BERANDA = 4;
+const JUMLAH_BERITA_BERANDA = 3;
 
 const LAYANAN = [
   {
@@ -103,7 +108,7 @@ const JAMINAN = [
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal, wisataItems, wisataTotal] = await Promise.all([
+  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal, wisataItems, wisataTotal, berita, apbdes] = await Promise.all([
     getStatistikBeranda(),
     getStatistikBerandaDetail(),
     getStatistikPerDusun(),
@@ -112,6 +117,8 @@ export default async function HomePage() {
     getGaleriCount(supabase),
     getWisata(supabase, { limit: JUMLAH_WISATA_BERANDA }),
     getWisataCount(supabase),
+    getBeritaTerbit(supabase, { limit: JUMLAH_BERITA_BERANDA }),
+    getRingkasanApbdesTerbaru(supabase),
   ]);
 
   const wilayah = labelWilayah(config);
@@ -342,6 +349,11 @@ export default async function HomePage() {
           </div>
         </section>
 
+        {/* Berita terbaru — tampil hanya kalau ada berita terbit */}
+        <Reveal blur={false}>
+          <BeritaBeranda items={berita.items} totalSemua={berita.total} />
+        </Reveal>
+
         {/* Wisata desa — tampil hanya kalau admin sudah mengisi minimal satu */}
         <Reveal blur={false}>
           <WisataBeranda items={wisataItems} totalSemua={wisataTotal} />
@@ -360,6 +372,11 @@ export default async function HomePage() {
             namaDesa={config.nama_desa}
             wilayah={wilayah}
           />
+        </Reveal>
+
+        {/* Transparansi APBDes — tampil hanya kalau ada tahun yang diterbitkan */}
+        <Reveal blur={false}>
+          <ApbdesBeranda data={apbdes} />
         </Reveal>
 
         {/* Cara kerja — tiga langkah dengan garis penghubung di desktop */}

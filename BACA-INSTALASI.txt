@@ -1,25 +1,26 @@
-FITUR WISATA + MENU RAPI - SI-LIPU
-===================================
-Zip ini KUMULATIF: berisi fitur Banner Halaman (sebelumnya) + Wisata + perapian
-menu header publik dan sidebar admin. Aman dipakai walau Banner Halaman sudah
-dipasang (file yang sama hanya tertimpa versi terbaru).
+BERITA DESA + APBDes + WISATA + MENU RAPI - SI-LIPU
+====================================================
+Zip ini KUMULATIF: berisi Banner Halaman, Wisata, perapian menu, ditambah
+Berita Desa dan APBDes. Aman ditimpa walau sebagian sudah pernah dipasang.
 
 Cara pasang:
 1. Ekstrak zip ini ke folder utama proyek SI-LIPU (pilih "Replace/Timpa").
-2. Jalankan di Supabase SQL Editor, BERURUTAN:
-     supabase/migrations/0039_banner_halaman.sql   (lewati bila sudah pernah)
+2. Jalankan di Supabase SQL Editor, BERURUTAN (lewati yang sudah pernah):
+     supabase/migrations/0039_banner_halaman.sql
      supabase/migrations/0040_wisata.sql
+     supabase/migrations/0041_berita_apbdes.sql
 3. Commit & push / deploy.
-4. Login admin -> sidebar "Konten Publik" -> "Wisata Desa" -> Tambah Wisata.
 
-Yang berubah:
-- Header publik: menu Wisata ditambahkan; Profil, Galeri, dan Pengumuman
-  dikelompokkan dalam dropdown "Informasi Desa". Menu baru berikutnya cukup
-  ditambahkan di dalam dropdown itu (components/PublicHeader.jsx, const MENU).
-- Sidebar admin: menu dikelompokkan (Layanan Warga, Data Penduduk, Konten
-  Publik, Perangkat & Akun, Pengaturan), bisa dilipat, menu aktif disorot.
-  Daftar menu kini satu sumber di lib/menuDashboard.js (dipakai juga oleh
-  kartu modul di halaman Dashboard).
-- Beranda: bagian "Wisata Desa" (maks. 4 kartu) muncul otomatis setelah admin
-  mengisi minimal satu wisata.
-- Banner Halaman kini juga mencakup menu Wisata.
+Pemakaian (login admin / perangkat kantor desa):
+- Sidebar "Konten & Transparansi":
+    * Berita Desa  -> Tulis Berita (bisa simpan sebagai draf)
+    * APBDes       -> Tambah tahun anggaran -> isi rincian -> centang
+                      "Terbitkan ke publik"
+    * Wisata Desa  -> Tambah Wisata
+- Halaman publik: /berita, /apbdes, /wisata. Ringkasannya muncul otomatis di
+  beranda begitu ada data yang terbit.
+
+Catatan:
+- Ubah kategori berita di lib/berita.js (KATEGORI_BERITA), zona waktu tanggal
+  di ZONA_WAKTU pada file yang sama.
+- Hak tulis: admin, sekretaris desa, kaur, kasi. Kepala Desa hanya melihat.

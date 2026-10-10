@@ -17,6 +17,7 @@ const MENU = [
   { nama: "Beranda", pendek: "Beranda", href: "/" },
   // Satu menu untuk semua fitur warga (Ajukan Layanan, Cek Status, Riwayat).
   { nama: "Panel Warga", pendek: "Panel Warga", href: "/layanan" },
+  { nama: "Berita Desa", pendek: "Berita", href: "/berita" },
   { nama: "Wisata", pendek: "Wisata", href: "/wisata" },
   {
     nama: "Informasi Desa",
@@ -24,6 +25,7 @@ const MENU = [
     anak: [
       { nama: "Profil Desa", href: "/profil", deskripsi: "Sejarah, visi-misi, dan wilayah" },
       { nama: "Galeri Kegiatan", href: "/galeri", deskripsi: "Foto kegiatan dan acara desa" },
+      { nama: "APBDes", href: "/apbdes", deskripsi: "Transparansi anggaran pendapatan & belanja desa" },
       { nama: "Pengumuman Desa", href: null, deskripsi: "Segera hadir" },
     ],
   },
