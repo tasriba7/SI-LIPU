@@ -20,7 +20,7 @@ const MENU = [
   { nama: "Galeri Kegiatan", pendek: "Galeri", href: "/galeri" },
   { nama: "Pendaftaran Kadus/RT", pendek: "Kadus/RT", href: "/pendaftaran" },
   { nama: "Pengumuman Desa", pendek: "Pengumuman", href: null },
-  { nama: "Profil Desa", pendek: "Profil", href: null },
+  { nama: "Profil Desa", pendek: "Profil", href: "/profil" },
 ];
 
 // Menu aktif bila path sama persis atau berada di bawahnya. "Panel Warga"

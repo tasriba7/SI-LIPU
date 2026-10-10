@@ -41,6 +41,19 @@ export default async function PengaturanDesaPage() {
       </div>
 
       <Link
+        href="/dashboard/pengaturan-desa/profil"
+        className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-sm transition hover:border-navy"
+      >
+        <span>
+          <span className="font-semibold text-slate-700">Profil Desa</span>
+          <span className="block text-xs text-slate-400">
+            Sejarah, visi-misi, dan batas wilayah untuk halaman publik /profil
+          </span>
+        </span>
+        <span className="text-navy">&rarr;</span>
+      </Link>
+
+      <Link
         href="/dashboard/pengaturan-desa/tanda-tangan"
         className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-sm transition hover:border-navy"
       >
