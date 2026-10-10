@@ -1,0 +1,26 @@
+BANNER HALAMAN - SI-LIPU
+=========================
+Isi zip ini adalah file yang BARU atau BERUBAH, dengan struktur folder yang sama
+seperti proyek Anda.
+
+Cara pasang:
+1. Ekstrak zip ini langsung ke folder utama proyek SI-LIPU
+   (pilih "Replace/Timpa" bila ditanya).
+2. Jalankan supabase/migrations/0039_banner_halaman.sql di Supabase SQL Editor.
+3. Commit & push (atau deploy) seperti biasa.
+4. Login sebagai admin -> Pengaturan Desa -> Banner Halaman -> unggah gambar.
+
+File BARU:
+- supabase/migrations/0039_banner_halaman.sql
+- lib/bannerHalaman.js
+- components/BannerHalaman.jsx
+- app/dashboard/pengaturan-desa/banner-halaman/page.js
+- app/dashboard/pengaturan-desa/banner-halaman/actions.js
+- app/dashboard/pengaturan-desa/banner-halaman/KartuBanner.jsx
+
+File DIUBAH (akan menimpa):
+- app/(publik)/galeri/page.js
+- app/(publik)/profil/page.js
+- app/(publik)/pendaftaran/page.js
+- app/(publik)/layanan/layout.js
+- app/dashboard/pengaturan-desa/page.js

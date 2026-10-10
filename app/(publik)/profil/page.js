@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Reveal from "@/components/Reveal";
+import BannerHalaman from "@/components/BannerHalaman";
 import AuroraBackground from "@/components/AuroraBackground";
 import { getConfigDesa, labelWilayah } from "@/lib/configDesa";
 import { getProfilDesa, pecahMisi } from "@/lib/profilDesa";
@@ -48,24 +49,12 @@ export default async function ProfilDesaPage() {
 
   return (
     <main className="overflow-x-clip bg-white">
-      <section className="relative overflow-hidden bg-navy-dark">
-        <div className="mx-auto max-w-6xl px-6 py-14 text-center md:py-20">
-          <Reveal variant="down">
-            <p className="font-mono text-xs uppercase tracking-[0.25em] text-gold">Profil {jenis}</p>
-          </Reveal>
-          <Reveal delay={120}>
-            <h1 className="mx-auto mt-3 max-w-3xl font-display text-3xl font-bold text-white sm:text-5xl">
-              {namaLengkap}
-            </h1>
-          </Reveal>
-          {wilayah && (
-            <Reveal delay={240}>
-              <p className="mt-3 text-sm text-white/70 sm:text-base">{wilayah}</p>
-            </Reveal>
-          )}
-        </div>
-        <div className="h-1 w-full bg-gradient-to-r from-gold via-gold-light to-gold" />
-      </section>
+      <BannerHalaman
+        kunci="profil"
+        kecil={`Profil ${jenis}`}
+        judul={namaLengkap}
+        deskripsi={wilayah}
+      />
 
       <AuroraBackground>
         {kosong && (

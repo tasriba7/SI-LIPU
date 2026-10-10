@@ -54,6 +54,19 @@ export default async function PengaturanDesaPage() {
       </Link>
 
       <Link
+        href="/dashboard/pengaturan-desa/banner-halaman"
+        className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-sm transition hover:border-navy"
+      >
+        <span>
+          <span className="font-semibold text-slate-700">Banner Halaman</span>
+          <span className="block text-xs text-slate-400">
+            Gambar di bawah header untuk Panel Warga, Galeri, Pendaftaran, dan Profil
+          </span>
+        </span>
+        <span className="text-navy">&rarr;</span>
+      </Link>
+
+      <Link
         href="/dashboard/pengaturan-desa/tanda-tangan"
         className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-sm transition hover:border-navy"
       >
