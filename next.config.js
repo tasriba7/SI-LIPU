@@ -8,6 +8,20 @@ const nextConfig = {
       bodySizeLimit: "8mb",
     },
   },
+
+  // Jalur pengajuan surat lama (/layanan/surat) ditutup: warga diarahkan ke
+  // form layanan baru (/layanan) supaya semua pengajuan masuk ke satu inbox
+  // di /dashboard/layanan. Sengaja HANYA halaman form-nya; /layanan/surat/cek
+  // tetap hidup agar warga yang punya kode tracking lama masih bisa cek status.
+  async redirects() {
+    return [
+      {
+        source: "/layanan/surat",
+        destination: "/layanan",
+        permanent: true,
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
