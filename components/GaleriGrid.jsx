@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Reveal from "@/components/Reveal";
 import { IconClose } from "@/components/icons";
 
 function formatTanggal(iso) {
@@ -100,9 +101,9 @@ export default function GaleriGrid({ items }) {
   return (
     <>
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4">
-        {items.map((item) => (
+        {items.map((item, idx) => (
+          <Reveal key={item.id} variant="zoom" delay={(idx % 4) * 90}>
           <button
-            key={item.id}
             type="button"
             onClick={() => bukaTerkunci(item)}
             onMouseEnter={() => hoverCapable && bukaPratinjau(item)}
@@ -123,6 +124,7 @@ export default function GaleriGrid({ items }) {
               {item.judul}
             </p>
           </button>
+          </Reveal>
         ))}
       </div>
 
