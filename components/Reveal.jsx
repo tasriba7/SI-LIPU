@@ -31,39 +31,70 @@ export function useInView({ threshold = 0.12, rootMargin = "0px 0px -40px 0px" }
   return [ref, inView];
 }
 
-// Posisi awal (sebelum terlihat) tiap jenis gerakan. Semua ditulis utuh
-// supaya terbaca oleh Tailwind.
+// Posisi awal (sebelum terlihat). Semua ditulis utuh supaya terbaca Tailwind.
 const AWAL = {
-  up: "translate-y-10 scale-[0.98]",
-  down: "-translate-y-8",
-  left: "-translate-x-12",
-  right: "translate-x-12",
-  zoom: "scale-90",
-  fade: "",
+  up: "translate-y-8 scale-[0.98] opacity-0",
+  down: "-translate-y-8 scale-[0.98] opacity-0",
+  left: "-translate-x-8 scale-[0.98] opacity-0",
+  right: "translate-x-8 scale-[0.98] opacity-0",
+  zoom: "scale-95 opacity-0",
+  fade: "opacity-0",
 };
 
-// Membungkus elemen supaya baru bergerak (fade + geser/zoom) SAAT masuk
-// layar. Sebelum di-scroll sampai situ, elemen diam & tersembunyi.
-//   variant: "up" | "down" | "left" | "right" | "zoom" | "fade"
-//   delay (ms): untuk memunculkan item berurutan (stagger)
-// Hanya animasi sekali. Hormati "reduce motion" milik perangkat.
+// Membungkus elemen supaya baru bergerak SAAT masuk layar; sebelum itu diam
+// & tersembunyi. Hanya animasi sekali. Hormati "reduce motion" perangkat.
+//   variant : "up" | "down" | "left" | "right" | "zoom" | "fade"
+//   delay   : ms, untuk memunculkan item berurutan
+//   duration: ms
+//   blur    : efek fokus optik saat muncul. Matikan (blur={false}) untuk
+//             pembungkus BESAR (seluruh section) supaya ringan di HP murah.
+//
+// Setelah animasi selesai, semua transform/filter/will-change DILEPAS
+// (elemen kembali "polos"). Ini penting: transform & filter yang menempel
+// terus membuat lapisan GPU tambahan per elemen, menjadikan elemen di
+// dalamnya (position:fixed, backdrop-blur) berperilaku aneh.
 export default function Reveal({
   children,
   delay = 0,
   variant = "up",
+  duration = 850,
+  blur = true,
   className = "",
+  style = {},
 }) {
   const [ref, show] = useInView();
+  const [selesai, setSelesai] = useState(false);
+
+  useEffect(() => {
+    if (!show) return;
+    const t = setTimeout(() => setSelesai(true), delay + duration + 120);
+    return () => clearTimeout(t);
+  }, [show, delay, duration]);
+
+  const awal = `${AWAL[variant] ?? AWAL.up}${blur ? " blur-[3px]" : ""}`;
+  const akhir = `translate-x-0 translate-y-0 scale-100 opacity-100${blur ? " blur-0" : ""}`;
+
+  let kelas;
+  if (selesai) kelas = "transition-none"; // polos: tanpa transform/filter
+  else
+    kelas = `${
+      blur ? "transition-[opacity,transform,filter]" : "transition-[opacity,transform]"
+    } motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:blur-none motion-reduce:transition-none ${
+      show ? akhir : awal
+    }`;
 
   return (
     <div
       ref={ref}
-      style={{ transitionDelay: show ? `${delay}ms` : "0ms" }}
-      className={`transition-[opacity,transform,filter] duration-[900ms] ease-[cubic-bezier(0.22,1,0.36,1)] will-change-[opacity,transform] motion-reduce:transform-none motion-reduce:opacity-100 motion-reduce:blur-none motion-reduce:transition-none ${
-        show
-          ? "translate-x-0 translate-y-0 scale-100 opacity-100 blur-0"
-          : `${AWAL[variant] ?? AWAL.up} opacity-0 blur-[2px]`
-      } ${className}`}
+      style={{
+        ...style,
+        transitionDuration: `${duration}ms`,
+        transitionDelay: show && !selesai ? `${delay}ms` : "0ms",
+        transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+        willChange:
+          show && !selesai ? (blur ? "opacity, transform, filter" : "opacity, transform") : undefined,
+      }}
+      className={`${kelas} ${className}`}
     >
       {children}
     </div>
