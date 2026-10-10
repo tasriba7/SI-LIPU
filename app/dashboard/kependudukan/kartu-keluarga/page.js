@@ -11,10 +11,53 @@ function bersihkanKataKunci(teks) {
   return (teks ?? "").replace(/[,()*\\%]/g, " ").replace(/\s+/g, " ").trim();
 }
 
+const UKURAN_HALAMAN = 1000; // batas baris per permintaan Supabase
+const BATAS_AMAN = 50000; // pengaman supaya tidak memuat tanpa henti
+
+// Cari No. KK yang punya anggota AKTIF tetapi tidak satu pun berstatus
+// "Kepala Keluarga" (mis. setelah kepala keluarga meninggal / pindah dan
+// belum ada penggantinya). Hasil mengikuti RLS, jadi petugas wilayah hanya
+// melihat KK di wilayahnya.
+async function cariKKTanpaKepala(supabase) {
+  const punyaKepala = new Set();
+  const punyaAnggota = new Set();
+
+  for (let dari = 0; dari < BATAS_AMAN; dari += UKURAN_HALAMAN) {
+    const { data, error } = await supabase
+      .from("warga")
+      .select("no_kk, status_dalam_kk")
+      .eq("status_kependudukan", "aktif")
+      .not("no_kk", "is", null)
+      .order("id")
+      .range(dari, dari + UKURAN_HALAMAN - 1);
+    if (error) return { error: true, daftar: [] };
+
+    for (const w of data ?? []) {
+      if (!w.no_kk) continue;
+      punyaAnggota.add(w.no_kk);
+      if (w.status_dalam_kk === "Kepala Keluarga") punyaKepala.add(w.no_kk);
+    }
+    if (!data || data.length < UKURAN_HALAMAN) break;
+  }
+
+  const daftar = [...punyaAnggota].filter((kk) => !punyaKepala.has(kk)).sort();
+  return { error: false, daftar };
+}
+
 export default async function KartuKeluargaPage({ searchParams }) {
   const sp = await searchParams;
   const cari = bersihkanKataKunci(sp?.cari);
+  const tanpaKepala = sp?.tanpa_kepala === "1";
   const supabase = await createClient();
+
+  // Mode filter: daftar No. KK yang butuh penunjukan kepala keluarga baru.
+  let setTanpaKepala = null;
+  let gagalMuatTanpaKepala = false;
+  if (tanpaKepala) {
+    const hasil = await cariKKTanpaKepala(supabase);
+    gagalMuatTanpaKepala = hasil.error;
+    setTanpaKepala = new Set(hasil.daftar);
+  }
 
   let daftarNoKK = []; // urutan tampil
   let cocokPerKK = new Map(); // no_kk -> anggota yang cocok dengan kata kunci
@@ -38,15 +81,20 @@ export default async function KartuKeluargaPage({ searchParams }) {
       if (!cocokPerKK.has(w.no_kk)) cocokPerKK.set(w.no_kk, []);
       cocokPerKK.get(w.no_kk).push(w);
     }
-    daftarNoKK = [...cocokPerKK.keys()].slice(0, BATAS_TAMPIL);
+    daftarNoKK = [...cocokPerKK.keys()]
+      .filter((kk) => !setTanpaKepala || setTanpaKepala.has(kk))
+      .slice(0, BATAS_TAMPIL);
 
     // Tepat 1 keluarga cocok -> langsung buka detailnya (alur: ketik nama -> lihat keluarga).
-    if (daftarNoKK.length === 1 && jumlahTanpaKK === 0) {
+    // Dilewati saat filter "tanpa kepala" aktif supaya petugas tetap di daftar.
+    if (!tanpaKepala && daftarNoKK.length === 1 && jumlahTanpaKK === 0) {
       const kk = daftarNoKK[0];
       const anggotaCocok = cocokPerKK.get(kk);
       const sorot = anggotaCocok.length === 1 ? `?warga=${anggotaCocok[0].id}` : "";
       redirect(`/dashboard/kependudukan/keluarga/${kk}${sorot}`);
     }
+  } else if (tanpaKepala) {
+    daftarNoKK = [...setTanpaKepala].slice(0, BATAS_TAMPIL);
   } else {
     const { data } = await supabase
       .from("keluarga")
@@ -117,7 +165,17 @@ export default async function KartuKeluargaPage({ searchParams }) {
         >
           Cari Keluarga
         </button>
-        {cari && (
+        <label className="flex items-center gap-2 text-sm text-slate-600">
+          <input
+            type="checkbox"
+            name="tanpa_kepala"
+            value="1"
+            defaultChecked={tanpaKepala}
+            className="h-4 w-4 rounded border-slate-300"
+          />
+          Hanya KK tanpa kepala keluarga
+        </label>
+        {(cari || tanpaKepala) && (
           <Link
             href="/dashboard/kependudukan/kartu-keluarga"
             className="text-sm text-slate-400 hover:text-slate-600"
@@ -126,6 +184,14 @@ export default async function KartuKeluargaPage({ searchParams }) {
           </Link>
         )}
       </form>
+
+      {tanpaKepala && (
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
+          {gagalMuatTanpaKepala
+            ? "Gagal memuat data lengkap. Daftar di bawah mungkin belum lengkap — coba muat ulang."
+            : `${setTanpaKepala.size.toLocaleString("id-ID")} Kartu Keluarga punya anggota aktif tetapi belum ada Kepala Keluarga aktif. Buka keluarganya, lalu ubah status salah satu anggota menjadi Kepala Keluarga lewat menu Edit.`}
+        </p>
+      )}
 
       {cari && jumlahTanpaKK > 0 && (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">
@@ -195,9 +261,11 @@ export default async function KartuKeluargaPage({ searchParams }) {
                     <div className="mx-auto flex max-w-xs flex-col items-center gap-2 text-slate-400">
                       <IconUsers className="h-8 w-8" />
                       <p className="text-sm">
-                        {cari
-                          ? `Tidak ada keluarga yang cocok dengan "${cari}".`
-                          : "Belum ada Kartu Keluarga tercatat."}
+                        {tanpaKepala
+                          ? "Tidak ada KK tanpa kepala keluarga. Semua data sudah lengkap."
+                          : cari
+                            ? `Tidak ada keluarga yang cocok dengan "${cari}".`
+                            : "Belum ada Kartu Keluarga tercatat."}
                       </p>
                     </div>
                   </td>
@@ -209,8 +277,8 @@ export default async function KartuKeluargaPage({ searchParams }) {
       </div>
 
       <p className="text-xs text-slate-400">
-        {cari
-          ? `Hasil pencarian (maksimal ${BATAS_TAMPIL} keluarga).`
+        {cari || tanpaKepala
+          ? `Hasil penyaringan (maksimal ${BATAS_TAMPIL} keluarga).`
           : `Menampilkan maksimal ${BATAS_TAMPIL} Kartu Keluarga. Gunakan pencarian untuk menemukan keluarga tertentu.`}
       </p>
     </div>
