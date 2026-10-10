@@ -155,6 +155,15 @@ aturan jika sistem ini direplikasi ke desa lain.
       `/dashboard/kependudukan/mutasi/...` (migrasi 0033). **Wajib jalankan `0032` lalu `0033` di Supabase
       sebelum deploy.**
 
+- [x] **Data Saya + Laporan Data Keliru** — tab baru "Data Saya" di Panel Warga (`/layanan/data-saya`)
+      dan kartu di beranda. Warga memasukkan NIK + tanggal lahir (dua faktor, rate limit 5 gagal/15 menit)
+      dan melihat datanya sendiri; data yang kosong ditandai kuning. Di halaman yang sama ada form pesan
+      ke admin (bagian data, pesan 10–1000 huruf, No. HP opsional) -> tabel `laporan_data_warga`.
+      Admin: `/dashboard/laporan-data` (admin saja) — filter status, buka data warga, WhatsApp, ubah
+      status + catatan. Fungsi `data_warga_publik` & `kirim_laporan_data_warga` hanya `service_role`.
+      **Menyimpang dari SECURITY.md 1.4/1.6 secara sengaja (lihat SECURITY.md bagian 6).**
+      **Wajib jalankan `0038_data_saya_dan_laporan_koreksi.sql` di Supabase.**
+
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,
 tanpa lookup warga, dan tidak ada sistem slot RT. Semua sudah diperbaiki lewat migrasi

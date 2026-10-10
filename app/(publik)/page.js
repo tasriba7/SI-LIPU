@@ -14,6 +14,7 @@ import {
   IconCheck,
   IconArrowRight,
   IconHeartHandshake,
+  IconIdCard,
 } from "@/components/icons";
 import {
   getStatistikBeranda,
@@ -41,6 +42,14 @@ const LAYANAN = [
     icon: IconHeartHandshake,
     href: "/layanan/bantuan",
     cta: "Cek daftar penerima",
+  },
+  {
+    nama: "Data Saya",
+    deskripsi:
+      "Lihat data kependudukan Anda dengan NIK dan tanggal lahir. Ada yang keliru atau kurang? Laporkan langsung ke admin desa.",
+    icon: IconIdCard,
+    href: "/layanan/data-saya",
+    cta: "Lihat data saya",
   },
   {
     nama: "Pendaftaran Kadus/Ketua RT",

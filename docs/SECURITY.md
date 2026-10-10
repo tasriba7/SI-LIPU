@@ -133,3 +133,25 @@ diputuskan oleh pemilik proyek (transparansi bantuan desa). Batasannya WAJIB dij
 - Warga berstatus meninggal/pindah otomatis tidak ikut tampil. Halaman diberi `noindex`.
 - Kalau kebijakan desa berubah ingin lebih ketat (nama disamarkan atau cek pribadi NIK + tanggal lahir),
   ubah di `lib/bantuanPublik.js` dan halaman tersebut; gunakan `lib/masking.js` / `lib/lookupWarga.js`.
+
+
+---
+
+## 6. Pengecualian yang tercatat: "Data Saya" (migrasi 0038)
+
+Atas permintaan pemilik proyek, halaman publik `/layanan/data-saya` menampilkan **data lengkap milik
+warga itu sendiri** (termasuk agama, status kawin, pekerjaan, pendidikan, No. KK, No. HP) setelah
+NIK + Tanggal Lahir cocok, **tanpa** langkah "Apakah ini Anda?" dan **tanpa** masking. Ini menyimpang
+dari poin 1.4 dan 1.6 di atas. Pengamanan lain TETAP berlaku dan tidak boleh dilonggarkan:
+
+- dua faktor harus cocok bersamaan; respons "tidak ditemukan" sama untuk semua kegagalan;
+- rate limit 5 gagal / 15 menit di server (`hitung_percobaan_gagal`, gagal-tertutup);
+- setiap percobaan dicatat di `log_pencarian_warga`;
+- hanya penduduk berstatus `aktif`; hanya DIRI SENDIRI (tidak ada data anggota keluarga lain);
+- fungsi `data_warga_publik` dan `kirim_laporan_data_warga` hanya bisa dijalankan `service_role`;
+- form laporan memeriksa ULANG dua faktor di database (tidak bisa melapor atas nama orang lain),
+  maksimal 3 laporan berstatus "baru" per penduduk (anti-spam).
+
+Risiko yang diterima: siapa pun yang mengetahui NIK + tanggal lahir seseorang bisa melihat data
+lengkapnya. Kalau kelak dirasa terlalu longgar, langkah pengetatan yang paling murah: samarkan
+NIK/No. KK/No. HP di `app/(publik)/layanan/data-saya/page.js`, atau tambahkan CAPTCHA.

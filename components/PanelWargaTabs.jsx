@@ -31,6 +31,11 @@ const TAB = [
     aktif: (p) => p.startsWith("/layanan/riwayat"),
   },
   {
+    nama: "Data Saya",
+    href: "/layanan/data-saya",
+    aktif: (p) => p.startsWith("/layanan/data-saya"),
+  },
+  {
     nama: "Cek Bantuan",
     href: "/layanan/bantuan",
     aktif: (p) => p.startsWith("/layanan/bantuan"),
