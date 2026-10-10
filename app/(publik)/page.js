@@ -93,7 +93,7 @@ export default async function HomePage() {
   const wilayah = labelWilayah(config);
 
   return (
-    <main className="bg-white">
+    <main className="overflow-x-clip bg-white">
       {/* Hero — identitas desa. Kalau admin sudah unggah foto lewat
           /dashboard/pengaturan-desa, foto itu jadi latar; kalau belum, tetap
           pakai warna navy polos supaya teks tetap kebaca. */}
@@ -116,11 +116,16 @@ export default async function HomePage() {
           {/* Hari, tanggal & jam setempat (sampai detik) — kapsul kecil di atas
               baris wilayah. Padding atas hero dirapatkan supaya tinggi hero
               nyaris sama seperti sebelum jam ditambahkan. */}
-          <JamTanggalBeranda />
+          <Reveal variant="down">
+            <JamTanggalBeranda />
+          </Reveal>
+          <Reveal delay={100}>
           <p className="font-mono text-xs uppercase tracking-[0.25em] text-gold">
             {config.jenis_wilayah || "Desa"}
             {wilayah ? ` · ${wilayah}` : ""}
           </p>
+          </Reveal>
+          <Reveal delay={200}>
           <h1 className="mx-auto mt-3 max-w-3xl font-display text-4xl font-bold leading-[1.1] text-white sm:text-6xl">
             {config.nama_desa
               ? `${config.jenis_wilayah || "Desa"} ${config.nama_desa}`
@@ -132,14 +137,18 @@ export default async function HomePage() {
           {config.alamat && (
             <p className="mt-1 text-xs text-white/50">{config.alamat}</p>
           )}
+          </Reveal>
 
-          <div className="mx-auto mt-6 w-40 text-gold-light/70 sm:w-48">
-            <VillageSeal className="aspect-square" logoUrl={config.logo_url} />
-          </div>
+          <Reveal variant="zoom" delay={350}>
+            <div className="mx-auto mt-6 w-40 text-gold-light/70 sm:w-48">
+              <VillageSeal className="aspect-square" logoUrl={config.logo_url} />
+            </div>
+          </Reveal>
         </div>
 
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 pb-16 pt-10 md:py-16">
-          <div className="animate-fadeUp text-center">
+          <div className="text-center">
+            <Reveal>
             <p className="font-mono text-xs uppercase tracking-[0.25em] text-gold">
               Portal Layanan Digital Desa
             </p>
@@ -148,11 +157,15 @@ export default async function HomePage() {
               <em className="italic text-gold-light">tanpa</em> bolak-balik
               kantor desa.
             </h2>
+            </Reveal>
+            <Reveal delay={150}>
             <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-white/70">
               SI-LIPU mengurus surat, pengaduan, dan informasi desa langsung
               dari ponsel Anda — tanpa akun, tanpa antre di loket.
             </p>
+            </Reveal>
 
+            <Reveal delay={300}>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/layanan"
@@ -168,6 +181,7 @@ export default async function HomePage() {
                 Cek Status Pengajuan
               </Link>
             </div>
+            </Reveal>
           </div>
         </div>
 
@@ -186,7 +200,7 @@ export default async function HomePage() {
           (pakai avatar inisial kalau belum diunggah). */}
       {config.kepala_desa_nama && config.kepala_desa_sambutan && (
         <section className="py-16 md:py-24">
-          <Reveal className="mx-auto max-w-5xl px-6">
+          <Reveal variant="zoom" className="mx-auto max-w-5xl px-6">
             <p className="text-center font-mono text-xs uppercase tracking-[0.25em] text-seablue">
               Kata Sambutan
             </p>
@@ -322,7 +336,7 @@ export default async function HomePage() {
 
           <div className="mt-10 grid gap-8 md:grid-cols-3 md:gap-6">
             {CARA_KERJA.map(({ nomor, judul, teks }, i) => (
-              <Reveal key={nomor} delay={i * 150} className="relative h-full">
+              <Reveal key={nomor} delay={i * 150} variant="zoom" className="relative h-full">
                 {i < CARA_KERJA.length - 1 && (
                   <div className="absolute right-[-1.5rem] top-1/2 z-10 hidden h-px w-12 bg-slate-300 md:block" />
                 )}
@@ -345,7 +359,7 @@ export default async function HomePage() {
       <section className="mx-auto max-w-6xl px-6 py-16 md:py-20">
         <div className="grid gap-8 sm:grid-cols-3">
           {JAMINAN.map(({ judul, teks }, i) => (
-            <Reveal key={judul} delay={i * 150} className="h-full">
+            <Reveal key={judul} delay={i * 150} variant={["left", "up", "right"][i]} className="h-full">
               <div className="flex h-full gap-3 rounded-2xl border border-transparent p-4 transition duration-300 ease-out hover:-translate-y-1 hover:border-slate-200 hover:bg-white/70 hover:shadow-lg">
               <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-navy text-white">
                 <IconCheck className="h-3.5 w-3.5" />
@@ -364,6 +378,7 @@ export default async function HomePage() {
       </AuroraBackground>
 
       {/* Footer */}
+      <Reveal variant="fade">
       <footer className="border-t border-slate-100">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-4 px-6 py-8 text-center sm:flex-row sm:justify-between sm:text-left">
           <div className="flex items-center gap-2.5">
@@ -391,6 +406,7 @@ export default async function HomePage() {
           </p>
         </div>
       </footer>
+      </Reveal>
     </main>
   );
 }
