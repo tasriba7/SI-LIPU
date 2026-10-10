@@ -29,7 +29,7 @@ const MENU = [
       { nama: "Pengumuman Desa", href: null, deskripsi: "Segera hadir" },
     ],
   },
-  { nama: "Pendaftaran Kadus/RT", pendek: "Kadus/RT", href: "/pendaftaran" },
+  { nama: "Pendaftaran", pendek: "Pendaftaran", href: "/pendaftaran" },
 ];
 
 // Daftar datar semua tautan (menu biasa + isi dropdown). Dipakai untuk

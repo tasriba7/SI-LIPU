@@ -53,7 +53,7 @@ Detail Keluarga (admin/staf) — selesai:
 
 Fase 1c (Sistem Slot Kadus & Ketua RT) — selesai:
 - `/dashboard/posisi` — admin daftarkan wilayah (dusun/RT-RW) sebagai slot kosong
-- `/pendaftaran` — calon Kadus/Ketua RT daftar mandiri, memilih wilayahnya; **otomatis ditolak lewat trigger database** kalau slot itu sudah terisi
+- `/pendaftaran` — pendaftaran akun mandiri untuk Kadus/Ketua RT (bukan pendaftaran calon jabatan), memilih wilayahnya; **otomatis ditolak lewat trigger database** kalau slot itu sudah terisi
 - `/dashboard/pendaftaran` — admin approve (otomatis buat akun Supabase Auth + kunci slot) atau tolak
 - Hanya admin yang bisa "Kosongkan Slot" (di `/dashboard/posisi`) untuk membuka slot itu lagi
 - Migrasi: `supabase/migrations/0006_posisi_dan_pendaftaran.sql`

@@ -1,26 +1,3 @@
-BERITA DESA + APBDes + WISATA + MENU RAPI - SI-LIPU
-====================================================
-Zip ini KUMULATIF: berisi Banner Halaman, Wisata, perapian menu, ditambah
-Berita Desa dan APBDes. Aman ditimpa walau sebagian sudah pernah dipasang.
-
-Cara pasang:
-1. Ekstrak zip ini ke folder utama proyek SI-LIPU (pilih "Replace/Timpa").
-2. Jalankan di Supabase SQL Editor, BERURUTAN (lewati yang sudah pernah):
-     supabase/migrations/0039_banner_halaman.sql
-     supabase/migrations/0040_wisata.sql
-     supabase/migrations/0041_berita_apbdes.sql
-3. Commit & push / deploy.
-
-Pemakaian (login admin / perangkat kantor desa):
-- Sidebar "Konten & Transparansi":
-    * Berita Desa  -> Tulis Berita (bisa simpan sebagai draf)
-    * APBDes       -> Tambah tahun anggaran -> isi rincian -> centang
-                      "Terbitkan ke publik"
-    * Wisata Desa  -> Tambah Wisata
-- Halaman publik: /berita, /apbdes, /wisata. Ringkasannya muncul otomatis di
-  beranda begitu ada data yang terbit.
-
-Catatan:
-- Ubah kategori berita di lib/berita.js (KATEGORI_BERITA), zona waktu tanggal
-  di ZONA_WAKTU pada file yang sama.
-- Hak tulis: admin, sekretaris desa, kaur, kasi. Kepala Desa hanya melihat.
+UBAH MENU "KADUS/RT" -> "PENDAFTARAN" (PENDAFTARAN AKUN)
+Ekstrak ke folder utama proyek SI-LIPU (pilih Replace/Timpa), lalu deploy.
+Tidak ada migrasi database.

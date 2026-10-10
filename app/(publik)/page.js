@@ -61,8 +61,8 @@ const LAYANAN = [
     cta: "Lihat data saya",
   },
   {
-    nama: "Pendaftaran Kadus/Ketua RT",
-    deskripsi: "Khusus calon Kepala Dusun atau Ketua RT yang ingin mendaftar posisi di wilayahnya.",
+    nama: "Pendaftaran Akun",
+    deskripsi: "Khusus perangkat desa (Kepala Dusun atau Ketua RT) yang membutuhkan akun untuk mengelola data wilayahnya.",
     icon: IconUsers,
     href: "/pendaftaran",
   },

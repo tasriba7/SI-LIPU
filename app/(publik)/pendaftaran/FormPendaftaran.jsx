@@ -47,9 +47,9 @@ export default function FormPendaftaran({ slotKosong }) {
   if (state?.success) {
     return (
       <div className="text-center">
-        <h2 className="text-lg font-bold text-navy">Pendaftaran terkirim</h2>
+        <h2 className="text-lg font-bold text-navy">Pendaftaran akun terkirim</h2>
         <p className="mt-2 text-sm text-slate-500">
-          Pendaftaran Anda sedang menunggu persetujuan admin desa. Anda akan
+          Pendaftaran akun Anda sedang menunggu persetujuan admin desa. Anda akan
           dihubungi lewat No. HP yang didaftarkan setelah disetujui.
         </p>
         <Link href="/" className="mt-4 inline-block text-sm text-navy underline">
@@ -62,7 +62,7 @@ export default function FormPendaftaran({ slotKosong }) {
   if (slotKosong.length === 0) {
     return (
       <p className="rounded-lg bg-amber-50 px-3 py-3 text-sm text-amber-700">
-        Semua slot Kadus & Ketua RT saat ini sudah terisi. Kalau merasa ada
+        Semua slot akun Kadus & Ketua RT saat ini sudah terisi. Kalau merasa ada
         yang keliru, hubungi admin desa.
       </p>
     );
