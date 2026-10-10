@@ -10,6 +10,8 @@ import WisataBeranda from "@/components/WisataBeranda";
 import BeritaBeranda from "@/components/BeritaBeranda";
 import ApbdesBeranda from "@/components/ApbdesBeranda";
 import JamTanggalBeranda from "@/components/JamTanggalBeranda";
+import PengunjungBeranda from "@/components/PengunjungBeranda";
+import { getPengunjung } from "@/lib/pengunjung";
 import JedaAnimasiDiluarLayar from "@/components/JedaAnimasiDiluarLayar";
 import {
   IconMail,
@@ -108,7 +110,7 @@ const JAMINAN = [
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal, wisataItems, wisataTotal, berita, apbdes] = await Promise.all([
+  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal, wisataItems, wisataTotal, berita, apbdes, pengunjung] = await Promise.all([
     getStatistikBeranda(),
     getStatistikBerandaDetail(),
     getStatistikPerDusun(),
@@ -119,6 +121,7 @@ export default async function HomePage() {
     getWisataCount(supabase),
     getBeritaTerbit(supabase, { limit: JUMLAH_BERITA_BERANDA }),
     getRingkasanApbdesTerbaru(supabase),
+    getPengunjung(),
   ]);
 
   const wilayah = labelWilayah(config);
@@ -470,6 +473,7 @@ export default async function HomePage() {
               SI-LIPU dikembangkan pertama kali untuk Desa Tatakalai, Kabupaten Banggai Kepulauan —
               digagas oleh Tasrib A. Abbas, S.AP.
             </p>
+            <PengunjungBeranda awal={pengunjung} />
           </div>
         </footer>
       </Reveal>
