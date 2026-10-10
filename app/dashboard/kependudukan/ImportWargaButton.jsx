@@ -560,7 +560,7 @@ export default function ImportWargaButton() {
     <button
       type="button"
       onClick={() => setOpen(true)}
-      className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+      className="flex items-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
     >
       <IconUpload className="h-4 w-4" />
       Impor Data Penduduk

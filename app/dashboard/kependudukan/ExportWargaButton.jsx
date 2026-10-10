@@ -14,7 +14,7 @@ export default function ExportWargaButton({ cari }) {
   return (
     <a
       href={href}
-      className="flex items-center gap-1.5 rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+      className="flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100"
     >
       <IconFileSpreadsheet className="h-4 w-4" />
       Ekspor ke Excel
