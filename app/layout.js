@@ -37,8 +37,18 @@ export default function RootLayout({ children }) {
   return (
     <html
       lang="id"
+      suppressHydrationWarning
       className={`${playfairDisplay.variable} ${jakarta.variable} ${jetbrainsMono.variable}`}
     >
+      <head>
+        {/* Sesi yang sudah pernah menampilkan splash: sembunyikan sebelum cat pertama (tanpa kedip). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{if(sessionStorage.getItem("silipu-splash-tampil"))document.documentElement.setAttribute("data-splash","done")}catch(e){}',
+          }}
+        />
+      </head>
       <body>
         <SplashScreen>{children}</SplashScreen>
       </body>

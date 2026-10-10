@@ -42,3 +42,7 @@ body {
 .anim-saat-tampil:not([data-tampil="true"]) * {
   animation-play-state: paused;
 }
+
+/* Splash hanya sekali per sesi (lihat components/SplashScreen.jsx & app/layout.js) */
+html[data-splash="done"] [data-splash-cover] { display: none !important; }
+html[data-splash="done"] [data-splash-content] { visibility: visible !important; animation: none !important; }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import FormCari from "@/components/FormCari";
 import { createClient } from "@/lib/supabase/server";
 import { pastikanAdmin } from "@/lib/akses";
 import HalamanTerbatas from "@/components/dashboard/HalamanTerbatas";
@@ -211,7 +212,7 @@ export default async function BantuanPage({ searchParams }) {
       )}
 
       {/* Filter */}
-      <form className="flex flex-wrap items-center gap-2">
+      <FormCari className="flex flex-wrap items-center gap-2">
         {periodeFilter !== null && <input type="hidden" name="periode" value={periodeFilter} />}
         <select
           name="jenis"
@@ -256,7 +257,7 @@ export default async function BantuanPage({ searchParams }) {
             Reset filter
           </Link>
         )}
-      </form>
+      </FormCari>
 
       {/* Tabel penerima */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">

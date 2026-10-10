@@ -1,4 +1,5 @@
 import Link from "next/link";
+import FormCari from "@/components/FormCari";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { IconUsers, IconSearch } from "@/components/icons";
@@ -147,7 +148,7 @@ export default async function KartuKeluargaPage({ searchParams }) {
         )}
       </div>
 
-      <form className="flex flex-wrap items-center gap-2">
+      <FormCari className="flex flex-wrap items-center gap-2">
         <div className="relative w-full max-w-md">
           <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
@@ -183,7 +184,7 @@ export default async function KartuKeluargaPage({ searchParams }) {
             Reset
           </Link>
         )}
-      </form>
+      </FormCari>
 
       {tanpaKepala && (
         <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-700">

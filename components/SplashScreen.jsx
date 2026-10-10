@@ -9,11 +9,24 @@ import Image from "next/image";
  * setelah durasi tertentu (default 1.6 detik) sebelum menampilkan
  * konten aplikasi yang sebenarnya (children).
  */
+const KUNCI_SESI = "silipu-splash-tampil";
+
 export default function SplashScreen({ children, minDurationMs = 1600 }) {
   const [visible, setVisible] = useState(true);
   const [fadingOut, setFadingOut] = useState(false);
 
   useEffect(() => {
+    // Layar pembuka cukup sekali per sesi (per tab). Pemuatan ulang berikutnya
+    // (refresh, pindah lewat form biasa) langsung menampilkan aplikasi.
+    try {
+      if (sessionStorage.getItem(KUNCI_SESI)) {
+        setVisible(false);
+        return;
+      }
+      sessionStorage.setItem(KUNCI_SESI, "1");
+    } catch {
+      // sessionStorage diblokir -> tetap tampilkan splash seperti biasa
+    }
     const fadeTimer = setTimeout(() => setFadingOut(true), minDurationMs);
     const hideTimer = setTimeout(
       () => setVisible(false),
@@ -29,6 +42,7 @@ export default function SplashScreen({ children, minDurationMs = 1600 }) {
     <>
       {visible && (
         <div
+          data-splash-cover
           className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-navy ${
             fadingOut ? "animate-fadeOut" : ""
           }`}
@@ -51,7 +65,7 @@ export default function SplashScreen({ children, minDurationMs = 1600 }) {
       )}
       {/* Konten aplikasi dirender dari awal juga (di-cover splash di atasnya)
           supaya begitu splash hilang, halaman sudah siap tanpa jeda. */}
-      <div className={visible ? "invisible" : "animate-fadeIn"}>
+      <div data-splash-content className={visible ? "invisible" : "animate-fadeIn"}>
         {children}
       </div>
     </>

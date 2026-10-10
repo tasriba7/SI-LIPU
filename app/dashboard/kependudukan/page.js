@@ -1,4 +1,5 @@
 import { ROLE_LABELS } from "@/lib/roles";
+import FormCari from "@/components/FormCari";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -223,7 +224,7 @@ export default async function KependudukanPage({ searchParams }) {
       </div>
 
       {/* Pencarian & filter */}
-      <form className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+      <FormCari className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
         {hanyaKurang && <input type="hidden" name="kurang" value="1" />}
         {tampilKey !== String(DEFAULT_TAMPIL) && (
           <input type="hidden" name="tampil" value={tampilKey} />
@@ -272,7 +273,7 @@ export default async function KependudukanPage({ searchParams }) {
             {hanyaKurang ? "✓ Hanya yang belum lengkap" : "Tampilkan yang belum lengkap saja"}
           </Link>
         </div>
-      </form>
+      </FormCari>
 
       {/* Tabel — dirapatkan supaya muat tanpa digeser di layar laptop */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
