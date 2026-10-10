@@ -38,14 +38,13 @@ export default function FormProfilDesa({ profil }) {
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-slate-700">Sejarah Desa</h2>
         <div>
-          <Label hint="pisahkan paragraf dengan baris kosong">Sejarah singkat</Label>
+          <Label hint="pisahkan paragraf dengan baris kosong; panjang bebas">Sejarah desa</Label>
           <textarea
             name="profil_sejarah"
-            rows={8}
-            maxLength={BATAS_PROFIL.sejarah}
+            rows={14}
             defaultValue={profil.profil_sejarah}
             placeholder="Ceritakan asal-usul nama desa, tahun berdiri, dan perkembangannya..."
-            className={inputClass}
+            className={`${inputClass} min-h-[16rem] resize-y leading-relaxed`}
           />
         </div>
       </section>

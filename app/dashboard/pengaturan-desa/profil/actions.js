@@ -19,7 +19,7 @@ export async function simpanProfilDesa(prevState, formData) {
   if (akses.error) return { error: akses.error };
 
   const daftar = [
-    ["profil_sejarah", "Sejarah", BATAS_PROFIL.sejarah],
+    ["profil_sejarah", "Sejarah", Infinity], // tanpa batas panjang
     ["profil_visi", "Visi", BATAS_PROFIL.visi],
     ["profil_misi", "Misi", BATAS_PROFIL.misi],
     ["batas_utara", "Batas utara", BATAS_PROFIL.batas],

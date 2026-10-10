@@ -1,0 +1,6 @@
+Sejarah desa tanpa batas panjang - cara pasang
+1. Jalankan supabase/migrations/0036_sejarah_desa_tanpa_batas.sql di Supabase SQL Editor.
+2. Timpa 3 file (path sama): lib/profilDesa.js,
+   app/dashboard/pengaturan-desa/profil/actions.js,
+   app/dashboard/pengaturan-desa/profil/FormProfilDesa.jsx
+3. Restart npm run dev.
