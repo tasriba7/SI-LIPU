@@ -26,3 +26,19 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .aurora-blob { animation: none; }
 }
+
+/* Tinggi header publik (diukur ulang oleh components/PublicHeader.jsx).
+   Nilai awal ini dipakai sampai JavaScript memuat, supaya isi hero di
+   beranda tidak "melompat" saat header mengambang di atasnya. */
+:root { --header-h: 7.5rem; }
+@media (min-width: 1024px) {
+  :root { --header-h: 4.5rem; }
+}
+
+/* Animasi BERULANG (blob latar, lambang berputar, titik denyut) hanya jalan
+   saat elemennya terlihat di layar. Penanda data-tampil dipasang oleh
+   components/JedaAnimasiDiluarLayar.jsx. Sebelum terlihat: diam. */
+.anim-saat-tampil:not([data-tampil="true"]),
+.anim-saat-tampil:not([data-tampil="true"]) * {
+  animation-play-state: paused;
+}

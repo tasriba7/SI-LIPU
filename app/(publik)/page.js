@@ -7,6 +7,7 @@ import Reveal from "@/components/Reveal";
 import AuroraBackground from "@/components/AuroraBackground";
 import GaleriBeranda from "@/components/GaleriBeranda";
 import JamTanggalBeranda from "@/components/JamTanggalBeranda";
+import JedaAnimasiDiluarLayar from "@/components/JedaAnimasiDiluarLayar";
 import {
   IconMail,
   IconMegaphone,
@@ -113,7 +114,7 @@ export default async function HomePage() {
   return (
     <main className="overflow-x-clip bg-white">
       {/* Hero — identitas desa dengan latar foto & lapisan gradasi */}
-      <section className="relative overflow-hidden bg-navy-dark">
+      <section id="hero-beranda" className="relative overflow-hidden bg-navy-dark">
         {config.foto_url && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -132,7 +133,7 @@ export default async function HomePage() {
           className="pointer-events-none absolute left-1/2 top-1/4 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-seablue/15 blur-3xl"
         />
 
-        <div className="relative mx-auto max-w-6xl px-6 pt-5 text-center md:pt-8">
+        <div className="relative mx-auto max-w-6xl px-6 pt-[calc(var(--header-h)+1.25rem)] text-center md:pt-[calc(var(--header-h)+2rem)]">
           {/* Hari, tanggal & jam setempat */}
           <Reveal variant="down" delay={50}>
             <JamTanggalBeranda />
@@ -157,7 +158,7 @@ export default async function HomePage() {
 
           {/* Logo / Lambang Desa */}
           <Reveal variant="zoom" delay={320}>
-            <div className="group relative mx-auto mt-6 w-40 text-gold-light/80 transition-transform duration-500 hover:scale-105 sm:w-48">
+            <div className="anim-saat-tampil group relative mx-auto mt-6 w-40 text-gold-light/80 transition-transform duration-500 hover:scale-105 sm:w-48">
               <div
                 aria-hidden
                 className="absolute inset-0 -z-10 rounded-full bg-gold/10 blur-2xl transition duration-500 group-hover:bg-gold/25"
@@ -304,7 +305,7 @@ export default async function HomePage() {
                     >
                       {href && (
                         <span className="relative flex h-2 w-2">
-                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none" />
+                          <span className="anim-saat-tampil absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75 motion-reduce:animate-none" />
                           <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                         </span>
                       )}
@@ -445,6 +446,9 @@ export default async function HomePage() {
           </div>
         </footer>
       </Reveal>
+
+      {/* Menjeda animasi berulang (blob, lambang, titik denyut) sampai terlihat di layar. */}
+      <JedaAnimasiDiluarLayar />
     </main>
   );
 }
