@@ -1,26 +1,25 @@
-BANNER HALAMAN - SI-LIPU
-=========================
-Isi zip ini adalah file yang BARU atau BERUBAH, dengan struktur folder yang sama
-seperti proyek Anda.
+FITUR WISATA + MENU RAPI - SI-LIPU
+===================================
+Zip ini KUMULATIF: berisi fitur Banner Halaman (sebelumnya) + Wisata + perapian
+menu header publik dan sidebar admin. Aman dipakai walau Banner Halaman sudah
+dipasang (file yang sama hanya tertimpa versi terbaru).
 
 Cara pasang:
-1. Ekstrak zip ini langsung ke folder utama proyek SI-LIPU
-   (pilih "Replace/Timpa" bila ditanya).
-2. Jalankan supabase/migrations/0039_banner_halaman.sql di Supabase SQL Editor.
-3. Commit & push (atau deploy) seperti biasa.
-4. Login sebagai admin -> Pengaturan Desa -> Banner Halaman -> unggah gambar.
+1. Ekstrak zip ini ke folder utama proyek SI-LIPU (pilih "Replace/Timpa").
+2. Jalankan di Supabase SQL Editor, BERURUTAN:
+     supabase/migrations/0039_banner_halaman.sql   (lewati bila sudah pernah)
+     supabase/migrations/0040_wisata.sql
+3. Commit & push / deploy.
+4. Login admin -> sidebar "Konten Publik" -> "Wisata Desa" -> Tambah Wisata.
 
-File BARU:
-- supabase/migrations/0039_banner_halaman.sql
-- lib/bannerHalaman.js
-- components/BannerHalaman.jsx
-- app/dashboard/pengaturan-desa/banner-halaman/page.js
-- app/dashboard/pengaturan-desa/banner-halaman/actions.js
-- app/dashboard/pengaturan-desa/banner-halaman/KartuBanner.jsx
-
-File DIUBAH (akan menimpa):
-- app/(publik)/galeri/page.js
-- app/(publik)/profil/page.js
-- app/(publik)/pendaftaran/page.js
-- app/(publik)/layanan/layout.js
-- app/dashboard/pengaturan-desa/page.js
+Yang berubah:
+- Header publik: menu Wisata ditambahkan; Profil, Galeri, dan Pengumuman
+  dikelompokkan dalam dropdown "Informasi Desa". Menu baru berikutnya cukup
+  ditambahkan di dalam dropdown itu (components/PublicHeader.jsx, const MENU).
+- Sidebar admin: menu dikelompokkan (Layanan Warga, Data Penduduk, Konten
+  Publik, Perangkat & Akun, Pengaturan), bisa dilipat, menu aktif disorot.
+  Daftar menu kini satu sumber di lib/menuDashboard.js (dipakai juga oleh
+  kartu modul di halaman Dashboard).
+- Beranda: bagian "Wisata Desa" (maks. 4 kartu) muncul otomatis setelah admin
+  mengisi minimal satu wisata.
+- Banner Halaman kini juga mencakup menu Wisata.

@@ -3,51 +3,10 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import {
-  IconMenu,
-  IconClose,
-  IconHome,
-  IconMail,
-  IconMegaphone,
-  IconMessage,
-  IconUsers,
-  IconLogout,
-  IconLayers,
-  IconIdCard,
-  IconUserPlus,
-  IconSettings,
-  IconImage,
-  IconKey,
-  IconHeartHandshake,
-} from "@/components/icons";
-import { ROLE_BADGE_CLASS, bisaLihatMenu, bisaMenulis, labelJabatan } from "@/lib/roles";
-
-// Tingkat akses tiap menu (lihat bisaLihatMenu di lib/roles.js):
-//   "semua"  -> semua staf (termasuk Kadus & Ketua RT; datanya dibatasi RLS per wilayah)
-//   "kantor" -> perangkat kantor desa saja (menu yang berlaku se-desa)
-//   "admin"  -> hanya Administrator
-// Menu tanpa `akses` dianggap "semua". Samakan dengan penjaga di layout.js
-// folder halaman terkait dan di lib/akses.js.
-const MODUL_LAYANAN = [
-  { nama: "Pengajuan Layanan", icon: IconMail, href: "/dashboard/layanan", akses: "semua" },
-  { nama: "Kelola Jenis Layanan", icon: IconLayers, href: "/dashboard/jenis-layanan", akses: "kantor" },
-  { nama: "Surat Terbit", icon: IconMail, href: "/dashboard/surat-terbit", akses: "kantor" },
-  { nama: "Kelola Template Surat", icon: IconLayers, href: "/dashboard/template-surat", akses: "admin" },
-  { nama: "Data Kependudukan", icon: IconIdCard, href: "/dashboard/kependudukan", akses: "semua" },
-  { nama: "Bantuan Desa", icon: IconHeartHandshake, href: "/dashboard/bantuan", akses: "admin" },
-  { nama: "Laporan Data Warga", icon: IconMessage, href: "/dashboard/laporan-data", akses: "admin" },
-  { nama: "Galeri Kegiatan", icon: IconImage, href: "/dashboard/galeri", akses: "kantor" },
-  { nama: "Slot Kadus/Ketua RT", icon: IconUsers, href: "/dashboard/posisi", akses: "admin" },
-  { nama: "Pendaftaran Akun", icon: IconUserPlus, href: "/dashboard/pendaftaran", akses: "admin" },
-  { nama: "Pengajuan Surat (lama)", icon: IconMail, href: "/dashboard/surat", akses: "kantor" },
-  { nama: "Pengumuman Desa", icon: IconMegaphone, akses: "kantor" },
-];
-
-const MODUL_PENGATURAN = [
-  { nama: "Kelola Akun Staf", icon: IconKey, href: "/dashboard/kelola-akun", akses: "admin" },
-  { nama: "Pengaturan Desa", icon: IconSettings, href: "/dashboard/pengaturan-desa", akses: "admin" },
-];
+import { useRouter, usePathname } from "next/navigation";
+import { IconMenu, IconClose, IconHome, IconLogout } from "@/components/icons";
+import { ROLE_BADGE_CLASS, bisaMenulis, labelJabatan } from "@/lib/roles";
+import { grupUntukRole, cariHrefAktif } from "@/lib/menuDashboard";
 
 function sapaanWaktu(jam) {
   if (jam < 10) return "Selamat pagi";
@@ -65,6 +24,7 @@ export default function DashboardShell({
   children,
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Khusus layar laptop/desktop: sidebar bisa disembunyikan supaya konten lebih luas.
   const [sidebarHidden, setSidebarHidden] = useState(false);
@@ -101,12 +61,65 @@ export default function DashboardShell({
   const badgeClass =
     ROLE_BADGE_CLASS[profile?.role] ?? "bg-white/10 text-white/70";
 
-  const modulPengaturan = MODUL_PENGATURAN.filter((m) =>
-    bisaLihatMenu(profile?.role, m.akses)
+  // Menu berkelompok (lihat lib/menuDashboard.js). Grup yang berisi halaman
+  // aktif otomatis terbuka; grup lain terlipat supaya sidebar tidak panjang.
+  // Pilihan buka/lipat manual diingat di browser.
+  const grup = grupUntukRole(profile?.role);
+  const hrefAktif = cariHrefAktif(
+    pathname || "",
+    grup.flatMap((g) => g.item.map((i) => i.href))
   );
-  const modulLayanan = MODUL_LAYANAN.filter((m) =>
-    bisaLihatMenu(profile?.role, m.akses)
-  );
+  const [pilihanGrup, setPilihanGrup] = useState({});
+
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem("si-lipu-sidebar-grup");
+      if (s) setPilihanGrup(JSON.parse(s));
+    } catch {}
+  }, []);
+
+  // Di HP: tutup sidebar otomatis setelah pindah halaman.
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  function grupTerbuka(g) {
+    if (g.item.some((i) => i.href && i.href === hrefAktif)) return true;
+    return pilihanGrup[g.kunci] ?? false;
+  }
+
+  function toggleGrup(g) {
+    const sekarang = grupTerbuka(g);
+    setPilihanGrup((prev) => {
+      const next = { ...prev, [g.kunci]: !sekarang };
+      try {
+        localStorage.setItem("si-lipu-sidebar-grup", JSON.stringify(next));
+      } catch {}
+      return next;
+    });
+  }
+
+  // Badge notifikasi per menu (angka di sebelah nama menu).
+  function badgeUntuk(href) {
+    if (href === "/dashboard/pendaftaran" && jumlahPendaftaran > 0)
+      return { n: jumlahPendaftaran, kelas: "bg-red-500", label: `${jumlahPendaftaran} pendaftaran menunggu` };
+    if (href === "/dashboard/layanan" && jumlahPengajuanBaru > 0)
+      return {
+        n: jumlahPengajuanBaru,
+        kelas: "bg-sky-500",
+        label: `${jumlahPengajuanBaru} pengajuan layanan baru`,
+        title: "Ada pengajuan layanan baru dari warga",
+      };
+    if (href === "/dashboard/kependudukan" && jumlahDataKurang > 0)
+      return {
+        n: jumlahDataKurang,
+        kelas: "bg-amber-500",
+        label: `${jumlahDataKurang} data warga belum lengkap`,
+        title: "Ada data warga yang belum lengkap",
+      };
+    return null;
+  }
+
   const hanyaLihat = !bisaMenulis(profile?.role);
 
   return (
@@ -153,87 +166,88 @@ export default function DashboardShell({
         <nav className="flex-1 overflow-y-auto px-3 py-4">
           <Link
             href="/dashboard"
-            className="flex items-center gap-3 rounded-lg bg-white/10 px-3 py-2.5 text-sm font-medium text-white"
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+              pathname === "/dashboard" ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"
+            }`}
           >
             <IconHome className="h-4 w-4" />
             Dashboard
           </Link>
 
-          <p className="mb-2 mt-6 px-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-            Modul layanan
-          </p>
-          <ul className="space-y-1">
-            {modulLayanan.map(({ nama, icon: Icon, href }) =>
-              href ? (
-                <li key={nama}>
-                  <Link
-                    href={href}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+          {grup.map((g) => {
+            const terbuka = grupTerbuka(g);
+            const adaBadge = g.item.some((i) => i.href && badgeUntuk(i.href));
+            return (
+              <div key={g.kunci} className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => toggleGrup(g)}
+                  aria-expanded={terbuka}
+                  className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wider text-white/40 transition hover:text-white/70"
+                >
+                  <span className="flex-1">{g.judul}</span>
+                  {!terbuka && adaBadge && (
+                    <span aria-label="Ada notifikasi di grup ini" className="h-2 w-2 rounded-full bg-red-500" />
+                  )}
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    aria-hidden
+                    className={`h-3 w-3 transition-transform duration-200 ${terbuka ? "rotate-180" : ""}`}
                   >
-                    <Icon className="h-4 w-4" />
-                    <span className="flex-1">{nama}</span>
-                    {href === "/dashboard/pendaftaran" && jumlahPendaftaran > 0 && (
-                      <span
-                        aria-label={`${jumlahPendaftaran} pendaftaran menunggu`}
-                        className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white"
-                      >
-                        {jumlahPendaftaran > 99 ? "99+" : jumlahPendaftaran}
-                      </span>
-                    )}
-                    {href === "/dashboard/layanan" && jumlahPengajuanBaru > 0 && (
-                      <span
-                        aria-label={`${jumlahPengajuanBaru} pengajuan layanan baru`}
-                        title="Ada pengajuan layanan baru dari warga"
-                        className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-sky-500 px-1 text-[10px] font-bold leading-none text-white"
-                      >
-                        {jumlahPengajuanBaru > 99 ? "99+" : jumlahPengajuanBaru}
-                      </span>
-                    )}
-                    {href === "/dashboard/kependudukan" && jumlahDataKurang > 0 && (
-                      <span
-                        aria-label={`${jumlahDataKurang} data warga belum lengkap`}
-                        title="Ada data warga yang belum lengkap"
-                        className="flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold leading-none text-white"
-                      >
-                        {jumlahDataKurang > 99 ? "99+" : jumlahDataKurang}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              ) : (
-                <li key={nama}>
-                  <div className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/40">
-                    <Icon className="h-4 w-4" />
-                    <span className="flex-1">{nama}</span>
-                    <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">
-                      segera
-                    </span>
-                  </div>
-                </li>
-              )
-            )}
-          </ul>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+                  </svg>
+                </button>
 
-          {modulPengaturan.length > 0 && (
-            <>
-              <p className="mb-2 mt-6 px-3 text-[11px] font-semibold uppercase tracking-wider text-white/40">
-                Pengaturan
-              </p>
-              <ul className="space-y-1">
-                {modulPengaturan.map(({ nama, icon: Icon, href }) => (
-                  <li key={nama}>
-                    <Link
-                      href={href}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
-                    >
-                      <Icon className="h-4 w-4" />
-                      <span className="flex-1">{nama}</span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+                {terbuka && (
+                  <ul className="mt-1 space-y-0.5">
+                    {g.item.map(({ nama, icon: Icon, href }) => {
+                      if (!href) {
+                        return (
+                          <li key={nama}>
+                            <div className="flex cursor-not-allowed items-center gap-3 rounded-lg px-3 py-2 text-sm text-white/40">
+                              <Icon className="h-4 w-4" />
+                              <span className="flex-1">{nama}</span>
+                              <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">segera</span>
+                            </div>
+                          </li>
+                        );
+                      }
+                      const aktif = href === hrefAktif;
+                      const badge = badgeUntuk(href);
+                      return (
+                        <li key={nama}>
+                          <Link
+                            href={href}
+                            aria-current={aktif ? "page" : undefined}
+                            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
+                              aktif
+                                ? "bg-white/10 font-medium text-white"
+                                : "text-white/70 hover:bg-white/10 hover:text-white"
+                            }`}
+                          >
+                            <Icon className="h-4 w-4" />
+                            <span className="flex-1">{nama}</span>
+                            {badge && (
+                              <span
+                                aria-label={badge.label}
+                                title={badge.title}
+                                className={`flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none text-white ${badge.kelas}`}
+                              >
+                                {badge.n > 99 ? "99+" : badge.n}
+                              </span>
+                            )}
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         <div className="border-t border-white/10 p-3">

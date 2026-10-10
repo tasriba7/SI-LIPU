@@ -6,6 +6,7 @@ import StatistikDetailBeranda from "@/components/StatistikDetailBeranda";
 import Reveal from "@/components/Reveal";
 import AuroraBackground from "@/components/AuroraBackground";
 import GaleriBeranda from "@/components/GaleriBeranda";
+import WisataBeranda from "@/components/WisataBeranda";
 import JamTanggalBeranda from "@/components/JamTanggalBeranda";
 import JedaAnimasiDiluarLayar from "@/components/JedaAnimasiDiluarLayar";
 import {
@@ -24,9 +25,11 @@ import {
 } from "@/lib/statistikBeranda";
 import { getConfigDesa, labelWilayah } from "@/lib/configDesa";
 import { getGaleri, getGaleriCount } from "@/lib/galeri";
+import { getWisata, getWisataCount } from "@/lib/wisata";
 import { createClient } from "@/lib/supabase/server";
 
 const JUMLAH_GALERI_BERANDA = 8;
+const JUMLAH_WISATA_BERANDA = 4;
 
 const LAYANAN = [
   {
@@ -100,13 +103,15 @@ const JAMINAN = [
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal] = await Promise.all([
+  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal, wisataItems, wisataTotal] = await Promise.all([
     getStatistikBeranda(),
     getStatistikBerandaDetail(),
     getStatistikPerDusun(),
     getConfigDesa(supabase),
     getGaleri(supabase, { limit: JUMLAH_GALERI_BERANDA }),
     getGaleriCount(supabase),
+    getWisata(supabase, { limit: JUMLAH_WISATA_BERANDA }),
+    getWisataCount(supabase),
   ]);
 
   const wilayah = labelWilayah(config);
@@ -336,6 +341,11 @@ export default async function HomePage() {
             })}
           </div>
         </section>
+
+        {/* Wisata desa — tampil hanya kalau admin sudah mengisi minimal satu */}
+        <Reveal blur={false}>
+          <WisataBeranda items={wisataItems} totalSemua={wisataTotal} />
+        </Reveal>
 
         {/* Galeri kegiatan — pembungkus besar: tanpa blur supaya ringan */}
         <Reveal blur={false}>

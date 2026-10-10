@@ -7,34 +7,140 @@ import LoginButton from "@/components/LoginButton";
 import { createClient } from "@/lib/supabase/client";
 import { DEFAULT_CONFIG_DESA } from "@/lib/configDesa";
 
-// Menu utama header publik. `href` kosong = fitur belum ada kodenya,
-// ditampilkan sebagai label nonaktif — supaya warga tahu fitur itu memang
-// direncanakan, bukan link mati/salah.
-// `pendek` = label ringkas dipakai di layar sedang (lg) agar semua menu
-// muat sejajar dengan nama desa; layar lebar (xl) memakai `nama` penuh.
+// Menu utama header publik. Dibuat berkelompok supaya tetap rapi walau fitur
+// bertambah: menu yang paling sering dipakai warga tampil langsung, menu
+// pendukung masuk ke dropdown (`anak`). Menu baru? Taruh di `anak` milik
+// "Informasi Desa" — header tidak melebar. `href` kosong = fitur belum ada,
+// ditampilkan sebagai label nonaktif ("segera hadir").
+// `pendek` = label ringkas di layar sedang (lg); layar lebar (xl) pakai `nama`.
 const MENU = [
   { nama: "Beranda", pendek: "Beranda", href: "/" },
-  // Satu menu untuk semua fitur warga. Ajukan Layanan, Cek Status, dan
-  // Riwayat Ajuan kini berupa tab di dalam panel (lihat PanelWargaTabs).
+  // Satu menu untuk semua fitur warga (Ajukan Layanan, Cek Status, Riwayat).
   { nama: "Panel Warga", pendek: "Panel Warga", href: "/layanan" },
-  { nama: "Galeri Kegiatan", pendek: "Galeri", href: "/galeri" },
+  { nama: "Wisata", pendek: "Wisata", href: "/wisata" },
+  {
+    nama: "Informasi Desa",
+    pendek: "Informasi",
+    anak: [
+      { nama: "Profil Desa", href: "/profil", deskripsi: "Sejarah, visi-misi, dan wilayah" },
+      { nama: "Galeri Kegiatan", href: "/galeri", deskripsi: "Foto kegiatan dan acara desa" },
+      { nama: "Pengumuman Desa", href: null, deskripsi: "Segera hadir" },
+    ],
+  },
   { nama: "Pendaftaran Kadus/RT", pendek: "Kadus/RT", href: "/pendaftaran" },
-  { nama: "Pengumuman Desa", pendek: "Pengumuman", href: null },
-  { nama: "Profil Desa", pendek: "Profil", href: "/profil" },
 ];
 
+// Daftar datar semua tautan (menu biasa + isi dropdown). Dipakai untuk
+// penentuan menu aktif dan baris menu di HP (yang tidak pakai dropdown).
+const SEMUA_LINK = MENU.flatMap((m) => m.anak ?? [m]);
+
 // Menu aktif bila path sama persis atau berada di bawahnya. "Panel Warga"
-// ("/layanan") otomatis aktif di semua halaman panel: ajukan, cek status,
-// dan riwayat. Kalau suatu saat ada menu lain di bawah path yang sama, yang
-// lebih spesifik didahulukan.
+// ("/layanan") otomatis aktif di semua halaman panel. Kalau suatu saat ada
+// menu lain di bawah path yang sama, yang lebih spesifik didahulukan.
 function menuAktif(href, pathname) {
   if (!href || !pathname) return false;
   if (href === "/") return pathname === "/";
-  const lainCocokLebihSpesifik = MENU.some(
+  const lainCocokLebihSpesifik = SEMUA_LINK.some(
     (m) => m.href && m.href !== href && m.href.startsWith(href + "/") && (pathname === m.href || pathname.startsWith(m.href + "/"))
   );
   if (lainCocokLebihSpesifik) return false;
   return pathname === href || pathname.startsWith(href + "/");
+}
+
+// Menu dengan dropdown (desktop). Terbuka saat kursor lewat / diklik /
+// difokus keyboard; tertutup saat pindah halaman, klik di luar, atau Esc.
+// Panel selalu berlatar putih supaya terbaca di tema header gelap maupun terang.
+function MenuDropdown({ item, aktif, tema, pathname, onSorot }) {
+  const [buka, setBuka] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => setBuka(false), [pathname]);
+
+  useEffect(() => {
+    if (!buka) return;
+    const luar = (e) => {
+      if (!ref.current?.contains(e.target)) setBuka(false);
+    };
+    const esc = (e) => {
+      if (e.key === "Escape") setBuka(false);
+    };
+    document.addEventListener("pointerdown", luar);
+    document.addEventListener("keydown", esc);
+    return () => {
+      document.removeEventListener("pointerdown", luar);
+      document.removeEventListener("keydown", esc);
+    };
+  }, [buka]);
+
+  return (
+    <div
+      ref={ref}
+      data-aktif={aktif ? "true" : undefined}
+      className="relative z-10"
+      onMouseEnter={(e) => {
+        onSorot(e);
+        setBuka(true);
+      }}
+      onMouseLeave={() => setBuka(false)}
+    >
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={buka}
+        onClick={() => setBuka((v) => !v)}
+        className={`flex items-center gap-1 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors duration-300 xl:px-4 ${
+          aktif ? tema.menuAktif : tema.menuBiasa
+        }`}
+      >
+        <span className="xl:hidden">{item.pendek}</span>
+        <span className="hidden xl:inline">{item.nama}</span>
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          aria-hidden
+          className={`h-3 w-3 transition-transform duration-200 ${buka ? "rotate-180" : ""}`}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+
+      {buka && (
+        // pt-3 = jembatan tak kasat mata agar kursor tidak "putus" saat turun ke panel.
+        <div className="absolute left-1/2 top-full z-50 -translate-x-1/2 pt-3">
+          <div
+            role="menu"
+            className="w-64 rounded-2xl bg-white p-1.5 shadow-xl shadow-navy/20 ring-1 ring-slate-200"
+          >
+            {item.anak.map((a) => {
+              const anakAktif = menuAktif(a.href, pathname);
+              return a.href ? (
+                <Link
+                  key={a.nama}
+                  href={a.href}
+                  role="menuitem"
+                  className={`block rounded-xl px-3.5 py-2.5 transition hover:bg-slate-50 ${
+                    anakAktif ? "bg-navy/5" : ""
+                  }`}
+                >
+                  <span className={`block text-sm font-medium ${anakAktif ? "text-navy" : "text-slate-700"}`}>
+                    {a.nama}
+                  </span>
+                  <span className="block text-xs text-slate-400">{a.deskripsi}</span>
+                </Link>
+              ) : (
+                <div key={a.nama} role="menuitem" aria-disabled className="cursor-not-allowed rounded-xl px-3.5 py-2.5 opacity-60">
+                  <span className="block text-sm font-medium text-slate-500">{a.nama}</span>
+                  <span className="block text-xs text-slate-400">{a.deskripsi}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function PublicHeader() {
@@ -276,6 +382,18 @@ export default function PublicHeader() {
               }}
             />
             {MENU.map((item) => {
+              if (item.anak) {
+                return (
+                  <MenuDropdown
+                    key={item.nama}
+                    item={item}
+                    aktif={item.anak.some((a) => menuAktif(a.href, pathname))}
+                    tema={tema}
+                    pathname={pathname}
+                    onSorot={sorotMenu}
+                  />
+                );
+              }
               const aktif = menuAktif(item.href, pathname);
               const label = (
                 <>
@@ -325,7 +443,7 @@ export default function PublicHeader() {
             aria-label="Menu utama"
             className="relative flex gap-2 overflow-x-auto px-5 py-2.5 sm:px-6 [mask-image:linear-gradient(to_right,black_calc(100%-2.5rem),transparent)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {MENU.map((item) => {
+            {SEMUA_LINK.map((item) => {
               const aktif = menuAktif(item.href, pathname);
               return item.href ? (
                 <Link
