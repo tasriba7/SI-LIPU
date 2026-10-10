@@ -3,6 +3,13 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { ambilIdentifier } from "@/lib/lookupWarga";
 import { BAGIAN_DATA, PESAN_MIN, PESAN_MAKS } from "@/lib/laporanData";
+import {
+  mulaiVerifikasiTempatLahir,
+  periksaPilihanTempatLahir,
+} from "@/lib/verifikasiTempatLahir";
+
+const PESAN_TIDAK_DITEMUKAN =
+  "Data tidak ditemukan. Pastikan NIK dan tanggal lahir yang Anda masukkan benar. Jika yakin sudah benar, hubungi kantor desa.";
 
 const BATAS_GAGAL = 5;
 const JENDELA_MENIT = 15;
@@ -36,15 +43,7 @@ async function siapkanPencarian(formData) {
   return { nik, tanggal, identifier, supabase };
 }
 
-/**
- * Warga melihat data kependudukannya sendiri (NIK + tanggal lahir).
- * Pesan "tidak ditemukan" SAMA untuk NIK salah, tanggal lahir salah, maupun
- * penduduk yang tidak aktif — tidak ada petunjuk mana yang keliru.
- */
-export async function cariDataSaya(prevState, formData) {
-  const s = await siapkanPencarian(formData);
-  if (s.error) return { error: s.error };
-
+async function ambilDataSaya(s) {
   const { data, error } = await s.supabase
     .rpc("data_warga_publik", {
       p_nik: s.nik,
@@ -54,14 +53,63 @@ export async function cariDataSaya(prevState, formData) {
     .maybeSingle();
 
   if (error) return { error: "Data belum bisa dimuat. Coba lagi nanti." };
-  if (!data) {
+  if (!data) return { kosong: true, pesan: PESAN_TIDAK_DITEMUKAN };
+  return { data };
+}
+
+/**
+ * Warga melihat data kependudukannya sendiri: NIK + tanggal lahir, lalu tebak
+ * tempat lahir (tiga faktor). Pesan "tidak ditemukan" SAMA untuk NIK salah,
+ * tanggal lahir salah, maupun penduduk yang tidak aktif — tidak ada petunjuk
+ * mana yang keliru.
+ *
+ * Langkah 1 (fungsi ini) TIDAK mengirim data apa pun; data baru keluar setelah
+ * pilihan tempat lahir benar (periksaTempatLahirDataSaya). Salah 3 kali ->
+ * pencarian dibatalkan dan warga itu dikunci 24 jam.
+ */
+export async function cariDataSaya(prevState, formData) {
+  const s = await siapkanPencarian(formData);
+  if (s.error) return { error: s.error };
+
+  // Cek dua faktor dulu (juga dicatat di log percobaan), tapi jangan kirim datanya.
+  const hasil = await ambilDataSaya(s);
+  if (!hasil.data) return hasil;
+
+  const { data: w } = await s.supabase
+    .from("warga")
+    .select("id")
+    .eq("nik", s.nik)
+    .maybeSingle();
+  if (!w) return { kosong: true, pesan: PESAN_TIDAK_DITEMUKAN };
+
+  const tl = await mulaiVerifikasiTempatLahir(s.supabase, w.id, s.nik);
+  if (tl.batal) return { error: tl.pesan };
+  if (!tl.lewati) {
     return {
-      kosong: true,
-      pesan:
-        "Data tidak ditemukan. Pastikan NIK dan tanggal lahir yang Anda masukkan benar. Jika yakin sudah benar, hubungi kantor desa.",
+      verifikasi: { opsi: tl.opsi, tiket: tl.tiket, sisa: tl.sisa },
+      nik: s.nik,
+      tanggal: s.tanggal,
     };
   }
-  return { data };
+
+  // Tempat lahir belum terisi di data kependudukan -> tidak bisa ditanyakan,
+  // data tetap ditampilkan (warga bisa melaporkan kekurangannya lewat form).
+  return hasil;
+}
+
+/** Langkah 2: pilihan tempat lahir benar -> kirim data. Salah 3 kali -> { batal, pesan }. */
+export async function periksaTempatLahirDataSaya(nik, tanggal, tiket, pilihan) {
+  const fd = new FormData();
+  fd.set("nik", String(nik ?? ""));
+  fd.set("tanggal_lahir", String(tanggal ?? ""));
+  const s = await siapkanPencarian(fd);
+  if (s.error) return { error: s.error };
+
+  const r = await periksaPilihanTempatLahir(s.supabase, s.nik, tiket, pilihan);
+  if (!r.ok) return r;
+
+  const hasil = await ambilDataSaya(s);
+  return hasil.data ? { ok: true, data: hasil.data } : hasil;
 }
 
 /**

@@ -155,3 +155,21 @@ dari poin 1.4 dan 1.6 di atas. Pengamanan lain TETAP berlaku dan tidak boleh dil
 Risiko yang diterima: siapa pun yang mengetahui NIK + tanggal lahir seseorang bisa melihat data
 lengkapnya. Kalau kelak dirasa terlalu longgar, langkah pengetatan yang paling murah: samarkan
 NIK/No. KK/No. HP di `app/(publik)/layanan/data-saya/page.js`, atau tambahkan CAPTCHA.
+
+## Faktor ketiga: tebak tempat lahir (migrasi 0042)
+
+Setelah NIK + tanggal lahir cocok, warga harus memilih tempat lahirnya dari 6 pilihan
+bertanda inisial (huruf ke-1, ke-5, ke-9, ... terlihat; contoh `Tatakalai` -> `T***K***I`).
+
+- Berlaku di: Data Saya, Riwayat Ajuan, Ajukan Layanan, Pengaduan, dan Pendaftaran Akun.
+- **Salah 3 kali -> pencarian dibatalkan** dan warga itu dikunci 24 jam (dihitung per warga
+  di tabel `percobaan_tempat_lahir`, bukan di browser, jadi menyegarkan halaman tidak mereset).
+  Satu IP juga dibatasi 10 tebakan salah per jam supaya tidak bisa menebak banyak warga.
+- Pilihan bersifat deterministik per warga (pengecoh tidak berganti saat halaman dimuat ulang,
+  supaya jawaban benar tidak bisa dikenali dari "pilihan yang selalu muncul").
+- Daftar pilihan ikut ditandatangani server (tiket 10 menit, terikat NIK + warga_id), jawaban
+  benar tidak pernah dikirim ke browser, dan tebakan dicatat SEBELUM dinilai (anti-paralel).
+- Kalau `tempat_lahir` belum terisi di data warga, langkah ini dilewati (tidak bisa ditanyakan).
+  Lengkapi kolom itu lewat dashboard kependudukan agar semua warga terlindungi.
+- Batas dan jumlah pilihan diatur di `lib/verifikasiTempatLahir.js`
+  (`BATAS_SALAH`, `JUMLAH_PILIHAN`).

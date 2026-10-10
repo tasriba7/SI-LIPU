@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useRef, useState } from "react";
+import { useActionState, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
-import { cariDataSaya, kirimLaporanData } from "./actions";
+import { cariDataSaya, kirimLaporanData, periksaTempatLahirDataSaya } from "./actions";
+import VerifikasiTempatLahir from "@/components/VerifikasiTempatLahir";
 import CopyButton from "@/components/CopyButton";
 import { BAGIAN_DATA, PESAN_MAKS } from "@/lib/laporanData";
 
@@ -59,7 +60,15 @@ function barisData(d) {
 }
 
 export default function DataSayaPage() {
-  const [state, formAction] = useActionState(cariDataSaya, {});
+  const [stAsli, formAction] = useActionState(cariDataSaya, {});
+  // Hasil setelah tebak tempat lahir (terikat ke pencarian yang memulainya).
+  const [lanjut, setLanjut] = useState(null); // { src, hasil }
+  const [batal, setBatal] = useState(null); // { src, pesan }
+  const state = useMemo(() => {
+    if (lanjut && lanjut.src === stAsli) return lanjut.hasil;
+    if (batal && batal.src === stAsli) return { error: batal.pesan };
+    return stAsli;
+  }, [stAsli, lanjut, batal]);
   const [stLapor, laporAction] = useActionState(kirimLaporanData, {});
   const [bagian, setBagian] = useState("");
   const [panjang, setPanjang] = useState(0);
@@ -84,7 +93,19 @@ export default function DataSayaPage() {
             keliru atau kurang, Anda bisa langsung melaporkannya ke admin desa.
           </p>
 
-          {!d && (
+          {!d && state?.verifikasi && (
+            <VerifikasiTempatLahir
+              opsi={state.verifikasi.opsi}
+              sisaAwal={state.verifikasi.sisa}
+              periksa={(pilihan) =>
+                periksaTempatLahirDataSaya(state.nik, state.tanggal, state.verifikasi.tiket, pilihan)
+              }
+              onSukses={(r) => setLanjut({ src: stAsli, hasil: { data: r.data } })}
+              onBatal={(pesan) => setBatal({ src: stAsli, pesan })}
+            />
+          )}
+
+          {!d && !state?.verifikasi && (
             <form action={formAction} className="space-y-4">
               <div>
                 <label className="mb-1 block text-sm text-slate-600">NIK (16 digit)</label>

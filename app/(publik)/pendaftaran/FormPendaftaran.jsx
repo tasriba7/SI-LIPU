@@ -1,13 +1,15 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useMemo, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import {
   daftarPosisi,
   cariWargaUntukPendaftaran,
   konfirmasiWargaUntukPendaftaran,
+  verifikasiTempatLahirUntukPendaftaran,
 } from "./actions";
+import VerifikasiTempatLahir from "@/components/VerifikasiTempatLahir";
 
 function TombolDaftar() {
   const { pending } = useFormStatus();
@@ -37,7 +39,22 @@ function TombolCari() {
 
 export default function FormPendaftaran({ slotKosong }) {
   const [state, formAction] = useActionState(daftarPosisi, {});
-  const [lookupState, lookupAction] = useActionState(cariWargaUntukPendaftaran, {});
+  const [lookupAsli, lookupAction] = useActionState(cariWargaUntukPendaftaran, {});
+  // Hasil langkah tebak tempat lahir (terikat ke hasil pencarian yang memulainya).
+  const [hasilTL, setHasilTL] = useState(null); // { src, nikDicoba, pratinjau, tiket }
+  const [batalTL, setBatalTL] = useState(null); // { src, pesan }
+  const lookupState = useMemo(() => {
+    if (hasilTL && hasilTL.src === lookupAsli) {
+      return {
+        found: true,
+        nikDicoba: hasilTL.nikDicoba,
+        pratinjau: hasilTL.pratinjau,
+        tiket: hasilTL.tiket,
+      };
+    }
+    if (batalTL && batalTL.src === lookupAsli) return { error: batalTL.pesan };
+    return lookupAsli;
+  }, [lookupAsli, hasilTL, batalTL]);
   const [tahap, setTahap] = useState("cari"); // "cari" -> "isi"
   const [terverifikasi, setTerverifikasi] = useState(null); // { warga_id, nama_lengkap, nik, buktiWarga }
   const [ditolak, setDitolak] = useState(null);
@@ -69,7 +86,8 @@ export default function FormPendaftaran({ slotKosong }) {
   }
 
   if (tahap === "cari") {
-    const tampilForm = !lookupState?.found || ditolak === lookupState;
+    const tampilForm =
+      (!lookupState?.found && !lookupState?.verifikasi) || ditolak === lookupState;
     return (
       <div className="space-y-4">
         <p className="text-sm text-slate-500">
@@ -113,6 +131,29 @@ export default function FormPendaftaran({ slotKosong }) {
             )}
             <TombolCari />
           </form>
+        )}
+
+        {lookupState?.verifikasi && (
+          <VerifikasiTempatLahir
+            opsi={lookupState.verifikasi.opsi}
+            sisaAwal={lookupState.verifikasi.sisa}
+            periksa={(pilihan) =>
+              verifikasiTempatLahirUntukPendaftaran(
+                lookupState.nikDicoba,
+                lookupState.verifikasi.tiket,
+                pilihan
+              )
+            }
+            onSukses={(r) =>
+              setHasilTL({
+                src: lookupAsli,
+                nikDicoba: lookupState.nikDicoba,
+                pratinjau: r.pratinjau,
+                tiket: r.tiket,
+              })
+            }
+            onBatal={(pesan) => setBatalTL({ src: lookupAsli, pesan })}
+          />
         )}
 
         {lookupState?.found && ditolak !== lookupState && (

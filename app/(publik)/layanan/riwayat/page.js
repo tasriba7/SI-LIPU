@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
-import { cariRiwayat } from "./actions";
+import { cariRiwayat, periksaTempatLahirRiwayat } from "./actions";
+import VerifikasiTempatLahir from "@/components/VerifikasiTempatLahir";
 import CopyButton from "@/components/CopyButton";
 import { STATUS_LABELS, STATUS_BADGE_CLASS } from "@/lib/statusSurat";
 
@@ -25,7 +26,15 @@ function tanggalId(iso) {
 }
 
 export default function RiwayatPengajuanPage() {
-  const [state, formAction] = useActionState(cariRiwayat, {});
+  const [stAsli, formAction] = useActionState(cariRiwayat, {});
+  // Hasil setelah tebak tempat lahir (terikat ke pencarian yang memulainya).
+  const [lanjut, setLanjut] = useState(null); // { src, hasil }
+  const [batal, setBatal] = useState(null); // { src, pesan }
+  const state = useMemo(() => {
+    if (lanjut && lanjut.src === stAsli) return lanjut.hasil;
+    if (batal && batal.src === stAsli) return { error: batal.pesan };
+    return stAsli;
+  }, [stAsli, lanjut, batal]);
 
   return (
     <main className="min-h-screen bg-slate-50">
@@ -36,6 +45,7 @@ export default function RiwayatPengajuanPage() {
             Lupa kode tracking? Masukkan NIK dan tanggal lahir untuk melihat semua pengajuan Anda.
           </p>
 
+          {!state?.verifikasi && (
           <form action={formAction} className="space-y-4">
             <div>
               <label className="mb-1 block text-sm text-slate-600">NIK (16 digit)</label>
@@ -69,6 +79,19 @@ export default function RiwayatPengajuanPage() {
 
             <Tombol />
           </form>
+          )}
+
+          {state?.verifikasi && (
+            <VerifikasiTempatLahir
+              opsi={state.verifikasi.opsi}
+              sisaAwal={state.verifikasi.sisa}
+              periksa={(pilihan) =>
+                periksaTempatLahirRiwayat(state.nik, state.tanggal, state.verifikasi.tiket, pilihan)
+              }
+              onSukses={(r) => setLanjut({ src: stAsli, hasil: r })}
+              onBatal={(pesan) => setBatal({ src: stAsli, pesan })}
+            />
+          )}
 
           {state?.riwayat && (
             <div className="mt-6 space-y-3">

@@ -15,6 +15,10 @@ import {
   bacaTiketKonfirmasi,
 } from "@/lib/buktiVerifikasi";
 import { maskNama, maskWilayah } from "@/lib/masking";
+import {
+  mulaiVerifikasiTempatLahir,
+  periksaPilihanTempatLahir,
+} from "@/lib/verifikasiTempatLahir";
 import { JENIS_PENGADUAN, JENIS_LAINNYA } from "@/lib/jenisPengaduan";
 import {
   adalahUuid,
@@ -57,10 +61,25 @@ export async function cariWargaUntukLayanan(prevState, formData) {
     };
   }
 
+  const { warga_id, nama_lengkap, dusun, rt } = hasil.data;
+
+  // Faktor ketiga: tebak tempat lahir (pilihan bertanda inisial). Pratinjau
+  // "Apakah ini Anda?" BARU diberikan setelah pilihan benar. Salah 3 kali ->
+  // pencarian dibatalkan (dihitung & dikunci di server).
+  const tl = await mulaiVerifikasiTempatLahir(createAdminClient(), warga_id, nik);
+  if (tl.batal) return { error: tl.pesan };
+  if (!tl.lewati) {
+    return {
+      verifikasi: { opsi: tl.opsi, tiket: tl.tiket, sisa: tl.sisa },
+      nikDicoba: nik,
+    };
+  }
+
+  // Tempat lahir belum terisi di data kependudukan -> tidak bisa ditanyakan,
+  // lanjut seperti biasa (admin sebaiknya melengkapi data itu).
   // SECURITY.md poin 1.4: yang dikirim ke browser HANYA versi tersamar.
   // Data lengkap baru keluar lewat konfirmasiWargaUntukLayanan, setelah
   // warga menekan "Ya, ini saya".
-  const { warga_id, nama_lengkap, dusun, rt } = hasil.data;
   return {
     found: true,
     nikDicoba: nik,
@@ -70,6 +89,38 @@ export async function cariWargaUntukLayanan(prevState, formData) {
       rt: rt ? maskWilayah(rt) : "",
     },
     tiket: buatTiketKonfirmasi(warga_id, nik),
+  };
+}
+
+/**
+ * Step 1a: warga memilih tempat lahir. Hanya kalau benar, server menerbitkan
+ * pratinjau tersamar + tiket konfirmasi. Salah 3 kali -> { batal, pesan }.
+ */
+export async function verifikasiTempatLahirUntukLayanan(nik, tiketTL, pilihan) {
+  const nikBersih = String(nik ?? "").trim();
+  if (!/^\d{16}$/.test(nikBersih)) {
+    return { error: "Verifikasi tidak valid. Ulangi pencarian." };
+  }
+
+  const admin = createAdminClient();
+  const r = await periksaPilihanTempatLahir(admin, nikBersih, tiketTL, pilihan);
+  if (!r.ok) return r;
+
+  const { data: w } = await admin
+    .from("warga")
+    .select("id, nama_lengkap, dusun, rt")
+    .eq("id", r.wargaId)
+    .maybeSingle();
+  if (!w) return { error: "Data tidak ditemukan. Ulangi pencarian." };
+
+  return {
+    ok: true,
+    pratinjau: {
+      nama: maskNama(w.nama_lengkap),
+      dusun: maskWilayah(w.dusun),
+      rt: w.rt ? maskWilayah(w.rt) : "",
+    },
+    tiket: buatTiketKonfirmasi(w.id, nikBersih),
   };
 }
 

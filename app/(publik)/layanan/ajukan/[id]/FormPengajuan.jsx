@@ -1,9 +1,15 @@
 "use client";
 
-import { useState, useEffect, useActionState, useTransition } from "react";
+import { useState, useEffect, useMemo, useActionState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import Link from "next/link";
-import { cariWargaUntukLayanan, konfirmasiWargaUntukLayanan, ajukanLayanan } from "./actions";
+import {
+  cariWargaUntukLayanan,
+  konfirmasiWargaUntukLayanan,
+  verifikasiTempatLahirUntukLayanan,
+  ajukanLayanan,
+} from "./actions";
+import VerifikasiTempatLahir from "@/components/VerifikasiTempatLahir";
 import { JENIS_PENGADUAN, JENIS_LAINNYA } from "@/lib/jenisPengaduan";
 
 function TombolAksi({ children, pendingText }) {
@@ -113,7 +119,22 @@ export default function FormPengajuan({ jenisLayanan }) {
   const [konfirmasiError, setKonfirmasiError] = useState("");
   const [konfirmasiPending, startKonfirmasi] = useTransition();
 
-  const [lookupState, lookupAction] = useActionState(cariWargaUntukLayanan, {});
+  const [lookupAsli, lookupAction] = useActionState(cariWargaUntukLayanan, {});
+  // Hasil langkah tebak tempat lahir (terikat ke hasil pencarian yang memulainya).
+  const [hasilTL, setHasilTL] = useState(null); // { src, nikDicoba, pratinjau, tiket }
+  const [batalTL, setBatalTL] = useState(null); // { src, pesan }
+  const lookupState = useMemo(() => {
+    if (hasilTL && hasilTL.src === lookupAsli) {
+      return {
+        found: true,
+        nikDicoba: hasilTL.nikDicoba,
+        pratinjau: hasilTL.pratinjau,
+        tiket: hasilTL.tiket,
+      };
+    }
+    if (batalTL && batalTL.src === lookupAsli) return { error: batalTL.pesan };
+    return lookupAsli;
+  }, [lookupAsli, hasilTL, batalTL]);
   const [submitState, submitAction] = useActionState(ajukanLayanan, {});
 
   // Simpan NIK yang dicoba begitu lookup berhasil — WAJIB di useEffect,
@@ -145,7 +166,7 @@ export default function FormPengajuan({ jenisLayanan }) {
             : "Masukkan NIK dan tanggal lahir Anda — kami akan cari data Anda supaya tidak perlu isi ulang nama & alamat."}
         </p>
 
-        {(!lookupState?.found || ditolak === lookupState) && (
+        {((!lookupState?.found && !lookupState?.verifikasi) || ditolak === lookupState) && (
           <form action={lookupAction} className="space-y-4">
             <div>
               <label className="mb-1 block text-sm text-slate-600">NIK (16 digit)</label>
@@ -189,6 +210,29 @@ export default function FormPengajuan({ jenisLayanan }) {
               {bolehAnonim ? "Verifikasi" : "Cari Data Saya"}
             </TombolAksi>
           </form>
+        )}
+
+        {lookupState?.verifikasi && (
+          <VerifikasiTempatLahir
+            opsi={lookupState.verifikasi.opsi}
+            sisaAwal={lookupState.verifikasi.sisa}
+            periksa={(pilihan) =>
+              verifikasiTempatLahirUntukLayanan(
+                lookupState.nikDicoba,
+                lookupState.verifikasi.tiket,
+                pilihan
+              )
+            }
+            onSukses={(r) =>
+              setHasilTL({
+                src: lookupAsli,
+                nikDicoba: lookupState.nikDicoba,
+                pratinjau: r.pratinjau,
+                tiket: r.tiket,
+              })
+            }
+            onBatal={(pesan) => setBatalTL({ src: lookupAsli, pesan })}
+          />
         )}
 
         {lookupState?.found && ditolak !== lookupState && (
