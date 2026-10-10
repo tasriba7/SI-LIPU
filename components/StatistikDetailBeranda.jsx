@@ -47,31 +47,47 @@ function terbesar(rows) {
     .reduce((a, b) => (!a || b.jumlah > a.jumlah ? b : a), null);
 }
 
-// Jalankan animasi hanya saat bagian ini benar-benar terlihat di layar.
-function useInView() {
+// Animasi diagram hanya berjalan saat diagramnya SENDIRI terlihat di layar
+// (bukan saat seksi statistik yang panjang ini mulai terlihat). Sebelum itu
+// diagram tetap diam di keadaan awal (kosong). Setiap `resetKey` berubah
+// (mis. ganti kategori), animasi disiapkan ulang dan baru berjalan begitu
+// diagramnya terlihat — langsung bila sudah terlihat, atau nanti saat
+// digulir ke sana bila belum.
+function useTampilDiLayar(resetKey, ambang = 0.3) {
   const ref = useRef(null);
-  const [inView, setInView] = useState(false);
+  const [tampil, setTampil] = useState(false);
 
   useEffect(() => {
+    setTampil(false);
     const el = ref.current;
-    if (!el || typeof IntersectionObserver === "undefined") {
-      setInView(true);
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      setTampil(true);
       return;
     }
+    let f1;
+    let f2;
     const io = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          io.disconnect();
-        }
+        if (!entry.isIntersecting) return;
+        io.disconnect();
+        // Dua frame: pastikan keadaan awal (kosong) sempat tergambar dulu,
+        // supaya transisinya benar-benar terlihat berjalan.
+        f1 = requestAnimationFrame(() => {
+          f2 = requestAnimationFrame(() => setTampil(true));
+        });
       },
-      { threshold: 0.15 }
+      { threshold: ambang }
     );
     io.observe(el);
-    return () => io.disconnect();
-  }, []);
+    return () => {
+      io.disconnect();
+      cancelAnimationFrame(f1);
+      cancelAnimationFrame(f2);
+    };
+  }, [resetKey, ambang]);
 
-  return [ref, inView];
+  return [ref, tampil];
 }
 
 function useCountUp(target, active, duration = 1100) {
@@ -107,43 +123,80 @@ function useCountUp(target, active, duration = 1100) {
 const R = 54;
 const C = 2 * Math.PI * R;
 
-function Donut({ segmen, total, active }) {
-  const angka = useCountUp(total, active);
+// Warna irisan donut untuk kategori selain jenis kelamin. Teal & ungu
+// dicadangkan untuk balita & lansia (sama seperti batang dan kartu di atas).
+const WARNA_IRISAN = [
+  "#3FA9F5", "#E8B933", "#FB7185", "#F97316",
+  "#84CC16", "#E879F9", "#22D3EE", "#818CF8",
+];
+
+function segmenDariBaris(rows) {
+  let i = 0;
+  return rows
+    .filter((r) => r.jumlah > 0)
+    .map((r) => {
+      let warna;
+      if (r.label === BELUM) warna = "rgba(255,255,255,0.3)";
+      else if (r.label === "Lainnya") warna = "#94A3B8";
+      else if (r.sorot === "balita") warna = "#2DD4BF";
+      else if (r.sorot) warna = "#A78BFA";
+      else warna = WARNA_IRISAN[i++ % WARNA_IRISAN.length];
+      return { label: r.label, jumlah: r.jumlah, warna };
+    });
+}
+
+// `kunci` = kategori yang sedang ditampilkan. Angka tengah (total penduduk)
+// hanya menghitung naik sekali, saat pertama kali terlihat; irisan donut
+// menggambar ulang setiap kategori berganti — dan hanya bila donutnya terlihat.
+function Donut({ segmen, angkaTengah, labelTengah, kunci, deskripsi }) {
+  const [ref, tampil] = useTampilDiLayar(kunci, 0.4);
+  const [pernah, setPernah] = useState(false);
+  useEffect(() => {
+    if (tampil) setPernah(true);
+  }, [tampil]);
+  const angka = useCountUp(angkaTengah, pernah);
+
+  const total = segmen.reduce((s, x) => s + x.jumlah, 0);
   let mulai = 0;
 
   return (
-    <div className="relative mx-auto h-52 w-52">
-      <svg viewBox="0 0 140 140" className="h-full w-full -rotate-90" role="img"
-        aria-label={`Komposisi penduduk: ${segmen.map((s) => `${s.label} ${fmt(s.jumlah)}`).join(", ")}`}>
+    <div ref={ref} className="relative mx-auto h-52 w-52">
+      <svg viewBox="0 0 140 140" className="h-full w-full -rotate-90" role="img" aria-label={deskripsi}>
         <circle cx="70" cy="70" r={R} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="14" />
-        {segmen.map((s) => {
-          const frac = total > 0 ? s.jumlah / total : 0;
-          const panjang = Math.max(frac * C - (segmen.length > 1 ? 3 : 0), 0);
-          const offset = -mulai * C;
-          mulai += frac;
-          return (
-            <circle
-              key={s.label}
-              cx="70"
-              cy="70"
-              r={R}
-              fill="none"
-              stroke={s.warna}
-              strokeWidth="14"
-              strokeLinecap="butt"
-              strokeDasharray={`${active ? panjang : 0} ${C}`}
-              strokeDashoffset={offset}
-              className="transition-[stroke-dasharray] duration-[1200ms] ease-out motion-reduce:transition-none"
-            />
-          );
-        })}
+        <g key={kunci}>
+          {segmen.map((s) => {
+            const frac = total > 0 ? s.jumlah / total : 0;
+            // Celah antar irisan 3 satuan, tetapi irisan sangat kecil (mis. 0,4%)
+            // tidak boleh habis terpotong celah: celahnya dikecilkan supaya
+            // tetap tampak sebagai garis tipis.
+            const celah = segmen.length > 1 ? Math.min(3, frac * C * 0.4) : 0;
+            const panjang = Math.max(frac * C - celah, 0);
+            const offset = -mulai * C;
+            mulai += frac;
+            return (
+              <circle
+                key={s.label}
+                cx="70"
+                cy="70"
+                r={R}
+                fill="none"
+                stroke={s.warna}
+                strokeWidth="14"
+                strokeLinecap="butt"
+                strokeDasharray={`${tampil ? panjang : 0} ${C}`}
+                strokeDashoffset={offset}
+                className="transition-[stroke-dasharray] duration-[1200ms] ease-out motion-reduce:transition-none"
+              />
+            );
+          })}
+        </g>
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
+      <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
         <span className="font-display text-4xl font-semibold tabular-nums text-white">
           {fmt(angka)}
         </span>
-        <span className="mt-0.5 text-xs uppercase tracking-widest text-white/45">
-          Penduduk
+        <span className="mt-0.5 max-w-full truncate text-xs uppercase tracking-widest text-white/45">
+          {labelTengah}
         </span>
       </div>
     </div>
@@ -154,27 +207,22 @@ function Donut({ segmen, total, active }) {
 // Daftar batang (dipakai semua tab)
 // ---------------------------------------------------------------------------
 
-function DaftarBatang({ rows, active }) {
-  const [tumbuh, setTumbuh] = useState(false);
-
+function DaftarBatang({ rows }) {
   // Komponen ini di-remount tiap ganti tab (lewat key), jadi batang selalu
-  // "tumbuh" dari 0 lagi -- kecil tapi memberi umpan balik jelas.
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setTumbuh(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
+  // "tumbuh" dari 0 lagi — tetapi hanya begitu daftarnya terlihat di layar.
+  const [ref, tampil] = useTampilDiLayar("batang", 0.2);
 
   const total = rows.reduce((s, r) => s + r.jumlah, 0);
   const maks = Math.max(...rows.map((r) => r.jumlah), 1);
   const juara = terbesar(rows);
 
   return (
-    <ul className="space-y-4">
+    <ul ref={ref} className="space-y-4">
       {rows.map((r) => {
         const belum = r.label === BELUM;
         const unggul = juara && r.label === juara.label;
         const sorot = !!r.sorot;
-        const lebar = tumbuh && active ? Math.max((r.jumlah / maks) * 100, r.jumlah > 0 ? 2 : 0) : 0;
+        const lebar = tampil ? Math.max((r.jumlah / maks) * 100, r.jumlah > 0 ? 2 : 0) : 0;
         return (
           <li key={r.label}>
             <div className="flex items-baseline justify-between gap-3">
@@ -271,8 +319,14 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
     perPekerjaan = [],
   } = detail || {};
 
-  const [ref, inView] = useInView();
   const [tabAktif, setTabAktif] = useState("usia");
+  // Kategori yang sedang digambar di donut. null = jenis kelamin (penduduk),
+  // tampilan awal; berubah begitu pengunjung memilih tab/kartu kategori.
+  const [donutId, setDonutId] = useState(null);
+  const pilihTab = (id) => {
+    setTabAktif(id);
+    setDonutId(id);
+  };
 
   const kosong =
     perAgama.length === 0 &&
@@ -329,6 +383,13 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
 
   const tab = TAB.find((t) => t.id === tabAktif) || TAB[0];
 
+  // --- Donut: jenis kelamin (awal) atau kategori yang dipilih ------------
+  const tabDonut = donutId ? TAB.find((t) => t.id === donutId) || null : null;
+  const segDonut = tabDonut ? segmenDariBaris(tabDonut.rows) : segmen;
+  const totalDonut = segDonut.reduce((s, x) => s + x.jumlah, 0);
+  const terbanyakDonut = tabDonut ? terbesar(tabDonut.rows) : null;
+  const IkonDonut = tabDonut ? tabDonut.icon : IconGenderBalance;
+
   // --- Sekilas (4 fakta utama, bisa diklik untuk membuka rinciannya) -----
   const sekilas = [
     { tab: "usia", label: "Usia terbanyak", juara: terbesar(TAB.find((t) => t.id === "usia")?.rows || []) },
@@ -340,7 +401,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
   ].filter((s) => s.juara);
 
   return (
-    <section ref={ref} className="relative overflow-hidden bg-navy-dark py-16 md:py-24">
+    <section className="relative overflow-hidden bg-navy-dark py-16 md:py-24">
       {/* Cahaya lembut latar */}
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_85%_0%,rgba(63,169,245,0.16),transparent),radial-gradient(45%_40%_at_5%_100%,rgba(232,185,51,0.10),transparent)]" />
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
@@ -377,7 +438,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
               <button
                 key={s.label}
                 type="button"
-                onClick={() => setTabAktif(s.tab)}
+                onClick={() => pilihTab(s.tab)}
                 className="group rounded-2xl border border-white/10 bg-white/[0.04] p-4 text-center transition duration-300 hover:-translate-y-0.5 sm:text-left hover:border-gold/40 hover:bg-white/[0.07] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
               >
                 <p className="text-[11px] uppercase tracking-widest text-white/45">{s.label}</p>
@@ -393,7 +454,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
             {balita.tersedia && (
               <button
                 type="button"
-                onClick={() => setTabAktif("usia")}
+                onClick={() => pilihTab("usia")}
                 className={`group ${spanKhusus} rounded-2xl border border-teal-300/25 bg-teal-400/[0.08] p-4 text-center transition duration-300 hover:border-teal-300/50 hover:bg-teal-400/[0.12] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 sm:text-left lg:col-span-1`}
               >
                 <p className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-widest text-teal-200/70 sm:justify-start">
@@ -411,7 +472,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
             {lansia.tersedia && (
               <button
                 type="button"
-                onClick={() => setTabAktif("usia")}
+                onClick={() => pilihTab("usia")}
                 className={`group ${spanKhusus} rounded-2xl border border-violet-300/25 bg-violet-400/[0.08] p-4 text-center transition duration-300 hover:border-violet-300/50 hover:bg-violet-400/[0.12] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 sm:text-left lg:col-span-1`}
               >
                 <p className="flex items-center justify-center gap-1.5 text-[11px] uppercase tracking-widest text-violet-200/70 sm:justify-start">
@@ -431,42 +492,69 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
 
         {/* Donut + Rincian */}
         <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-          {/* Jenis kelamin */}
+          {/* Donut: jenis kelamin (awal) atau kategori yang sedang dipilih */}
           <div className="flex min-w-0 flex-col rounded-3xl border border-white/10 bg-white/[0.04] p-6 backdrop-blur sm:p-8">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 text-gold-light">
-                <IconGenderBalance className="h-5 w-5" />
+            <div key={`kepala-${donutId || "jk"}`} className="flex items-center gap-3 motion-safe:animate-pageIn">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 text-gold-light">
+                <IkonDonut className="h-5 w-5" />
               </div>
-              <div>
-                <h3 className="font-display text-base font-semibold text-white">Jenis Kelamin</h3>
-                <p className="text-xs text-white/45">Perbandingan laki-laki dan perempuan</p>
+              <div className="min-w-0">
+                <h3 className="truncate font-display text-base font-semibold text-white">
+                  {tabDonut ? tabDonut.judul : "Jenis Kelamin"}
+                </h3>
+                <p className="text-xs text-white/45">
+                  {tabDonut ? "Perbandingan jumlah penduduk" : "Perbandingan laki-laki dan perempuan"}
+                </p>
               </div>
+              {tabDonut && (
+                <button
+                  type="button"
+                  onClick={() => setDonutId(null)}
+                  aria-label="Kembali menampilkan komposisi penduduk menurut jenis kelamin"
+                  className="ml-auto shrink-0 rounded-full border border-white/15 px-3 py-1 text-xs font-medium text-white/70 transition hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+                >
+                  ← Penduduk
+                </button>
+              )}
             </div>
 
             <div className="my-auto py-6">
             <div>
-              <Donut segmen={segmen} total={totalPenduduk} active={inView} />
+              <Donut
+                segmen={segDonut}
+                angkaTengah={totalPenduduk}
+                labelTengah={tabDonut ? tabDonut.nama : "Penduduk"}
+                kunci={donutId || "jk"}
+                deskripsi={`Komposisi penduduk${tabDonut ? ` menurut ${tabDonut.judul.toLowerCase()}` : ""}: ${segDonut.map((s) => `${s.label} ${fmt(s.jumlah)}`).join(", ")}`}
+              />
             </div>
 
-            <ul className="mt-6 space-y-3">
-              {segmen.map((s) => (
+            <ul key={`legenda-${donutId || "jk"}`} className="mt-6 space-y-3 motion-safe:animate-pageIn">
+              {segDonut.map((s) => (
                 <li key={s.label} className="flex items-center justify-between gap-3 text-sm">
-                  <span className="flex items-center gap-2.5 text-white/75">
-                    <span className="h-2.5 w-2.5 rounded-full" style={{ background: s.warna }} />
-                    {s.label}
+                  <span className="flex min-w-0 items-center gap-2.5 text-white/75">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: s.warna }} />
+                    <span className="truncate" title={s.label}>{s.label}</span>
                   </span>
-                  <span className="tabular-nums">
+                  <span className="shrink-0 whitespace-nowrap tabular-nums">
                     <span className="font-semibold text-white">{fmt(s.jumlah)}</span>
-                    <span className="ml-2 text-xs text-white/40">{fmtPersen(s.jumlah, totalPenduduk)}</span>
+                    <span className="ml-2 text-xs text-white/40">{fmtPersen(s.jumlah, totalDonut)}</span>
                   </span>
                 </li>
               ))}
             </ul>
 
-            {rasio && (
+            {!tabDonut && rasio && (
               <p className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs leading-relaxed text-white/55">
                 Rasio jenis kelamin{" "}
                 <span className="font-semibold text-gold-light">{rasio}</span>: ada {rasio} laki-laki untuk setiap 100 perempuan.
+              </p>
+            )}
+            {terbanyakDonut && (
+              <p className="mt-6 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs leading-relaxed text-white/55">
+                Terbanyak:{" "}
+                <span className="font-semibold text-gold-light">{terbanyakDonut.label}</span>,{" "}
+                {fmt(terbanyakDonut.jumlah)} orang ({fmtPersen(terbanyakDonut.jumlah, totalDonut)}).
               </p>
             )}
             </div>
@@ -488,7 +576,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
                     type="button"
                     aria-selected={aktif}
                     aria-controls="panel-statistik"
-                    onClick={() => setTabAktif(t.id)}
+                    onClick={() => pilihTab(t.id)}
                     className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 ${
                       aktif
                         ? "bg-gold text-navy-dark shadow-[0_0_24px_-6px] shadow-gold/60"
@@ -506,7 +594,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
               <h3 className="font-display text-xl font-semibold text-white">{tab.judul}</h3>
               <p className="mt-1 text-xs text-white/45">{tab.ket}</p>
               <div className="mt-6">
-                <DaftarBatang key={tab.id} rows={tab.rows} active={inView} />
+                <DaftarBatang key={tab.id} rows={tab.rows} />
               </div>
             </div>
           </div>
