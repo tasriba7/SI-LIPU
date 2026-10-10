@@ -137,7 +137,7 @@ export async function tambahKeluargaWarga(prevState, formData) {
       tanggal_lahir,
       jenis_kelamin: a.jenis_kelamin || null,
       alamat,
-      dusun,
+      dusun: null, // diisi setelah validasi daftar dusun di bawah
       rt,
       rw,
       no_hp: String(a.no_hp ?? "").trim() || null,
