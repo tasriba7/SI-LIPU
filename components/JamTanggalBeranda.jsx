@@ -76,52 +76,28 @@ export default function JamTanggalBeranda() {
   }, []);
 
   return (
-    <div className="mb-4 flex justify-center md:mb-5">
-      <div className="inline-flex h-9 max-w-full items-center gap-2.5 whitespace-nowrap rounded-full bg-gradient-to-r from-navy-dark to-navy-dark px-3.5 shadow-lg shadow-navy/30 ring-2 ring-gold/70 sm:h-11 sm:gap-3.5 sm:px-5">
-        <IconCalendarRange className="hidden h-4 w-4 shrink-0 text-gold-light sm:block" />
-
-        {/* Hari & tanggal — di HP memakai singkatan agar muat satu baris. */}
-        <p className="text-[12px] font-medium text-white sm:text-[14px]">
-          <span className="text-gold-light">
-            <span className="sm:hidden">{w ? w.hariPendek : "···"}</span>
-            <span className="hidden sm:inline">{w ? w.hari : "······"}</span>,
-          </span>{" "}
-          <span className="sm:hidden">{w ? w.tanggalPendek : "·· ··· ····"}</span>
-          <span className="hidden sm:inline">{w ? w.tanggal : "·· ······· ····"}</span>
-        </p>
-
-        <span className="h-4 w-px shrink-0 bg-white/25 sm:h-5" aria-hidden="true" />
-
-        {/* Jam sampai detik. Disembunyikan dari pembaca layar karena berubah
-            tiap detik; yang dibacakan hanya jam & menit lewat teks sr-only. */}
-        <p
-          aria-hidden="true"
-          className="font-mono text-[17px] font-semibold leading-none tracking-wide text-white sm:text-[21px]"
-        >
-          {w ? (
-            <>
-              <DuaAngka teks={w.jam} />
-              <span className="mx-px text-gold">:</span>
-              <DuaAngka teks={w.menit} />
-              <span className="mx-px text-gold">:</span>
-              <span className="text-gold-light">
-                <DuaAngka teks={w.detik} />
-              </span>
-            </>
-          ) : (
-            <span className="text-white/30">––:––:––</span>
-          )}
-        </p>
-        {w && (
-          <span className="sr-only">
-            Pukul {w.jam}.{w.menit} {w.zona}
-          </span>
+    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[13px] text-white/85 sm:text-sm lg:justify-start">
+      <p>
+        <span className="sm:hidden">{w ? `${w.hariPendek}, ${w.tanggalPendek}` : "···"}</span>
+        <span className="hidden sm:inline">{w ? `${w.hari}, ${w.tanggal}` : "······"}</span>
+      </p>
+      <span className="h-3.5 w-px bg-white/30" aria-hidden="true" />
+      {/* Jam sampai detik: disembunyikan dari pembaca layar karena berubah tiap detik. */}
+      <p aria-hidden="true" className="font-mono tabular-nums">
+        {w ? (
+          <>
+            <DuaAngka teks={w.jam} />:<DuaAngka teks={w.menit} />:<DuaAngka teks={w.detik} />{" "}
+            <span className="text-white/60">{w.zona}</span>
+          </>
+        ) : (
+          "––:––:––"
         )}
-
-        <span aria-hidden="true" className="rounded-md bg-gold/15 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-widest text-gold-light ring-1 ring-gold/30 sm:text-[10px]">
-          {w ? w.zona : "···"}
+      </p>
+      {w && (
+        <span className="sr-only">
+          Pukul {w.jam}.{w.menit} {w.zona}
         </span>
-      </div>
+      )}
     </div>
   );
 }

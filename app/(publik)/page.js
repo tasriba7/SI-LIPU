@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import Link from "next/link";
-import VillageSeal from "@/components/VillageSeal";
 import StatBerandaCards from "@/components/StatBerandaCards";
 import StatistikDetailBeranda from "@/components/StatistikDetailBeranda";
 import Reveal from "@/components/Reveal";
@@ -159,41 +158,30 @@ export default async function HomePage() {
   return (
     <main className="overflow-x-clip bg-white">
       {/* Hero — identitas desa: latar putih bersih, judul hitam, aksen merah secukupnya. */}
-      <section id="hero-beranda" className="latar-terang relative overflow-hidden">
+      <section id="hero-beranda" className={`relative overflow-hidden ${fotoHero.length > 0 ? "bg-neutral-900" : "latar-mesh"}`}>
         {/* Foto latar dari admin (Foto Beranda), bergeser kiri-kanan tiap 10 detik. */}
         <HeroSlideshow images={fotoHero} />
 
-        {/* Lapisan putih hanya di sisi teks (kiri) agar tulisan tetap terbaca;
-            sisi kanan dibiarkan bersih supaya foto tampil jelas. */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/25 to-transparent max-lg:from-white/70 max-lg:via-white/35 max-lg:to-white/45" />
+        {/* Lapisan gelap tipis, paling pekat di sisi teks (kiri) supaya tulisan putih
+            terbaca; sisi kanan nyaris bening agar foto tetap jelas. */}
+        {fotoHero.length > 0 && (
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-black/5 max-lg:from-black/60 max-lg:via-black/45 max-lg:to-black/40" />
+        )}
 
-        
-
-        <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 pt-[calc(var(--header-h)+1.5rem)] md:pt-[calc(var(--header-h)+2.5rem)] lg:grid-cols-[1.15fr_0.85fr] lg:gap-8">
-          {/* Kolom teks */}
-          <div className="text-center lg:text-left">
-            {/* Hari, tanggal & jam setempat */}
+        <div className="relative mx-auto max-w-6xl px-6 pt-[calc(var(--header-h)+3rem)] md:pt-[calc(var(--header-h)+4.5rem)]">
+          <div className="max-w-2xl text-center lg:text-left">
             <Reveal variant="down" delay={50}>
-              <div className="lg:[&>div]:justify-start">
-                <JamTanggalBeranda />
-              </div>
+              <JamTanggalBeranda />
             </Reveal>
 
-            {/* Sapaan + identitas desa: satu blok, tiap informasi tampil sekali saja. */}
-            <Reveal delay={150}>
-              <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-navy sm:text-xs">
-                Selamat datang di website
-              </p>
-            </Reveal>
-
-            <Reveal delay={230}>
-              <h1 className="mt-4 font-display font-bold leading-[1.05] text-navy-dark">
+            <Reveal delay={200}>
+              <h1 className="mt-6 font-display font-bold leading-[1.05] text-white">
                 {config.nama_desa ? (
                   <>
-                    <span className="block text-3xl font-medium italic text-navy/75 sm:text-4xl">
+                    <span className="block font-sans text-sm font-medium uppercase tracking-[0.35em] text-white/80 sm:text-base">
                       {config.jenis_wilayah || "Desa"}
                     </span>
-                    <span className="teks-royal mt-1 block pb-2 text-6xl sm:text-7xl lg:text-8xl">
+                    <span className="mt-2 block text-5xl sm:text-6xl lg:text-7xl">
                       {config.nama_desa}
                     </span>
                   </>
@@ -201,15 +189,19 @@ export default async function HomePage() {
                   <span className="block text-4xl sm:text-6xl">Portal Layanan Digital Desa</span>
                 )}
               </h1>
-              {/* Garis aksen: tumbuh dari kiri begitu hero terlihat. */}
               <span
                 aria-hidden
-                className="garis-aksen anim-saat-tampil mx-auto mt-1 block origin-left motion-safe:animate-garisTumbuh lg:mx-0"
+                className="garis-aksen anim-saat-tampil mx-auto mt-5 block origin-left motion-safe:animate-garisTumbuh lg:mx-0"
               />
-              {/* Wilayah & alamat: hanya di sini, tidak diulang di tempat lain di hero. */}
+            </Reveal>
+
+            <Reveal delay={300}>
+              <p className="mt-5 font-display text-xl font-medium leading-snug text-white/95 sm:text-2xl">
+                Layanan desa dalam genggaman, tanpa antre.
+              </p>
               {(wilayah || config.alamat) && (
-                <p className="mt-5 inline-flex max-w-xl items-start gap-2 text-left text-sm font-medium leading-relaxed text-slate-700 sm:text-base">
-                  <IconMapPin className="mt-1 h-4 w-4 shrink-0 text-navy" />
+                <p className="mt-3 inline-flex max-w-xl items-start gap-2 text-left text-sm leading-relaxed text-white/75">
+                  <IconMapPin className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>
                     {wilayah}
                     {wilayah && config.alamat ? " · " : ""}
@@ -219,46 +211,24 @@ export default async function HomePage() {
               )}
             </Reveal>
 
-            <Reveal delay={320}>
-              <p className="mx-auto mt-5 max-w-lg font-display text-xl font-semibold leading-snug text-navy-dark sm:text-2xl lg:mx-0">
-                Layanan desa dalam genggaman,{" "}
-                <em className="italic text-navy underline decoration-gold decoration-[3px] underline-offset-[6px]">
-                  tanpa
-                </em>{" "}
-                antre.
-              </p>
-            </Reveal>
-
             <Reveal delay={400}>
               <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row lg:justify-start">
                 <Link
                   href="/layanan"
-                  className="group inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-royal px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:bg-navy-dark sm:w-auto"
+                  className="group inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-royal px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-royal-dark sm:w-auto"
                 >
                   Ajukan Layanan
                   <IconArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
                 <Link
                   href="/layanan/cek"
-                  className="group inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl border-2 border-navy/25 bg-white px-7 py-3.5 text-sm font-semibold text-navy shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-navy hover:bg-navy hover:text-white hover:shadow-lg hover:shadow-navy/25 sm:w-auto"
+                  className="inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl border border-white/70 px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:bg-white hover:text-navy-dark sm:w-auto"
                 >
                   Cek Status Pengajuan
                 </Link>
               </div>
             </Reveal>
           </div>
-
-          {/* Kolom lambang — cakram putih bercahaya, cincin memancar, titik emas mengorbit, lencana melayang */}
-          <Reveal variant="zoom" delay={320} className="order-first lg:order-none">
-            <div className="anim-saat-tampil group relative mx-auto w-44 text-navy sm:w-56 lg:w-full lg:max-w-sm">
-              <VillageSeal
-                className="aspect-square transition-transform duration-500 group-hover:scale-105"
-                logoUrl={config.logo_url}
-              />
-
-              
-            </div>
-          </Reveal>
         </div>
 
         {/* Kartu statistik singkat */}

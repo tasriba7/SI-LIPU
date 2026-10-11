@@ -57,7 +57,7 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
-::selection { background: rgba(201,162,77, 0.4); color: #0a0a0a; }
+::selection { background: rgba(198, 40, 40, 0.28); }
 
 /* Teks emas berkilau (judul hero, angka sorotan). */
 .teks-emas {
