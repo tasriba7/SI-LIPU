@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { aturPasswordAkun, hapusAkunWilayah } from "./actions";
+import { aturPasswordAkun, hapusAkunStaf } from "./actions";
 import { ROLE_BADGE_CLASS, labelJabatan } from "@/lib/roles";
 import { IconKey } from "@/components/icons";
 import CopyButton from "@/components/CopyButton";
@@ -23,7 +23,7 @@ export default function BarisAkun({ akun, checked, onToggleCheck }) {
         : "Akun ini belum menginput data penduduk.";
     if (
       !confirm(
-        `Hapus akun ${akun.nama} (${akun.email})?\n\n${catatanData}\n\nSlot posisinya akan dikosongkan sehingga bisa didaftar ulang, dan akun ini tidak bisa login lagi. Tindakan ini tidak bisa dibatalkan.`
+        `Hapus akun ${akun.nama} (${akun.email}) — ${labelJabatan(akun)}?\n\n${catatanData}\n\nKalau akun ini memegang slot posisi, slotnya akan dikosongkan sehingga bisa diisi ulang. Akun ini tidak bisa login lagi. Tindakan ini tidak bisa dibatalkan.`
       )
     ) {
       return;
@@ -32,7 +32,7 @@ export default function BarisAkun({ akun, checked, onToggleCheck }) {
     const fd = new FormData();
     fd.set("user_id", akun.id);
     startTransition(async () => {
-      const res = await hapusAkunWilayah(null, fd);
+      const res = await hapusAkunStaf(null, fd);
       if (res?.error) setError(res.error);
       else setHasilHapus(res);
     });
