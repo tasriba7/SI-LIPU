@@ -26,6 +26,7 @@ import {
   IconHeartHandshake,
   IconIdCard,
   IconSparkle,
+  IconMapPin,
 } from "@/components/icons";
 import {
   getStatistikBeranda,
@@ -150,12 +151,12 @@ export default async function HomePage() {
           <img
             src={config.foto_url}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover opacity-20"
+            className="absolute inset-0 h-full w-full object-cover opacity-90 [mask-image:radial-gradient(ellipse_75%_85%_at_62%_45%,black_28%,transparent_78%)]"
           />
         )}
 
-        {/* Lapisan putih di atas foto supaya teks gelap tetap kontras & tampilan tetap cerah. */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/20 to-white/80" />
+        {/* Lapisan putih tipis di sisi teks (kiri) supaya tulisan tetap jelas; foto tetap tampil di kanan. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/45 to-transparent max-lg:from-white/70 max-lg:via-white/50 max-lg:to-white/60" />
 
         {/* Pendar warna yang melayang pelan + tekstur titik yang memudar ke tepi. */}
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -175,22 +176,22 @@ export default async function HomePage() {
               </div>
             </Reveal>
 
-            <Reveal delay={120}>
-              <p className="inline-flex items-center gap-2.5 font-mono text-xs font-semibold uppercase tracking-[0.25em] text-royal">
-                <span aria-hidden className="hidden h-[2px] w-8 bg-gradient-to-r from-transparent to-royal lg:block" />
-                {config.jenis_wilayah || "Desa"}
-                {wilayah ? ` · ${wilayah}` : ""}
+            {/* Sapaan + identitas desa: satu blok, tiap informasi tampil sekali saja. */}
+            <Reveal delay={150}>
+              <p className="inline-flex items-center gap-2.5 rounded-full border border-royal/20 bg-white/80 px-4 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-royal shadow-sm backdrop-blur-sm sm:text-xs">
+                <IconSparkle className="h-3.5 w-3.5 text-gold" />
+                Selamat datang di website
               </p>
             </Reveal>
 
-            <Reveal delay={200}>
+            <Reveal delay={230}>
               <h1 className="mt-4 font-display font-bold leading-[1.05] text-navy-dark">
                 {config.nama_desa ? (
                   <>
-                    <span className="block text-2xl font-medium italic text-navy/70 sm:text-3xl">
+                    <span className="block text-3xl font-medium italic text-navy/75 sm:text-4xl">
                       {config.jenis_wilayah || "Desa"}
                     </span>
-                    <span className="teks-royal mt-1 block pb-2 text-5xl sm:text-6xl lg:text-7xl">
+                    <span className="teks-royal mt-1 block pb-2 text-6xl sm:text-7xl lg:text-8xl">
                       {config.nama_desa}
                     </span>
                   </>
@@ -203,28 +204,26 @@ export default async function HomePage() {
                 aria-hidden
                 className="garis-aksen anim-saat-tampil mx-auto mt-1 block origin-left motion-safe:animate-garisTumbuh lg:mx-0"
               />
-              {wilayah && (
-                <p className="mt-4 text-sm font-medium text-slate-700 sm:text-base">{wilayah}</p>
+              {/* Wilayah & alamat: hanya di sini, tidak diulang di tempat lain di hero. */}
+              {(wilayah || config.alamat) && (
+                <p className="mt-5 inline-flex max-w-xl items-start gap-2 text-left text-sm font-medium leading-relaxed text-slate-700 sm:text-base">
+                  <IconMapPin className="mt-1 h-4 w-4 shrink-0 text-royal" />
+                  <span>
+                    {wilayah}
+                    {wilayah && config.alamat ? " · " : ""}
+                    {config.alamat}
+                  </span>
+                </p>
               )}
-              {config.alamat && <p className="mt-1 text-xs text-slate-500">{config.alamat}</p>}
             </Reveal>
 
-            {/* Sambutan singkat & tombol cepat */}
-            <Reveal delay={300}>
-              <p className="mt-8 inline-flex items-center gap-2 rounded-full border border-royal/20 bg-royal/10 px-3.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-royal">
-                <IconSparkle className="h-3.5 w-3.5 text-gold" />
-                Portal Layanan Digital Desa
-              </p>
-              <h2 className="mx-auto mt-4 max-w-xl font-display text-2xl font-semibold leading-[1.25] text-navy-dark sm:text-3xl lg:mx-0">
-                Satu kali isi form,{" "}
+            <Reveal delay={320}>
+              <p className="mx-auto mt-5 max-w-lg font-display text-xl font-semibold leading-snug text-navy-dark sm:text-2xl lg:mx-0">
+                Layanan desa dalam genggaman,{" "}
                 <em className="italic text-royal underline decoration-gold decoration-[3px] underline-offset-[6px]">
                   tanpa
                 </em>{" "}
-                bolak-balik kantor desa.
-              </h2>
-              <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-600 lg:mx-0">
-                SI-LIPU mengurus surat, pengaduan, dan informasi desa langsung dari ponsel Anda —
-                tanpa akun, tanpa antre di loket.
+                antre.
               </p>
             </Reveal>
 

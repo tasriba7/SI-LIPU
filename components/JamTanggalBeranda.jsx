@@ -118,7 +118,7 @@ export default function JamTanggalBeranda() {
           </span>
         )}
 
-        <span className="rounded-md bg-gold/15 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-widest text-gold-light ring-1 ring-gold/30 sm:text-[10px]">
+        <span aria-hidden="true" className="rounded-md bg-gold/15 px-1.5 py-0.5 font-mono text-[9px] font-bold tracking-widest text-gold-light ring-1 ring-gold/30 sm:text-[10px]">
           {w ? w.zona : "···"}
         </span>
       </div>
