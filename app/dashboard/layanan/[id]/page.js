@@ -4,10 +4,18 @@ import { createClient } from "@/lib/supabase/server";
 import DetailLayananForm from "./DetailLayananForm";
 import { linkWhatsApp } from "@/lib/whatsapp";
 import { STATUS_LABELS, STATUS_BADGE_CLASS } from "@/lib/statusSurat";
+import { isBpdRole } from "@/lib/roles";
+import { ambilRole } from "@/lib/akses";
+import DetailPantau from "@/components/dashboard/DetailPantau";
 
 export default async function DetailPengajuanLayananPage({ params }) {
   const { id } = await params;
   const supabase = await createClient();
+
+  // Anggota BPD: detail mode lihat (tanpa NIK/No. HP, tanpa formulir ubah).
+  const saya = await ambilRole(supabase);
+  if (isBpdRole(saya.role)) return <DetailPantau id={id} />;
+
   const { data: pengajuan } = await supabase
     .from("pengajuan_layanan")
     .select("*, jenis_layanan_master(nama_layanan, kategori, form_schema)")

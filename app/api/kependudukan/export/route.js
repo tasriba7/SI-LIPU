@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { createClient } from "@/lib/supabase/server";
+import { bisaMenulis } from "@/lib/roles";
 
 // Header sengaja disamakan dengan sheet "Data Penduduk" di
 // public/template-import-penduduk.xlsx (tanpa tanda "*"), supaya file hasil
@@ -32,6 +33,20 @@ export async function GET(request) {
   } = await supabase.auth.getUser();
   if (!user) {
     return NextResponse.json({ error: "Belum login." }, { status: 401 });
+  }
+
+  // Unduh massal NIK seluruh warga: hanya role yang boleh mengelola data.
+  // Anggota BPD (dan Kepala Desa) hanya boleh MELIHAT di layar.
+  const { data: profil } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!bisaMenulis(profil?.role)) {
+    return NextResponse.json(
+      { error: "Akun ini hanya bisa melihat data, tidak bisa mengunduhnya." },
+      { status: 403 }
+    );
   }
 
   const { searchParams } = new URL(request.url);

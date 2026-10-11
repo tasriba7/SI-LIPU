@@ -1,4 +1,4 @@
-import { ROLE_LABELS, terimaPemberitahuanLayanan } from "@/lib/roles";
+import { ROLE_LABELS, terimaPemberitahuanLayanan, isBpdRole } from "@/lib/roles";
 import { ambilPemberitahuanLayanan } from "@/lib/pemberitahuanLayanan";
 import PemberitahuanLayanan from "@/components/dashboard/PemberitahuanLayanan";
 import Link from "next/link";
@@ -102,6 +102,32 @@ export default async function DashboardPage() {
     ? await ambilPemberitahuanLayanan(supabase, peran, { tampil: 8 })
     : null;
 
+  // Anggota BPD: ringkasan pelayanan (dari view pantau, tanpa data pribadi).
+  const bpd = isBpdRole(peran);
+  let ringkasanBpd = null;
+  if (bpd) {
+    const hitung = (status, kategori) => {
+      let c = supabase
+        .from("pengajuan_layanan_pantau")
+        .select("id", { count: "exact", head: true })
+        .eq("status", status);
+      if (kategori) c = c.eq("kategori", kategori);
+      return c;
+    };
+    const [a, b, c, d] = await Promise.all([
+      hitung("diajukan"),
+      hitung("diproses"),
+      hitung("diajukan", "pengaduan"),
+      hitung("diproses", "pengaduan"),
+    ]);
+    ringkasanBpd = {
+      belumDitangani: a.count ?? 0,
+      sedangDiproses: b.count ?? 0,
+      aduanBaru: c.count ?? 0,
+      aduanDiproses: d.count ?? 0,
+    };
+  }
+
   const totalBelumLengkap = (ringkasanKelengkapan ?? []).reduce(
     (a, r) => a + (r.belum_lengkap || 0),
     0
@@ -118,7 +144,30 @@ export default async function DashboardPage() {
 
       {pemberitahuan && <PemberitahuanLayanan {...pemberitahuan} />}
 
-      {!adaPemberitahuan && menunggu > 0 && (
+      {ringkasanBpd && (
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <Link
+            href="/dashboard/layanan"
+            className="rounded-2xl border border-teal-200 bg-teal-50 p-5 transition hover:shadow-md"
+          >
+            <h2 className="text-sm font-bold text-teal-800">Pelayanan administrasi</h2>
+            <p className="mt-1 text-xs text-teal-700">
+              {ringkasanBpd.belumDitangani} belum disentuh &middot; {ringkasanBpd.sedangDiproses} sedang diproses
+            </p>
+          </Link>
+          <Link
+            href="/dashboard/pengaduan"
+            className="rounded-2xl border border-teal-200 bg-teal-50 p-5 transition hover:shadow-md"
+          >
+            <h2 className="text-sm font-bold text-teal-800">Pengaduan warga</h2>
+            <p className="mt-1 text-xs text-teal-700">
+              {ringkasanBpd.aduanBaru} aduan baru &middot; {ringkasanBpd.aduanDiproses} sedang ditangani
+            </p>
+          </Link>
+        </div>
+      )}
+
+      {!bpd && !adaPemberitahuan && menunggu > 0 && (
         <Link
           href="/dashboard/layanan?status=diajukan"
           className="flex items-center justify-between gap-4 rounded-2xl border border-gold/50 bg-gold/10 p-5 transition hover:shadow-md"
@@ -137,7 +186,7 @@ export default async function DashboardPage() {
         </Link>
       )}
 
-      {ringkasanKelengkapan && ringkasanKelengkapan.length > 0 && (
+      {!bpd && ringkasanKelengkapan && ringkasanKelengkapan.length > 0 && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
           <div className="flex items-start justify-between gap-4">
             <div>

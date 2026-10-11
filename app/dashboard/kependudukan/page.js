@@ -1,4 +1,10 @@
-import { ROLE_LABELS } from "@/lib/roles";
+import { ROLE_LABELS, bisaMenulis, isBpdRole } from "@/lib/roles";
+import StatistikDashboard from "@/components/dashboard/StatistikDashboard";
+import {
+  getStatistikBeranda,
+  getStatistikBerandaDetail,
+  getStatistikPerDusun,
+} from "@/lib/statistikBeranda";
 import FormCari from "@/components/FormCari";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -38,8 +44,9 @@ const DEFAULT_TAMPIL = 50;
 // mengambil data bertahap per 1000 baris sampai habis.
 const UKURAN_BATCH = 1000;
 
-function buatUrl({ cari, kurang, tampil }) {
+function buatUrl({ cari, kurang, tampil, lengkap }) {
   const q = new URLSearchParams();
+  if (lengkap) q.set("lengkap", "1");
   if (cari) q.set("cari", cari);
   if (kurang) q.set("kurang", "1");
   if (tampil && tampil !== String(DEFAULT_TAMPIL)) q.set("tampil", tampil);
@@ -60,6 +67,47 @@ export default async function KependudukanPage({ searchParams }) {
       : DEFAULT_TAMPIL;
   const tampilKey = tampilSemua ? "semua" : String(batas);
   const supabase = await createClient();
+
+  // Peran akun: Anggota BPD & Kepala Desa hanya melihat. BPD awalnya hanya
+  // melihat STATISTIK; data lengkap warga baru dibuka lewat tombol (?lengkap=1).
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profilSaya } = user
+    ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
+    : { data: null };
+  const peran = profilSaya?.role ?? null;
+  const bpd = isBpdRole(peran);
+  const bisaUbah = bisaMenulis(peran);
+  const lengkap = bpd && sp?.lengkap === "1";
+
+  if (bpd && !lengkap) {
+    const [ringkas, detail, perDusun] = await Promise.all([
+      getStatistikBeranda(),
+      getStatistikBerandaDetail(),
+      getStatistikPerDusun(),
+    ]);
+    return (
+      <div className="space-y-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-lg font-bold text-slate-800">Statistik Kependudukan</h1>
+            <p className="text-sm text-slate-500">
+              Ringkasan angka penduduk desa. Data pribadi warga tidak ditampilkan di sini.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/kependudukan?lengkap=1"
+            className="flex shrink-0 items-center gap-2 rounded-xl border border-navy/20 bg-navy/5 px-4 py-2.5 text-sm font-semibold text-navy transition hover:border-navy hover:bg-navy/10"
+          >
+            <IconUsers className="h-4 w-4" />
+            Lihat data lengkap warga
+          </Link>
+        </div>
+        <StatistikDashboard ringkas={ringkas} detail={detail} perDusun={perDusun} />
+      </div>
+    );
+  }
 
   // Dibaca dari view `warga_kelengkapan` (bukan tabel `warga` langsung) supaya
   // ikut dapat info siapa penginput dan kolom apa yang masih kosong. View ini
@@ -148,13 +196,23 @@ export default async function KependudukanPage({ searchParams }) {
               </p>
             </div>
           </div>
-          <Link
-            href="/dashboard/kependudukan/tambah"
-            className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-light px-5 py-2.5 text-sm font-semibold text-navy-dark shadow-lg shadow-black/20 transition hover:brightness-105"
-          >
-            <IconPlus className="h-4 w-4" />
-            Tambah Warga
-          </Link>
+          {bisaUbah && (
+            <Link
+              href="/dashboard/kependudukan/tambah"
+              className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-light px-5 py-2.5 text-sm font-semibold text-navy-dark shadow-lg shadow-black/20 transition hover:brightness-105"
+            >
+              <IconPlus className="h-4 w-4" />
+              Tambah Warga
+            </Link>
+          )}
+          {bpd && (
+            <Link
+              href="/dashboard/kependudukan"
+              className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-white/30 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              &larr; Kembali ke statistik
+            </Link>
+          )}
         </div>
       </div>
 
@@ -192,7 +250,7 @@ export default async function KependudukanPage({ searchParams }) {
           <p className="mt-2 text-2xl font-bold tabular-nums text-emerald-700">{fmt(jumlahLengkap)}</p>
         </div>
         <Link
-          href="/dashboard/kependudukan?kurang=1"
+          href={`/dashboard/kependudukan?${lengkap ? "lengkap=1&" : ""}kurang=1`}
           className="group rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 to-white p-4 transition hover:border-amber-300 hover:shadow-sm"
         >
           <div className="flex items-center gap-2 text-xs font-medium text-amber-700">
@@ -213,18 +271,26 @@ export default async function KependudukanPage({ searchParams }) {
           <IconUsers className="h-4 w-4" />
           Kartu Keluarga
         </Link>
-        <Link
-          href="/dashboard/kependudukan/mutasi"
-          className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100"
-        >
-          Mutasi Penduduk
-        </Link>
-        <ImportWargaButton />
-        <ExportWargaButton cari={cari} />
+        {bisaUbah && (
+          <>
+            <Link
+              href="/dashboard/kependudukan/mutasi"
+              className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100"
+            >
+              Mutasi Penduduk
+            </Link>
+            <ImportWargaButton />
+            <ExportWargaButton cari={cari} />
+          </>
+        )}
+        {!bisaUbah && (
+          <span className="text-xs text-slate-400">Mode lihat — data tidak bisa diubah atau diunduh.</span>
+        )}
       </div>
 
       {/* Pencarian & filter */}
       <FormCari className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+        {lengkap && <input type="hidden" name="lengkap" value="1" />}
         {hanyaKurang && <input type="hidden" name="kurang" value="1" />}
         {tampilKey !== String(DEFAULT_TAMPIL) && (
           <input type="hidden" name="tampil" value={tampilKey} />
@@ -247,7 +313,7 @@ export default async function KependudukanPage({ searchParams }) {
         </button>
         {cari && (
           <Link
-            href={buatUrl({ kurang: hanyaKurang, tampil: tampilKey })}
+            href={buatUrl({ kurang: hanyaKurang, tampil: tampilKey, lengkap })}
             className="text-sm text-slate-400 hover:text-slate-600"
           >
             Reset pencarian
@@ -259,11 +325,11 @@ export default async function KependudukanPage({ searchParams }) {
             opsi={[...PILIHAN_TAMPIL.map(String), "semua"].map((nilai) => ({
               value: nilai,
               label: nilai === "semua" ? "Semua data" : `${nilai} data`,
-              href: buatUrl({ cari, kurang: hanyaKurang, tampil: nilai }),
+              href: buatUrl({ cari, kurang: hanyaKurang, tampil: nilai, lengkap }),
             }))}
           />
           <Link
-            href={buatUrl({ cari, kurang: !hanyaKurang, tampil: tampilKey })}
+            href={buatUrl({ cari, kurang: !hanyaKurang, tampil: tampilKey, lengkap })}
             className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
               hanyaKurang
                 ? "border-amber-300 bg-amber-100 text-amber-800"
@@ -404,13 +470,17 @@ export default async function KependudukanPage({ searchParams }) {
                           Keluarga
                         </Link>
                       )}
-                      <Link
-                        href={`/dashboard/kependudukan/${w.id}/edit`}
-                        className="rounded-md bg-navy/10 px-2 py-1 text-[12px] font-medium text-navy hover:bg-navy/20"
-                      >
-                        Edit
-                      </Link>
-                      <TombolHapusWarga id={w.id} nama={w.nama_lengkap} />
+                      {bisaUbah && (
+                        <>
+                          <Link
+                            href={`/dashboard/kependudukan/${w.id}/edit`}
+                            className="rounded-md bg-navy/10 px-2 py-1 text-[12px] font-medium text-navy hover:bg-navy/20"
+                          >
+                            Edit
+                          </Link>
+                          <TombolHapusWarga id={w.id} nama={w.nama_lengkap} />
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -442,9 +512,9 @@ export default async function KependudukanPage({ searchParams }) {
           {jumlahCocok.toLocaleString("id-ID")}
         </span>{" "}
         data{cari || hanyaKurang ? " (sesuai filter)" : ""}. Gunakan pilihan "Tampilkan" di atas untuk mengatur jumlah baris, atau
-        pencarian untuk mempersempit. Tombol "Ekspor ke Excel" mengunduh
-        seluruh data. Untuk menambah banyak data sekaligus, gunakan tombol
-        "Impor Data Penduduk" di atas.
+        pencarian untuk mempersempit. {bisaUbah
+          ? 'Tombol "Ekspor ke Excel" mengunduh seluruh data. Untuk menambah banyak data sekaligus, gunakan tombol "Impor Data Penduduk" di atas.'
+          : "Akun ini hanya dapat melihat data."}
       </p>
     </div>
   );

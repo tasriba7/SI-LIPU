@@ -2,7 +2,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { STATUS_LABELS, STATUS_BADGE_CLASS } from "@/lib/statusSurat";
 import { linkWhatsApp } from "@/lib/whatsapp";
-import { bisaTerbitkanSurat, bisaMenulis, isAdminRole } from "@/lib/roles";
+import { bisaTerbitkanSurat, bisaMenulis, isAdminRole, isBpdRole } from "@/lib/roles";
+import PantauLayanan from "@/components/dashboard/PantauLayanan";
 import { IconPlus } from "@/components/icons";
 import TabelPengajuan from "./TabelPengajuan";
 
@@ -29,6 +30,19 @@ export default async function DaftarPengajuanLayananPage({ searchParams }) {
   const { data: profil } = user
     ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
     : { data: null };
+
+  // Anggota BPD: mode lihat (tanpa NIK/No. HP, tanpa tombol proses).
+  if (isBpdRole(profil?.role)) {
+    return (
+      <PantauLayanan
+        sp={sp}
+        basePath="/dashboard/layanan"
+        judul="Pengajuan Layanan"
+        deskripsi="Semua pengajuan warga (surat, pengaduan, dst) dan sejauh mana desa melayaninya. Klik kode untuk melihat alur penanganan."
+      />
+    );
+  }
+
   const bolehBuatSurat = bisaTerbitkanSurat(profil?.role);
   const bolehUbah = bisaMenulis(profil?.role); // reset (semua staf kecuali Kepala Desa)
   const bolehHapus = isAdminRole(profil?.role); // hapus permanen: admin saja

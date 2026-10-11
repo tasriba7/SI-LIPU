@@ -51,6 +51,13 @@ Detail Keluarga (admin/staf) — selesai:
 - Statistik kelompok usia diselaraskan dengan batas lansia 60 tahun: kelompok teratas kini `56-59` dan `60+` (sebelumnya `56-65` dan `65+`). Migrasi: `supabase/migrations/0027_kelompok_usia_lansia_60.sql`.
 - Statistik kelompok usia juga memisahkan balita (bawah lima tahun): kelompok `0-6` dipecah menjadi `0-4` (balita) dan `5-6`. Migrasi: `supabase/migrations/0031_kelompok_usia_balita.sql` — jalankan setelah 0027.
 
+Role Anggota BPD (pengawas, hanya lihat) — selesai:
+- Role `bpd` ("Anggota BPD"), dibuat **hanya oleh admin** lewat Kelola Akun Staf (tidak ada pendaftaran mandiri). Tidak bisa menambah/mengubah/menghapus/mengimpor/mengekspor apa pun.
+- `/dashboard/pengaduan` — daftar pengaduan warga + status; klik kode untuk melihat **alur penanganan desa** (diajukan → diproses → selesai/ditolak, siapa yang menangani, catatan petugas, lama penanganan).
+- `/dashboard/layanan` — semua pengajuan layanan administrasi dalam **mode lihat** (tanpa NIK/No. HP, nama pemohon hanya inisial, tanpa tombol proses/WhatsApp).
+- `/dashboard/kependudukan` — BPD awalnya hanya melihat **statistik**; tombol "Lihat data lengkap warga" membuka daftar lengkap (hanya baca, tanpa ekspor).
+- Pengamanan di database (bukan hanya tampilan): BPD **tidak** bisa membaca tabel `pengajuan_layanan`/`pengajuan_surat`/`surat_terbit` langsung; ia hanya membaca view `pengajuan_layanan_pantau`. Migrasi: `supabase/migrations/0045_role_bpd.sql` — **wajib dijalankan** sebelum membuat akun BPD.
+
 Fase 1c (Sistem Slot Kadus & Ketua RT) — selesai:
 - `/dashboard/posisi` — admin daftarkan wilayah (dusun/RT-RW) sebagai slot kosong
 - `/pendaftaran` — pendaftaran akun mandiri untuk Kadus/Ketua RT (bukan pendaftaran calon jabatan), memilih wilayahnya; **otomatis ditolak lewat trigger database** kalau slot itu sudah terisi
