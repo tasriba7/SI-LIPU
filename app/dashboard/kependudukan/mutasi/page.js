@@ -249,7 +249,7 @@ export default async function MutasiPendudukPage({ searchParams }) {
                           {batal && m.alasan_batal && (
                             <span className="block text-[11px] text-red-500">Alasan batal: {m.alasan_batal}</span>
                           )}
-                          {m.surat_terbit_id && (
+                          {m.surat_terbit_id && bisaBatalkan && (
                             <Link
                               href={`/dashboard/surat-terbit/${m.surat_terbit_id}`}
                               className="text-[11px] font-medium text-navy hover:underline"

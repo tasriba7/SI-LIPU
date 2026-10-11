@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { pastikanKantorDesaBisaMenulis } from "@/lib/akses";
+import { pastikanAdmin } from "@/lib/akses";
 
 export async function buatJenisLayanan(prevState, formData) {
   const nama_layanan = formData.get("nama_layanan")?.trim();
@@ -28,7 +28,7 @@ export async function buatJenisLayanan(prevState, formData) {
   }
 
   const supabase = await createClient();
-  const _akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const _akses = await pastikanAdmin(supabase);
   if (_akses.error) return { error: _akses.error };
   const {
     data: { user },
@@ -55,7 +55,7 @@ export async function buatJenisLayanan(prevState, formData) {
 
 export async function toggleAktifJenisLayanan(id, aktifBaru) {
   const supabase = await createClient();
-  const _akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const _akses = await pastikanAdmin(supabase);
   if (_akses.error) return { error: _akses.error };
   const { error } = await supabase
     .from("jenis_layanan_master")

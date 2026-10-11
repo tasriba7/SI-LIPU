@@ -49,7 +49,7 @@ export default async function DashboardLayout({ children }) {
         profile?.role === "bpd" || profile?.role === "kepala_desa" ? 0 : (jumlahDataKurang ?? 0)
       }
       jumlahPengajuanBaru={pemberitahuanLayanan.total}
-      profile={profile ?? { nama: user.email, role: "kasi" }}
+      profile={profile ?? { nama: user.email, role: null }}
       logoutAction={logout}
     >
       {children}

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { pastikanKantorDesaBisaMenulis } from "@/lib/akses";
+import { pastikanAdmin } from "@/lib/akses";
 import { KATEGORI_BERITA } from "@/lib/berita";
 
 const EKSTENSI_DIIZINKAN = ["jpg", "jpeg", "png", "webp"];
@@ -53,7 +53,7 @@ export async function simpanBerita(prevState, formData) {
   }
 
   const supabase = await createClient();
-  const akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const akses = await pastikanAdmin(supabase);
   if (akses.error) return { error: akses.error };
 
   let lama = null;
@@ -116,7 +116,7 @@ export async function simpanBerita(prevState, formData) {
 /** Terbitkan atau tarik kembali jadi draf. */
 export async function ubahStatusBerita(id, terbit) {
   const supabase = await createClient();
-  const akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const akses = await pastikanAdmin(supabase);
   if (akses.error) return { error: akses.error };
 
   const { data: b } = await supabase.from("berita").select("tanggal_terbit").eq("id", id).maybeSingle();
@@ -133,7 +133,7 @@ export async function ubahStatusBerita(id, terbit) {
 
 export async function hapusBerita(id) {
   const supabase = await createClient();
-  const akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const akses = await pastikanAdmin(supabase);
   if (akses.error) return { error: akses.error };
 
   const { data: item } = await supabase.from("berita").select("foto_url").eq("id", id).maybeSingle();

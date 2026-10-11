@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { pastikanBisaTerbitkanSurat } from "@/lib/akses";
+import { isAdminRole } from "@/lib/roles";
 import FormBuatSurat from "./FormBuatSurat";
 
 export default async function BuatSuratLangsungPage({ searchParams }) {
@@ -28,6 +29,7 @@ export default async function BuatSuratLangsungPage({ searchParams }) {
     supabase.from("template_surat").select("nama, kata_kunci").eq("aktif", true).order("nama"),
   ]);
 
+  const adalahAdmin = isAdminRole(akses.role);
   const daftar = jenisList || [];
   const jenisAwalId = daftar.some((j) => j.id === sp?.jenis) ? sp.jenis : "";
 
@@ -57,10 +59,14 @@ export default async function BuatSuratLangsungPage({ searchParams }) {
 
       {daftar.length === 0 ? (
         <p className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-          Belum ada jenis surat. Tambahkan dulu di{" "}
-          <Link href="/dashboard/jenis-layanan/tambah" className="text-navy underline">
-            Kelola Jenis Layanan
-          </Link>{" "}
+          Belum ada jenis surat. Minta Administrator menambahkannya dulu di{" "}
+          {adalahAdmin ? (
+            <Link href="/dashboard/jenis-layanan/tambah" className="text-navy underline">
+              Kelola Jenis Layanan
+            </Link>
+          ) : (
+            "Kelola Jenis Layanan"
+          )}{" "}
           dengan kategori Surat.
         </p>
       ) : (
@@ -70,11 +76,16 @@ export default async function BuatSuratLangsungPage({ searchParams }) {
       {templateTanpaJenis.length > 0 && (
         <p className="rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-800">
           Template berikut belum punya jenis surat, jadi belum muncul di pilihan:{" "}
-          <strong>{templateTanpaJenis.map((t) => t.nama).join(", ")}</strong>. Tambahkan jenis
-          layanan berkategori Surat dengan nama yang memuat kata kuncinya di{" "}
-          <Link href="/dashboard/jenis-layanan/tambah" className="underline">
-            Kelola Jenis Layanan
-          </Link>
+          <strong>{templateTanpaJenis.map((t) => t.nama).join(", ")}</strong>. Minta
+          Administrator menambahkan jenis layanan berkategori Surat dengan nama yang memuat kata
+          kuncinya di{" "}
+          {adalahAdmin ? (
+            <Link href="/dashboard/jenis-layanan/tambah" className="underline">
+              Kelola Jenis Layanan
+            </Link>
+          ) : (
+            "Kelola Jenis Layanan"
+          )}
           .
         </p>
       )}

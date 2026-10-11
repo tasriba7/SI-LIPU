@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { pastikanKantorDesaBisaMenulis } from "@/lib/akses";
+import { pastikanAdmin } from "@/lib/akses";
 import { JENIS_APBDES, parseRupiah } from "@/lib/apbdes";
 
 const UKURAN_MAKS_MB = 8;
@@ -30,7 +30,7 @@ export async function buatTahun(prevState, formData) {
   if (!tahun) return { error: "Tahun harus berupa angka 2000–2100." };
 
   const supabase = await createClient();
-  const akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const akses = await pastikanAdmin(supabase);
   if (akses.error) return { error: akses.error };
 
   const { data: ada } = await supabase.from("apbdes_tahun").select("tahun").eq("tahun", tahun).maybeSingle();
@@ -83,7 +83,7 @@ export async function simpanMetaTahun(prevState, formData) {
   }
 
   const supabase = await createClient();
-  const akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const akses = await pastikanAdmin(supabase);
   if (akses.error) return { error: akses.error };
 
   const { data: lama } = await supabase.from("apbdes_tahun").select("dokumen_url").eq("tahun", tahun).maybeSingle();
@@ -122,7 +122,7 @@ export async function hapusTahun(tahun) {
   const t = tahunValid(tahun);
   if (!t) return { error: "Tahun tidak valid." };
   const supabase = await createClient();
-  const akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const akses = await pastikanAdmin(supabase);
   if (akses.error) return { error: akses.error };
 
   const { data: lama } = await supabase.from("apbdes_tahun").select("dokumen_url").eq("tahun", t).maybeSingle();
@@ -153,7 +153,7 @@ export async function simpanItem(prevState, formData) {
   if (anggaran > 9e15 || realisasi > 9e15) return { error: "Nilai terlalu besar." };
 
   const supabase = await createClient();
-  const akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const akses = await pastikanAdmin(supabase);
   if (akses.error) return { error: akses.error };
 
   const data = { tahun, jenis, kelompok: kelompok || null, uraian, anggaran, realisasi };
@@ -181,7 +181,7 @@ export async function simpanItem(prevState, formData) {
 
 export async function hapusItem(id, tahun) {
   const supabase = await createClient();
-  const akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const akses = await pastikanAdmin(supabase);
   if (akses.error) return { error: akses.error };
 
   const { error } = await supabase.from("apbdes_item").delete().eq("id", id);

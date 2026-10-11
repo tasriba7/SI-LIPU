@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { pastikanBisaMenulis } from "@/lib/akses";
+import { pastikanAdmin } from "@/lib/akses";
 
 /**
  * Server Action khusus staf desa yang sudah login (diproteksi middleware
@@ -18,7 +18,7 @@ export async function updateStatusSurat(prevState, formData) {
   }
 
   const supabase = await createClient();
-  const _akses = await pastikanBisaMenulis(supabase);
+  const _akses = await pastikanAdmin(supabase);
   if (_akses.error) return { error: _akses.error };
   const {
     data: { user },

@@ -1,9 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
-import { jagaHalamanKantorDesa } from "@/lib/akses";
+import { jagaHalamanAdmin } from "@/lib/akses";
 
-// Menu se-desa: Kadus & Ketua RT dialihkan ke beranda dashboard.
+// Menu khusus Administrator: role lain dialihkan ke beranda dashboard.
 export default async function ApbdesLayout({ children }) {
   const supabase = await createClient();
-  await jagaHalamanKantorDesa(supabase);
+  await jagaHalamanAdmin(supabase);
   return children;
 }

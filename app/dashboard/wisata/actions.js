@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { pastikanKantorDesaBisaMenulis } from "@/lib/akses";
+import { pastikanAdmin } from "@/lib/akses";
 import { KATEGORI_WISATA } from "@/lib/wisata";
 
 const EKSTENSI_DIIZINKAN = ["jpg", "jpeg", "png", "webp"];
@@ -60,7 +60,7 @@ export async function simpanWisata(prevState, formData) {
   }
 
   const supabase = await createClient();
-  const akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const akses = await pastikanAdmin(supabase);
   if (akses.error) return { error: akses.error };
 
   const data = {
@@ -121,7 +121,7 @@ export async function simpanWisata(prevState, formData) {
 export async function ubahStatusWisata(id, kolom, nilai) {
   if (!["aktif", "unggulan"].includes(kolom)) return { error: "Kolom tidak valid." };
   const supabase = await createClient();
-  const akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const akses = await pastikanAdmin(supabase);
   if (akses.error) return { error: akses.error };
 
   const { error } = await supabase.from("wisata").update({ [kolom]: !!nilai }).eq("id", id);
@@ -132,7 +132,7 @@ export async function ubahStatusWisata(id, kolom, nilai) {
 
 export async function hapusWisata(id) {
   const supabase = await createClient();
-  const akses = await pastikanKantorDesaBisaMenulis(supabase);
+  const akses = await pastikanAdmin(supabase);
   if (akses.error) return { error: akses.error };
 
   const { data: item } = await supabase.from("wisata").select("foto_url").eq("id", id).maybeSingle();

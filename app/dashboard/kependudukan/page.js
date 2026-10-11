@@ -1,4 +1,4 @@
-import { ROLE_LABELS, bisaMenulis, isBpdRole } from "@/lib/roles";
+import { ROLE_LABELS, bisaMenulis, bisaTerbitkanSurat, isBpdRole } from "@/lib/roles";
 import StatistikDashboard from "@/components/dashboard/StatistikDashboard";
 import {
   getStatistikBeranda,
@@ -273,12 +273,14 @@ export default async function KependudukanPage({ searchParams }) {
         </Link>
         {bisaUbah && (
           <>
-            <Link
-              href="/dashboard/kependudukan/mutasi"
-              className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100"
-            >
-              Mutasi Penduduk
-            </Link>
+            {bisaTerbitkanSurat(peran) && (
+              <Link
+                href="/dashboard/kependudukan/mutasi"
+                className="flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100"
+              >
+                Mutasi Penduduk
+              </Link>
+            )}
             <ImportWargaButton />
             <ExportWargaButton cari={cari} />
           </>
