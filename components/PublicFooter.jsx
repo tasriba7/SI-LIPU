@@ -13,6 +13,7 @@ const TAUTAN_JELAJAHI = [
   { nama: "Wisata Desa", href: "/wisata" },
   { nama: "Galeri Kegiatan", href: "/galeri" },
   { nama: "Profil Desa", href: "/profil" },
+  { nama: "Struktur Organisasi", href: "/struktur-organisasi" },
   { nama: "APBDes", href: "/apbdes" },
   { nama: "Cuaca & Gempa", href: "/cuaca" },
 ];

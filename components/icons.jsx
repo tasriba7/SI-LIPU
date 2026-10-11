@@ -52,6 +52,17 @@ export function IconMegaphone(props) {
   );
 }
 
+export function IconSitemap(props) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>
+      <rect x="9" y="3" width="6" height="5" rx="1" />
+      <rect x="2" y="16" width="6" height="5" rx="1" />
+      <rect x="16" y="16" width="6" height="5" rx="1" />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4M5 16v-4h14v4" />
+    </svg>
+  );
+}
+
 export function IconUsers(props) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" {...props}>

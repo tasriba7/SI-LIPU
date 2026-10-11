@@ -246,3 +246,65 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   .teks-emas, .teks-royal, .tombol-kilau::after { animation: none; }
 }
+
+/* =========================================================================
+   Bagan Struktur Organisasi (components/BaganStruktur.jsx).
+   Pohon murni CSS: tiap <li> menggambar garis ke atasannya lewat ::before /
+   ::after, jadi bagan bisa sedalam & selebar apa pun tanpa hitung posisi.
+   ========================================================================= */
+.bagan { --garis: rgb(20 72 214 / 0.38); --jarak-garis: 2rem; }
+.bagan ul {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  margin: 0;
+  padding: var(--jarak-garis) 0 0;
+  list-style: none;
+}
+.bagan li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--jarak-garis) 0.5rem 0;
+}
+/* Garis datar di atas tiap saudara + garis tegak ke tengah-atas. */
+.bagan li::before,
+.bagan li::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 50%;
+  width: 50%;
+  height: var(--jarak-garis);
+  border-top: 2px solid var(--garis);
+}
+.bagan li::after {
+  right: auto;
+  left: 50%;
+  border-left: 2px solid var(--garis);
+}
+.bagan li:only-child::before,
+.bagan li:only-child::after { display: none; }
+.bagan li:only-child { padding-top: 0; }
+.bagan li:first-child::before,
+.bagan li:last-child::after { border: 0 none; }
+.bagan li:last-child::before {
+  border-right: 2px solid var(--garis);
+  border-radius: 0 0.9rem 0 0;
+}
+.bagan li:first-child::after { border-radius: 0.9rem 0 0 0; }
+/* Garis tegak dari kartu atasan turun ke baris bawahannya. */
+.bagan ul ul::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  height: var(--jarak-garis);
+  border-left: 2px solid var(--garis);
+}
+/* Baris paling atas (puncak): tanpa garis ke atas. */
+.bagan > ul { padding-top: 0; }
+.bagan > ul > li { padding-top: 0; }
+.bagan > ul > li::before,
+.bagan > ul > li::after { display: none; }

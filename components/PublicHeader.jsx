@@ -24,6 +24,7 @@ const MENU = [
     pendek: "Informasi",
     anak: [
       { nama: "Profil Desa", href: "/profil", deskripsi: "Sejarah, visi-misi, dan wilayah" },
+      { nama: "Struktur Organisasi", href: "/struktur-organisasi", deskripsi: "Bagan perangkat desa beserta jabatannya" },
       { nama: "Galeri Kegiatan", href: "/galeri", deskripsi: "Foto kegiatan dan acara desa" },
       { nama: "APBDes", href: "/apbdes", deskripsi: "Transparansi anggaran pendapatan & belanja desa" },
       { nama: "Cuaca & Gempa", href: "/cuaca", deskripsi: "Prakiraan cuaca dan gempa terkini dari BMKG" },

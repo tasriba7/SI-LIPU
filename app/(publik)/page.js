@@ -9,6 +9,7 @@ import GaleriBeranda from "@/components/GaleriBeranda";
 import WisataBeranda from "@/components/WisataBeranda";
 import BeritaBeranda from "@/components/BeritaBeranda";
 import BmkgBeranda from "@/components/BmkgBeranda";
+import StrukturBeranda from "@/components/StrukturBeranda";
 import ApbdesBeranda from "@/components/ApbdesBeranda";
 import JamTanggalBeranda from "@/components/JamTanggalBeranda";
 import SpotlightCard from "@/components/SpotlightCard";
@@ -37,6 +38,7 @@ import { getConfigDesa, labelWilayah } from "@/lib/configDesa";
 import { getGaleri, getGaleriCount } from "@/lib/galeri";
 import { getWisata, getWisataCount } from "@/lib/wisata";
 import { getBeritaTerbit } from "@/lib/berita";
+import { getStrukturPublik } from "@/lib/strukturOrganisasi";
 import { getRingkasanApbdesTerbaru } from "@/lib/apbdes";
 import { createClient } from "@/lib/supabase/server";
 
@@ -125,7 +127,7 @@ const LENCANA_HERO = [
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal, wisataItems, wisataTotal, berita, apbdes, pengunjung] = await Promise.all([
+  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal, wisataItems, wisataTotal, berita, apbdes, pengunjung, struktur] = await Promise.all([
     getStatistikBeranda(),
     getStatistikBerandaDetail(),
     getStatistikPerDusun(),
@@ -137,6 +139,7 @@ export default async function HomePage() {
     getBeritaTerbit(supabase, { limit: JUMLAH_BERITA_BERANDA }),
     getRingkasanApbdesTerbaru(supabase),
     getPengunjung(),
+    getStrukturPublik(supabase),
   ]);
 
   const wilayah = labelWilayah(config);
@@ -468,6 +471,11 @@ export default async function HomePage() {
             })}
           </div>
         </section>
+
+        {/* Struktur organisasi — bagan perangkat desa; tampil hanya kalau admin sudah mengisi */}
+        <Reveal blur={false}>
+          <StrukturBeranda pohon={struktur} />
+        </Reveal>
 
         {/* Cuaca & gempa dari BMKG — di-stream lewat Suspense supaya beranda tidak
             menunggu BMKG; tidak tampil kalau BMKG tidak bisa dihubungi. */}
