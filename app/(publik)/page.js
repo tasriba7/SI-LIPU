@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import VillageSeal from "@/components/VillageSeal";
 import StatBerandaCards from "@/components/StatBerandaCards";
@@ -7,6 +8,7 @@ import AuroraBackground from "@/components/AuroraBackground";
 import GaleriBeranda from "@/components/GaleriBeranda";
 import WisataBeranda from "@/components/WisataBeranda";
 import BeritaBeranda from "@/components/BeritaBeranda";
+import BmkgBeranda from "@/components/BmkgBeranda";
 import ApbdesBeranda from "@/components/ApbdesBeranda";
 import JamTanggalBeranda from "@/components/JamTanggalBeranda";
 import SpotlightCard from "@/components/SpotlightCard";
@@ -453,6 +455,12 @@ export default async function HomePage() {
             })}
           </div>
         </section>
+
+        {/* Cuaca & gempa dari BMKG — di-stream lewat Suspense supaya beranda tidak
+            menunggu BMKG; tidak tampil kalau BMKG tidak bisa dihubungi. */}
+        <Suspense fallback={null}>
+          <BmkgBeranda config={config} />
+        </Suspense>
 
         {/* Berita terbaru — tampil hanya kalau ada berita terbit */}
         <Reveal blur={false}>

@@ -72,6 +72,10 @@ kecuali diminta pemilik proyek.
 - [x] Galeri Kegiatan Desa — admin unggah foto + judul + rincian (opsional) lewat
       `/dashboard/galeri`, tampil di beranda (8 foto terbaru) dan halaman publik `/galeri`
       (semua foto), dengan lightbox untuk lihat versi besar.
+- [x] Cuaca & Gempa BMKG — halaman publik `/cuaca` + kartu di beranda: prakiraan cuaca desa, gempa
+      terbaru, gempa M 5,0+, gempa dirasakan (data terbuka BMKG, tanpa API key, di-cache, wajib
+      cantum sumber BMKG). Tanpa migrasi; kode wilayah lewat env `BMKG_KODE_ADM4` atau otomatis dari
+      Pengaturan Desa.
 - (daftar ini akan berkembang — tambahkan sesuai kebutuhan desa)
 
 ---

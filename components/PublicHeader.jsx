@@ -26,6 +26,7 @@ const MENU = [
       { nama: "Profil Desa", href: "/profil", deskripsi: "Sejarah, visi-misi, dan wilayah" },
       { nama: "Galeri Kegiatan", href: "/galeri", deskripsi: "Foto kegiatan dan acara desa" },
       { nama: "APBDes", href: "/apbdes", deskripsi: "Transparansi anggaran pendapatan & belanja desa" },
+      { nama: "Cuaca & Gempa", href: "/cuaca", deskripsi: "Prakiraan cuaca dan gempa terkini dari BMKG" },
       { nama: "Pengumuman Desa", href: null, deskripsi: "Segera hadir" },
     ],
   },

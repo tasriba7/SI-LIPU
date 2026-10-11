@@ -61,7 +61,7 @@ aturan jika sistem ini direplikasi ke desa lain.
 ## 3. STATUS TERKINI
 > ⚠️ AI/developer yang mengerjakan WAJIB mengedit bagian ini setiap selesai kerja.
 
-**Terakhir diupdate:** 11 Oktober 2026 (setelah redesain tampilan publik)
+**Terakhir diupdate:** 11 Oktober 2026 (setelah penambahan fitur Cuaca & Gempa BMKG)
 **Fase sekarang:** Fase 0, 1, 1.5, dan 1c selesai. Fase 2 (Surat) berjalan lewat 2 jalur
 (lama & baru — lihat catatan migrasi di bawah).
 
@@ -175,6 +175,22 @@ aturan jika sistem ini direplikasi ke desa lain.
       Ikut dipoles: `BannerHalaman` (semua halaman publik), kartu berita/wisata, APBDes beranda, tab Panel
       Warga, daftar layanan, splash screen, dan layar memuat. Animasi berulang tetap dijeda di luar layar
       (`anim-saat-tampil`) dan menghormati "kurangi gerakan".
+
+- [x] **Cuaca & Gempa BMKG** (`/cuaca` + kartu "Cuaca & Gempa" di beranda, **tanpa migrasi**).
+      Memakai DATA TERBUKA BMKG yang TIDAK butuh API key: prakiraan cuaca per desa
+      (`api.bmkg.go.id/publik/prakiraan-cuaca?adm4=...`), gempa terbaru, 15 gempa M 5,0+, dan 15 gempa
+      dirasakan (`data.bmkg.go.id/DataMKG/TEWS/*.json`). Ketentuan BMKG: **wajib mencantumkan BMKG sebagai
+      sumber** (`<AtribusiBmkg />` di `components/BmkgKomponen.jsx`, jangan dihapus) dan **maks. 60 permintaan/menit/IP**
+      (semua panggilan di-cache lewat `next.revalidate` di `lib/bmkg.js`: cuaca 30 menit, gempa 2 menit).
+      File: `lib/bmkg.js` (data; tidak pernah melempar error, BMKG down -> pesan ramah / section sembunyi),
+      `components/BmkgKomponen.jsx`, `components/BmkgBeranda.jsx` (dibungkus `<Suspense>` di beranda),
+      `app/(publik)/cuaca/page.js`. Menu "Cuaca & Gempa" ada di dropdown "Informasi Desa" dan footer; slot banner
+      `cuaca` ditambahkan di `lib/bannerHalaman.js`.
+      **Kode wilayah desa TIDAK disimpan di database**: dipakai `BMKG_KODE_ADM4` (env, format `00.00.00.0000`)
+      bila diisi, kalau kosong dicari otomatis dari `config_desa` (provinsi, kabupaten, kecamatan, nama desa)
+      lewat wilayah.id lalu di-cache. Kalau nama di Pengaturan Desa tidak cocok dengan data wilayah.id,
+      isi `BMKG_KODE_ADM4` manual. Belum diuji terhadap respons BMKG langsung dari lingkungan pengembangan
+      (struktur JSON cuaca dibaca secara toleran) — cek `/cuaca` setelah deploy.
 
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,

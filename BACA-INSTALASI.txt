@@ -1,3 +1,13 @@
-UBAH MENU "KADUS/RT" -> "PENDAFTARAN" (PENDAFTARAN AKUN)
+TAMBAH FITUR CUACA & GEMPA (DATA TERBUKA BMKG)
 Ekstrak ke folder utama proyek SI-LIPU (pilih Replace/Timpa), lalu deploy.
-Tidak ada migrasi database.
+Tidak ada migrasi database. Tidak perlu API key (data terbuka BMKG).
+
+Baru: halaman /cuaca + kartu "Cuaca & Gempa" di beranda + menu di "Informasi Desa" dan footer.
+
+OPSIONAL (disarankan dicek setelah deploy):
+- Kode wilayah desa dicari otomatis dari Pengaturan Desa (provinsi, kabupaten, kecamatan, nama desa).
+- Kalau halaman /cuaca menampilkan "Lokasi cuaca desa belum diatur", isi variabel lingkungan
+  BMKG_KODE_ADM4 (format 00.00.00.0000, kode desa menurut Kemendagri) di hosting Anda, lalu deploy ulang.
+
+Ketentuan BMKG: wajib cantumkan BMKG sebagai sumber (sudah ada di halaman) dan maks. 60 permintaan/menit
+(sudah ditangani dengan cache). Jangan hapus tulisan "Sumber data: BMKG".

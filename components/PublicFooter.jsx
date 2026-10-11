@@ -14,6 +14,7 @@ const TAUTAN_JELAJAHI = [
   { nama: "Galeri Kegiatan", href: "/galeri" },
   { nama: "Profil Desa", href: "/profil" },
   { nama: "APBDes", href: "/apbdes" },
+  { nama: "Cuaca & Gempa", href: "/cuaca" },
 ];
 
 const TAUTAN_WARGA = [
