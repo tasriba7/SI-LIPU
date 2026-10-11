@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { IconMail, IconMessage, IconMegaphone, IconUsers, IconArrowRight } from "@/components/icons";
+import SpotlightCard from "@/components/SpotlightCard";
 
 const ICON_MAP = {
   mail: IconMail,
@@ -36,27 +37,28 @@ export default async function DaftarLayananPage() {
           {(daftarLayanan || []).map((layanan) => {
             const Icon = ICON_MAP[layanan.icon] || IconMail;
             return (
-              <Link
-                key={layanan.id}
-                href={`/layanan/ajukan/${layanan.id}`}
-                className="group flex items-start gap-4 rounded-2xl border border-gold/40 bg-white p-5 transition hover:border-gold hover:shadow-md"
-              >
-                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy text-gold-light">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-display text-base font-semibold text-slate-800">
-                    {layanan.nama_layanan}
-                  </h3>
-                  {layanan.deskripsi && (
-                    <p className="mt-1 text-sm text-slate-500">{layanan.deskripsi}</p>
-                  )}
-                  <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-navy">
-                    Mulai ajukan
-                    <IconArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-                  </span>
-                </div>
-              </Link>
+              <SpotlightCard key={layanan.id} className="rounded-2xl">
+                <Link
+                  href={`/layanan/ajukan/${layanan.id}`}
+                  className="bingkai-gradasi group flex h-full items-start gap-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-navy/10"
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-navy text-gold-light shadow-md shadow-navy/20 transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-display text-base font-semibold text-slate-800">
+                      {layanan.nama_layanan}
+                    </h3>
+                    {layanan.deskripsi && (
+                      <p className="mt-1 text-sm text-slate-500">{layanan.deskripsi}</p>
+                    )}
+                    <span className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-navy">
+                      Mulai ajukan
+                      <IconArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+                    </span>
+                  </div>
+                </Link>
+              </SpotlightCard>
             );
           })}
         </div>

@@ -61,7 +61,7 @@ aturan jika sistem ini direplikasi ke desa lain.
 ## 3. STATUS TERKINI
 > ⚠️ AI/developer yang mengerjakan WAJIB mengedit bagian ini setiap selesai kerja.
 
-**Terakhir diupdate:** 10 Oktober 2026 (setelah implementasi Mutasi Penduduk tahap 2)
+**Terakhir diupdate:** 11 Oktober 2026 (setelah redesain tampilan publik)
 **Fase sekarang:** Fase 0, 1, 1.5, dan 1c selesai. Fase 2 (Surat) berjalan lewat 2 jalur
 (lama & baru — lihat catatan migrasi di bawah).
 
@@ -163,6 +163,18 @@ aturan jika sistem ini direplikasi ke desa lain.
       status + catatan. Fungsi `data_warga_publik` & `kirim_laporan_data_warga` hanya `service_role`.
       **Menyimpang dari SECURITY.md 1.4/1.6 secara sengaja (lihat SECURITY.md bagian 6).**
       **Wajib jalankan `0038_data_saya_dan_laporan_koreksi.sql` di Supabase.**
+
+- [x] **Redesain tampilan publik (tanpa login)** — 11 Oktober 2026. HANYA lapisan tampilan; tidak ada
+      perubahan di `lib/`, `actions.js`, migrasi, dashboard, atau pengambilan data. Beranda: hero bermesh
+      gradasi + lambang dengan cincin cahaya & lencana kaca, gelombang penutup, kartu layanan tata letak
+      bento dengan sorot kursor, pita jaminan gelap, footer baru (`components/PublicFooter.jsx`, kredit
+      originator & tautan login petugas TETAP ada). Komponen baru: `SpotlightCard`, `SectionHeading`,
+      `WaveDivider`, `PublicFooter`. Kelas CSS opt-in baru di `styles/globals.css` (`kaca`, `latar-mesh`,
+      `butiran`, `teks-emas`, `bingkai-gradasi`, `kartu-sorot`, `tombol-kilau`, `ornamen`, `pola-titik`) dan
+      animasi baru di `tailwind.config.js` (`melayang`, `cincinDenyut`, `gelombang`, `isiBar`, `kilau`).
+      Ikut dipoles: `BannerHalaman` (semua halaman publik), kartu berita/wisata, APBDes beranda, tab Panel
+      Warga, daftar layanan, splash screen, dan layar memuat. Animasi berulang tetap dijeda di luar layar
+      (`anim-saat-tampil`) dan menghormati "kurangi gerakan".
 
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,

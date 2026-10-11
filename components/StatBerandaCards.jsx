@@ -44,17 +44,22 @@ function StatCard({ icon: Icon, label, value, suffix = "" }) {
   }, [value, inView]);
 
   return (
-    <div ref={ref} className="group flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-5 text-center transition-all sm:flex-row sm:gap-4 sm:text-left duration-300 ease-out hover:-translate-y-1 hover:border-gold/40 hover:bg-white/[0.05]">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/5 text-gold-light transition-colors duration-300 group-hover:bg-gold/15">
+    <div ref={ref} className="kaca group relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl px-6 py-6 text-center transition-all sm:flex-row sm:gap-4 sm:text-left duration-300 ease-out hover:-translate-y-1.5 hover:border-gold/50 hover:bg-white/[0.12]">
+      {/* Pendar emas di pojok yang menyala saat kartu disorot */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-gold/0 blur-2xl transition-colors duration-500 group-hover:bg-gold/25"
+      />
+      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-gold to-gold-light text-navy-dark shadow-lg shadow-gold/20 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3">
         <Icon className="h-5 w-5" />
       </div>
 
-      <div>
-        <p className="font-display text-3xl font-semibold tabular-nums text-white">
+      <div className="relative">
+        <p className="font-display text-4xl font-semibold tabular-nums leading-none text-white">
           {displayValue.toLocaleString("id-ID")}
           {suffix}
         </p>
-        <p className="mt-0.5 text-sm text-white/50">{label}</p>
+        <p className="mt-1.5 text-sm text-white/60">{label}</p>
       </div>
     </div>
   );

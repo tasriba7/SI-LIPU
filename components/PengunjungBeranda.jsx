@@ -50,18 +50,18 @@ export default function PengunjungBeranda({ awal }) {
 
   return (
     <p
-      className="mt-2 inline-flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 text-[11px] text-slate-400"
+      className="mt-2 inline-flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 text-[11px] text-white/45"
       aria-label={`Jumlah pengunjung ${fmt(data.total)}, hari ini ${fmt(data.hariIni)}`}
     >
       <IconUsers className="h-3 w-3" aria-hidden="true" />
       <span>
         Pengunjung{" "}
-        <span className="font-semibold tabular-nums text-slate-500">{fmt(data.total)}</span>
+        <span className="font-semibold tabular-nums text-gold-light">{fmt(data.total)}</span>
       </span>
       <span aria-hidden="true">·</span>
       <span>
         hari ini{" "}
-        <span className="font-semibold tabular-nums text-slate-500">{fmt(data.hariIni)}</span>
+        <span className="font-semibold tabular-nums text-gold-light">{fmt(data.hariIni)}</span>
       </span>
     </p>
   );

@@ -48,7 +48,7 @@ export default function PanelWargaTabs() {
   return (
     <nav
       aria-label="Panel Warga"
-      className="mx-auto flex max-w-xl items-center gap-0.5 overflow-x-auto rounded-full bg-slate-100/90 p-1 ring-1 ring-slate-200/70 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="mx-auto flex max-w-xl items-center gap-0.5 overflow-x-auto rounded-full bg-white p-1 shadow-md shadow-navy/5 ring-1 ring-slate-200/80 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     >
       {TAB.map((t) => {
         const aktif = t.aktif(pathname);
@@ -59,8 +59,8 @@ export default function PanelWargaTabs() {
             aria-current={aktif ? "page" : undefined}
             className={`flex-1 whitespace-nowrap rounded-full px-3 py-2 text-center text-[13px] font-medium transition-all duration-200 ${
               aktif
-                ? "bg-navy text-white shadow-sm shadow-navy/30"
-                : "text-slate-600 hover:bg-white hover:text-navy hover:shadow-sm"
+                ? "bg-gradient-to-b from-navy-light to-navy text-white shadow-md shadow-navy/30"
+                : "text-slate-600 hover:bg-slate-100 hover:text-navy"
             }`}
           >
             {t.nama}
