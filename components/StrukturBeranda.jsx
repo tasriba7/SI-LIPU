@@ -22,7 +22,7 @@ export default function StrukturBeranda({ pohon }) {
       <div className="mt-6 flex justify-center">
         <Link
           href="/struktur-organisasi"
-          className="group inline-flex items-center gap-1.5 rounded-full border border-royal/20 bg-white/80 px-4 py-2 text-sm font-medium text-royal backdrop-blur transition hover:border-royal hover:bg-white hover:shadow-md"
+          className="group inline-flex items-center gap-1.5 rounded-full border border-navy/20 bg-white/80 px-4 py-2 text-sm font-medium text-navy backdrop-blur transition hover:border-navy hover:bg-white hover:shadow-md"
         >
           Buka halaman Struktur Organisasi
           <IconArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />

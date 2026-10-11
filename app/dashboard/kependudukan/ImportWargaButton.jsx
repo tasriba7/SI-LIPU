@@ -106,7 +106,7 @@ function PanelProses({ prog, tampil, sisaMs, menghentikan, onHentikan }) {
     <div className="imp-in px-2 pb-1 pt-4 text-center">
       <div className="relative mx-auto h-44 w-44">
         <span className="imp-pulse absolute inset-2 rounded-full border border-gold/40" />
-        <span className="imp-pulse-2 absolute inset-2 rounded-full border border-seablue/40" />
+        <span className="imp-pulse-2 absolute inset-2 rounded-full border border-navy/40" />
         <svg viewBox="0 0 120 120" className="relative h-full w-full -rotate-90" aria-hidden>
           <defs>
             <linearGradient id="impGrad" x1="0" y1="0" x2="1" y2="1">
@@ -156,7 +156,7 @@ function PanelProses({ prog, tampil, sisaMs, menghentikan, onHentikan }) {
         className="relative mx-auto mt-5 h-2.5 w-full overflow-hidden rounded-full bg-white/10"
       >
         <div
-          className="relative h-full overflow-hidden rounded-full bg-gradient-to-r from-gold via-gold-light to-seablue transition-[width] duration-200 ease-linear"
+          className="relative h-full overflow-hidden rounded-full bg-gradient-to-r from-gold via-gold-light to-navy-light transition-[width] duration-200 ease-linear"
           style={{ width: `${Math.max(tampil * 100, 2)}%` }}
         >
           <span className="imp-shimmer absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/60 to-transparent" />

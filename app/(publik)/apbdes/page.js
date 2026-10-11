@@ -219,7 +219,7 @@ export default async function ApbdesPublikPage({ searchParams }) {
                       </div>
                       <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-slate-100">
                         <div
-                          className="h-full rounded-full bg-gradient-to-r from-navy to-seablue"
+                          className="h-full rounded-full bg-gradient-to-r from-navy to-navy-light"
                           style={{ width: `${(g.anggaran / maksBelanja) * 100}%` }}
                         />
                       </div>

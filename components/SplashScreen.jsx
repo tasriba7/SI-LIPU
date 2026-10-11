@@ -60,7 +60,7 @@ export default function SplashScreen({ children, minDurationMs = 1600 }) {
             />
             <span
               aria-hidden
-              className="absolute inset-[-14%] rounded-full border border-seablue/40 motion-safe:animate-cincinDenyut [animation-delay:-1.4s]"
+              className="absolute inset-[-14%] rounded-full border border-navy/40 motion-safe:animate-cincinDenyut [animation-delay:-1.4s]"
             />
             <div className="animate-pulseSoft">
               <Image
@@ -81,7 +81,7 @@ export default function SplashScreen({ children, minDurationMs = 1600 }) {
           </p>
           {/* Garis kemajuan tipis yang terisi selama splash tampil */}
           <div aria-hidden className="mt-6 h-[3px] w-40 overflow-hidden rounded-full bg-white/15">
-            <div className="h-full origin-left rounded-full bg-gradient-to-r from-gold via-gold-light to-seablue motion-safe:animate-isiBar [animation-duration:1.8s]" />
+            <div className="h-full origin-left rounded-full bg-gradient-to-r from-gold via-gold-light to-navy-light motion-safe:animate-isiBar [animation-duration:1.8s]" />
           </div>
         </div>
       )}

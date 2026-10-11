@@ -15,21 +15,21 @@ const GAYA = [
   {
     cincin: "from-gold via-gold-light to-gold",
     jabatan: "bg-gradient-to-r from-gold to-gold-light text-navy-dark shadow-sm shadow-gold/40",
-    inisial: "from-navy to-royal-dark",
+    inisial: "from-navy to-navy-dark",
     foto: "h-28 w-28 sm:h-32 sm:w-32",
     lebar: "w-52",
   },
   {
-    cincin: "from-royal via-seablue to-royal-light",
-    jabatan: "bg-royal/10 text-royal ring-1 ring-royal/20",
+    cincin: "from-royal via-navy-light to-royal-light",
+    jabatan: "bg-navy/10 text-navy ring-1 ring-navy/20",
     inisial: "from-royal to-royal-light",
     foto: "h-20 w-20 sm:h-24 sm:w-24",
     lebar: "w-40 lg:w-44",
   },
   {
-    cincin: "from-seablue via-royal-light to-seablue",
-    jabatan: "bg-seablue/10 text-royal-dark ring-1 ring-seablue/30",
-    inisial: "from-seablue to-royal-light",
+    cincin: "from-navy-light via-royal-light to-navy-light",
+    jabatan: "bg-navy/10 text-navy-dark ring-1 ring-navy/30",
+    inisial: "from-navy-light to-royal-light",
     foto: "h-16 w-16 sm:h-20 sm:w-20",
     lebar: "w-36 lg:w-40",
   },
@@ -57,10 +57,10 @@ function Kartu({ node, tingkat, urutan }) {
   return (
     <Reveal variant="zoom" blur={false} delay={tingkat * 160 + urutan * 70} duration={700}>
       <div
-        className={`kartu-terang group relative ${g.lebar} rounded-2xl px-3 pb-4 pt-5 text-center transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-royal/25`}
+        className={`kartu-terang group relative ${g.lebar} rounded-2xl px-3 pb-4 pt-5 text-center transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-navy/25`}
       >
         <div
-          className={`mx-auto w-fit rounded-full bg-gradient-to-br p-[3px] shadow-lg shadow-royal/20 transition-transform duration-500 group-hover:scale-105 ${g.cincin}`}
+          className={`mx-auto w-fit rounded-full bg-gradient-to-br p-[3px] shadow-lg shadow-navy/20 transition-transform duration-500 group-hover:scale-105 ${g.cincin}`}
         >
           <div className="rounded-full bg-white p-1">
             <Foto node={node} kelas={g.foto} gradasiInisial={g.inisial} />
@@ -93,7 +93,7 @@ function Cabang({ daftar, tingkat }) {
 // Versi HP: kartu mendatar (foto kiri, teks kanan), bawahan menjorok ke dalam.
 function BarisHp({ daftar, tingkat }) {
   return (
-    <ul className={tingkat === 0 ? "space-y-3" : "ml-6 mt-3 space-y-3 border-l-2 border-royal/25 pl-4"}>
+    <ul className={tingkat === 0 ? "space-y-3" : "ml-6 mt-3 space-y-3 border-l-2 border-navy/25 pl-4"}>
       {daftar.map((node, i) => {
         const g = gaya(tingkat);
         return (

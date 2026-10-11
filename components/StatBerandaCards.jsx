@@ -13,9 +13,9 @@ const STAT_CARDS = [
     key: "totalPenduduk",
     label: "Jumlah Penduduk",
     icon: IconUsers,
-    ikon: "from-royal to-royal-light shadow-royal/35",
+    ikon: "from-royal to-royal-light shadow-navy/35",
     garis: "from-royal to-royal-light",
-    pendar: "group-hover:bg-royal/20",
+    pendar: "group-hover:bg-navy/20",
   },
   {
     key: "totalKepalaKeluarga",
@@ -29,9 +29,9 @@ const STAT_CARDS = [
     key: "totalAjuanDiproses",
     label: "Ajuan Sudah Diproses",
     icon: IconClipboardCheck,
-    ikon: "from-seablue to-zinc-300 shadow-seablue/35",
-    garis: "from-seablue to-zinc-300",
-    pendar: "group-hover:bg-seablue/20",
+    ikon: "from-navy-light to-zinc-300 shadow-navy/35",
+    garis: "from-navy-light to-zinc-300",
+    pendar: "group-hover:bg-navy/20",
   },
 ];
 
@@ -65,7 +65,7 @@ function StatCard({ icon: Icon, label, value, suffix = "", ikon, garis, pendar }
   }, [value, inView]);
 
   return (
-    <div ref={ref} className="kartu-terang group relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl px-6 py-6 text-center transition-all sm:flex-row sm:gap-4 sm:text-left duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-royal/20">
+    <div ref={ref} className="kartu-terang group relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl px-6 py-6 text-center transition-all sm:flex-row sm:gap-4 sm:text-left duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-navy/20">
       {/* Garis warna di sisi atas kartu: melebar penuh saat kartu disorot */}
       <span
         aria-hidden

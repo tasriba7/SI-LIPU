@@ -183,7 +183,7 @@ export default async function KependudukanPage({ searchParams }) {
       {/* Banner judul — tombol Tambah selalu terlihat di kanan atas */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-navy-dark via-navy to-navy-light p-5 text-white shadow-sm sm:p-6">
         <div className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-gold/15 blur-2xl" />
-        <div className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-seablue/20 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-navy/20 blur-2xl" />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gold text-navy-dark shadow-md shadow-black/20">

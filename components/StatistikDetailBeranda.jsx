@@ -253,7 +253,7 @@ function DaftarBatang({ rows }) {
                     ? "bg-gradient-to-r from-violet-400 to-violet-300"
                     : unggul
                     ? "bg-gradient-to-r from-gold to-gold-light"
-                    : "bg-gradient-to-r from-seablue/80 to-seablue/50"
+                    : "bg-gradient-to-r from-navy-light to-navy-light"
                 }`}
                 style={{ width: `${lebar}%` }}
               />

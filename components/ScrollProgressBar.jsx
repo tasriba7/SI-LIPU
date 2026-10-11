@@ -41,7 +41,7 @@ export default function ScrollProgressBar() {
     <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-50 h-[3px]">
       <div
         ref={batang}
-        className="h-full origin-left bg-gradient-to-r from-gold via-seablue to-gold-light shadow-[0_0_8px_rgba(201,162,77,0.6)] will-change-transform"
+        className="h-full origin-left bg-gradient-to-r from-gold via-navy-light to-gold-light shadow-[0_0_8px_rgba(201,162,77,0.6)] will-change-transform"
         style={{ transform: "scaleX(0)" }}
       />
     </div>

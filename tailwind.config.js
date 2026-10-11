@@ -26,14 +26,14 @@ module.exports = {
           DEFAULT: "#c9a24d",
           light: "#e3c47a",
         },
-        seablue: "#e8574f",
+        seablue: "#6b6b6b",
         // Biru kobalt tegas — warna aksi utama (tombol, ikon, penanda aktif)
         // di tampilan terang. Dipadukan dengan navy (teks) & emas (sorotan).
         royal: {
-          DEFAULT: "#d62828",
-          dark: "#a61e1e",
-          light: "#ef4444",
-          pale: "#fdecec",
+          DEFAULT: "#c62828",
+          dark: "#9b1c1c",
+          light: "#d63a3a",
+          pale: "#f6f2ee",
         },
       },
       keyframes: {
@@ -105,8 +105,8 @@ module.exports = {
         },
         // Pendar tombol utama yang "bernapas".
         napasCahaya: {
-          "0%, 100%": { boxShadow: "0 10px 28px -8px rgba(214,40,40,0.55)" },
-          "50%": { boxShadow: "0 14px 38px -6px rgba(214,40,40,0.85)" },
+          "0%, 100%": { boxShadow: "0 10px 28px -8px rgba(198,40,40,0.35)" },
+          "50%": { boxShadow: "0 14px 38px -6px rgba(198,40,40,0.5)" },
         },
         // Garis aksen yang tumbuh dari kiri saat judul muncul.
         garisTumbuh: {

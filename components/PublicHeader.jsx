@@ -281,24 +281,24 @@ export default function PublicHeader() {
       }
     : {
         header: scrolled
-          ? "border-royal/10 bg-white/85 shadow-[0_8px_30px_-12px_rgba(214,40,40,0.35)]"
+          ? "border-navy/10 bg-white/85 shadow-[0_8px_30px_-12px_rgba(20,20,20,0.35)]"
           : "border-white/70 bg-white/65",
         nama: "text-navy-dark",
         subjudul: "text-slate-400",
         kapsul:
-          "bg-white/55 ring-slate-300/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_22px_-14px_rgba(11,44,107,0.35)]",
+          "bg-white/55 ring-slate-300/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_22px_-14px_rgba(0,0,0,0.35)]",
         pilAktif:
-          "bg-gradient-to-b from-royal-light to-royal shadow-[0_6px_16px_-6px_rgba(214,40,40,0.75),inset_0_1px_0_rgba(255,255,255,0.3)]",
-        pilSorot: "bg-royal/10 ring-1 ring-royal/25",
+          "bg-gradient-to-b from-royal-light to-royal shadow-[0_6px_16px_-6px_rgba(20,20,20,0.75),inset_0_1px_0_rgba(255,255,255,0.3)]",
+        pilSorot: "bg-navy/10 ring-1 ring-navy/25",
         menuAktif: "text-white",
-        menuBiasa: "text-slate-700 hover:text-royal",
+        menuBiasa: "text-slate-700 hover:text-navy",
         menuMati: "text-slate-300",
         garisBawah: "via-royal/30",
         stripBatas: "border-slate-200/60",
         chipBiasa: "border-slate-200/80 bg-white/70 text-slate-600 active:bg-white",
-        chipAktif: "border-royal bg-royal text-white shadow-sm shadow-royal/30",
+        chipAktif: "border-navy bg-royal text-white shadow-sm shadow-navy/30",
         chipMati: "border-slate-200 text-slate-300",
-        ring: "ring-royal/15 group-hover:ring-gold",
+        ring: "ring-navy/15 group-hover:ring-gold",
       };
 
   const gesekPil = `pointer-events-none absolute inset-y-1 left-0 rounded-full ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
@@ -316,7 +316,7 @@ export default function PublicHeader() {
         } border-b backdrop-blur-xl backdrop-saturate-150 transition-[background-color,border-color,box-shadow] duration-500 ${tema.header}`}
       >
         {/* Garis emas tipis di puncak header — aksen "kop surat", konsisten dengan hero. */}
-        <div className="h-[3px] w-full bg-gradient-to-r from-royal via-seablue to-gold" />
+        <div className="h-[3px] w-full bg-gradient-to-r from-royal via-navy-light to-gold" />
 
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-5 py-3 sm:px-6">
           {/* shrink-0: nama desa TIDAK BOLEH ikut menyempit demi memberi ruang
@@ -426,7 +426,7 @@ export default function PublicHeader() {
           </nav>
 
           {/* Login — selalu terlihat di semua ukuran layar. */}
-          <LoginButton className="ml-auto shrink-0 rounded-full bg-gradient-to-r from-royal to-royal-light px-5 py-2 text-[13px] font-semibold text-white shadow-[0_6px_18px_-6px_rgba(214,40,40,0.8)] transition hover:-translate-y-px hover:brightness-110 hover:shadow-[0_10px_24px_-6px_rgba(214,40,40,0.9)] lg:ml-0">
+          <LoginButton className="ml-auto shrink-0 rounded-full bg-gradient-to-r from-royal to-royal-light px-5 py-2 text-[13px] font-semibold text-white shadow-[0_6px_18px_-6px_rgba(20,20,20,0.8)] transition hover:-translate-y-px hover:brightness-110 hover:shadow-[0_10px_24px_-6px_rgba(20,20,20,0.9)] lg:ml-0">
             Login
           </LoginButton>
         </div>

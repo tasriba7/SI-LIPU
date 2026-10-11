@@ -323,7 +323,7 @@ export function KartuGempaUtama({ gempa, titikDesa = null, tampilkanPeta = true,
                   href={peta}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-seablue underline-offset-2 hover:underline"
+                  className="inline-flex items-center gap-1 text-royal underline-offset-2 hover:underline"
                 >
                   <IconMapPin className="h-3.5 w-3.5" />
                   Lihat lokasi di peta
@@ -383,7 +383,7 @@ export function DaftarGempa({ items, titikDesa = null, tampilkanDirasakan = fals
                       href={peta}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-seablue underline-offset-2 hover:underline"
+                      className="text-royal underline-offset-2 hover:underline"
                     >
                       Lihat peta
                     </a>

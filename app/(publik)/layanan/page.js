@@ -22,7 +22,7 @@ export default async function DaftarLayananPage() {
     <main className="min-h-screen bg-slate-50">
       <div className="mx-auto max-w-3xl px-4 py-12">
         <div className="mb-8 text-center">
-          <p className="font-mono text-xs uppercase tracking-[0.25em] text-seablue">
+          <p className="font-mono text-xs uppercase tracking-[0.25em] text-royal">
             Tanpa Akun, Tanpa Antre
           </p>
           <h1 className="mt-2 font-display text-2xl font-semibold text-navy sm:text-3xl">

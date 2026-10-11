@@ -82,7 +82,7 @@ html { scroll-behavior: smooth; }
 
 /* Teks gradasi navy -> biru laut untuk judul di latar terang. */
 .teks-laut {
-  background-image: linear-gradient(95deg, #141414 0%, #d62828 55%, #e8574f 100%);
+  background-image: linear-gradient(95deg, #141414 0%, #141414 60%, #c62828 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -102,49 +102,38 @@ html { scroll-behavior: smooth; }
 /* Latar mesh gradasi untuk banner & pita penutup: biru royal jenuh dengan
    pendar langit dan emas. Lebih terang & tegas dari versi navy sebelumnya. */
 .latar-mesh {
-  background-color: #0a0a0a;
+  background-color: #0e0e0e;
   background-image:
-    radial-gradient(60rem 32rem at 12% -8%, rgba(214, 40, 40, 0.55), transparent 60%),
-    radial-gradient(46rem 28rem at 92% 8%, rgba(201, 162, 77, 0.18), transparent 62%),
-    radial-gradient(52rem 30rem at 50% 118%, rgba(166, 30, 30, 0.75), transparent 65%),
-    linear-gradient(160deg, #1a1a1a 0%, #0f0f0f 55%, #0a0a0a 100%);
+    radial-gradient(48rem 24rem at 0% -10%, rgba(198, 40, 40, 0.28), transparent 62%),
+    linear-gradient(160deg, #181818 0%, #0e0e0e 60%, #0a0a0a 100%);
 }
 
 /* Latar hero terang: putih kebiruan dengan pendar warna di sudut-sudutnya. */
 .latar-terang {
   background-color: #faf8f6;
   background-image:
-    radial-gradient(52rem 30rem at 8% -6%, rgba(239,68,68, 0.28), transparent 62%),
-    radial-gradient(44rem 26rem at 96% 4%, rgba(227,196,122, 0.34), transparent 64%),
-    radial-gradient(50rem 28rem at 60% 112%, rgba(232,87,79, 0.22), transparent 66%),
-    linear-gradient(180deg, #ffffff 0%, #f3efea 100%);
+    radial-gradient(44rem 24rem at 4% -10%, rgba(198, 40, 40, 0.07), transparent 62%),
+    linear-gradient(180deg, #ffffff 0%, #f6f3ef 100%);
 }
 
 /* Teks gradasi royal -> langit (nama desa di hero terang). */
 .teks-royal {
-  background-image: linear-gradient(100deg, #a61e1e 0%, #d62828 35%, #e8574f 65%, #d62828 100%);
-  background-size: 220% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: geserGradasiCss 8s ease-in-out infinite;
+  color: #141414;
 }
 
 /* Kartu putih tegas dengan bayangan berwarna biru (statistik, lencana). */
 .kartu-terang {
   background: #ffffff;
-  border: 1px solid rgba(214,40,40, 0.12);
-  box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9) inset,
-    0 18px 36px -20px rgba(166,30,30, 0.45);
+  border: 1px solid rgba(20, 20, 20, 0.08);
+  box-shadow: 0 14px 30px -22px rgba(0, 0, 0, 0.35);
 }
 
 /* Garis aksen di bawah judul bagian; tumbuh dari kiri saat muncul. */
 .garis-aksen {
-  height: 4px;
-  width: 3.5rem;
+  height: 3px;
+  width: 3rem;
   border-radius: 9999px;
-  background: linear-gradient(90deg, #d62828, #e8574f 60%, #c9a24d);
+  background: linear-gradient(90deg, #c62828 0%, #c62828 70%, #c9a24d 100%);
   transform-origin: left center;
 }
 
@@ -165,7 +154,7 @@ html { scroll-behavior: smooth; }
   background-size: 22px 22px;
 }
 .pola-titik-gelap {
-  background-image: radial-gradient(rgba(214,40,40, 0.16) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(20,20,20, 0.16) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
@@ -201,7 +190,7 @@ html { scroll-behavior: smooth; }
   padding: 1.5px;
   border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(135deg, #d62828, rgba(232,87,79, 0.85) 55%, #c9a24d);
+  background: linear-gradient(135deg, #141414, #c62828 60%, #c9a24d);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
@@ -252,7 +241,7 @@ html { scroll-behavior: smooth; }
    Pohon murni CSS: tiap <li> menggambar garis ke atasannya lewat ::before /
    ::after, jadi bagan bisa sedalam & selebar apa pun tanpa hitung posisi.
    ========================================================================= */
-.bagan { --garis: rgb(20 72 214 / 0.38); --jarak-garis: 2rem; }
+.bagan { --garis: rgb(20 20 20 / 0.28); --jarak-garis: 2rem; }
 .bagan ul {
   position: relative;
   display: flex;

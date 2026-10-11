@@ -50,7 +50,7 @@ export default function VillageSeal({ className = "", logoUrl = null }) {
         </g>
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="flex h-[42%] w-[42%] items-center justify-center rounded-full bg-white shadow-xl shadow-royal/25 ring-2 ring-royal/15">
+        <div className="flex h-[42%] w-[42%] items-center justify-center rounded-full bg-white shadow-xl shadow-navy/25 ring-2 ring-navy/15">
           {/* Logo desa kalau sudah diunggah admin, kalau belum tetap logo
               aplikasi SI-LIPU sebagai identitas bawaan. */}
           <img

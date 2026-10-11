@@ -32,7 +32,7 @@ export default async function BannerHalaman({ kunci, kecil, judul, deskripsi, ri
 
       {/* Hiasan: pendar warna logo (statis, ringan) + tekstur titik yang memudar */}
       <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -left-20 -top-16 h-72 w-72 rounded-full bg-seablue/25 blur-3xl" />
+        <div className="absolute -left-20 -top-16 h-72 w-72 rounded-full bg-navy/25 blur-3xl" />
         <div className="absolute -bottom-20 -right-16 h-72 w-72 rounded-full bg-gold/20 blur-3xl" />
         <div className="pola-titik absolute inset-0 [mask-image:radial-gradient(ellipse_at_50%_0%,black,transparent_72%)]" />
       </div>

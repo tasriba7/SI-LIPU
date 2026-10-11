@@ -14,7 +14,7 @@ export default function SectionHeading({ kecil, judul, deskripsi, aksi = null, r
       <div className={tengah ? "mx-auto" : ""}>
         {kecil && (
           <p
-            className={`inline-flex items-center gap-2.5 font-mono text-xs uppercase font-semibold tracking-[0.25em] text-royal ${
+            className={`inline-flex items-center gap-2.5 font-mono text-xs uppercase font-semibold tracking-[0.25em] text-navy ${
               tengah ? "justify-center" : ""
             }`}
           >

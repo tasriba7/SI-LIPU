@@ -12,7 +12,7 @@ export const metadata = { title: "Profil Desa" };
 function Judul({ kecil, besar }) {
   return (
     <>
-      <p className="font-mono text-xs uppercase tracking-[0.25em] text-seablue">{kecil}</p>
+      <p className="font-mono text-xs uppercase tracking-[0.25em] text-royal">{kecil}</p>
       <h2 className="mt-3 font-display text-2xl font-semibold text-navy sm:text-3xl">{besar}</h2>
     </>
   );
@@ -105,7 +105,7 @@ export default async function ProfilDesaPage() {
               {misi.length > 0 && (
                 <Reveal variant="right" className="h-full">
                   <div className="h-full rounded-3xl border border-slate-200 bg-white/80 p-8 shadow-sm">
-                    <p className="font-mono text-xs uppercase tracking-[0.25em] text-seablue">Misi</p>
+                    <p className="font-mono text-xs uppercase tracking-[0.25em] text-royal">Misi</p>
                     <ol className="mt-4 space-y-3">
                       {misi.map((m, i) => (
                         <li key={i} className="flex gap-3 text-sm leading-relaxed text-slate-600 sm:text-base">
@@ -161,7 +161,7 @@ export default async function ProfilDesaPage() {
                   {batas.map(([arah, nilai], i) => (
                     <Reveal key={arah} delay={i * 100} className="h-full">
                       <div className="h-full rounded-2xl border border-slate-200/70 bg-white/70 p-5 transition duration-300 hover:-translate-y-1 hover:border-gold/60 hover:shadow-lg hover:shadow-navy/10">
-                        <p className="font-mono text-xs uppercase tracking-[0.2em] text-seablue">
+                        <p className="font-mono text-xs uppercase tracking-[0.2em] text-royal">
                           {arah}
                         </p>
                         <p className="mt-2 text-sm font-medium text-slate-700">{nilai}</p>
@@ -191,7 +191,7 @@ export default async function ProfilDesaPage() {
                   </div>
                 )}
                 <div>
-                  <p className="font-mono text-xs uppercase tracking-[0.25em] text-seablue">
+                  <p className="font-mono text-xs uppercase tracking-[0.25em] text-royal">
                     Pimpinan
                   </p>
                   <p className="mt-2 font-display text-xl font-semibold text-navy">

@@ -159,7 +159,7 @@ export default function GaleriGrid({ items }) {
                 />
               </div>
               <div className="p-5 sm:p-6">
-                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-seablue">
+                <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-royal">
                   {formatTanggal(aktif.created_at)}
                 </p>
                 <h3 className="mt-1.5 font-display text-xl font-semibold text-slate-800">

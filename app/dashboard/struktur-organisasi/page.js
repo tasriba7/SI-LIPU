@@ -42,7 +42,7 @@ function Baris({ node, saudaraKe, jumlahSaudara, tingkat }) {
             </Link>
             <Link
               href={`/dashboard/struktur-organisasi/tambah?atasan=${node.id}`}
-              className="text-xs font-medium text-royal hover:underline"
+              className="text-xs font-medium text-navy hover:underline"
             >
               + Bawahan
             </Link>
@@ -58,7 +58,7 @@ function Baris({ node, saudaraKe, jumlahSaudara, tingkat }) {
       </div>
 
       {node.anak.length > 0 && (
-        <ul className="ml-5 mt-3 space-y-3 border-l-2 border-royal/20 pl-5 sm:ml-7 sm:pl-6">
+        <ul className="ml-5 mt-3 space-y-3 border-l-2 border-navy/20 pl-5 sm:ml-7 sm:pl-6">
           {node.anak.map((a, i) => (
             <Baris key={a.id} node={a} saudaraKe={i} jumlahSaudara={node.anak.length} tingkat={tingkat + 1} />
           ))}
