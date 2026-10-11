@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-// Latar hero berupa beberapa foto yang bergantian tiap 5 detik dengan
+// Latar hero berupa beberapa foto yang bergantian tiap 10 detik dengan
 // transisi pudar (crossfade) + zoom sangat pelan supaya terasa hidup tapi tidak ramai.
 // - Berhenti saat tab tidak terlihat (hemat baterai/data).
 // - Hanya satu foto -> tampil statis, tanpa timer.
 // - "Kurangi gerakan" (prefers-reduced-motion) -> tanpa zoom, pudar tetap halus.
-const JEDA_MS = 5000;
+const JEDA_MS = 10000;
 
 export default function HeroSlideshow({ images = [], className = "" }) {
   const [aktif, setAktif] = useState(0);
@@ -56,8 +56,8 @@ export default function HeroSlideshow({ images = [], className = "" }) {
           className={`absolute inset-0 h-full w-full object-cover ${
             i === aktif ? "opacity-100 motion-safe:scale-100" : "opacity-0 motion-safe:scale-110"
           }`}
-          // Pudar 1,4 dtk (halus), zoom pelan 6,5 dtk — durasi dibedakan lewat style.
-          style={{ transition: "opacity 1400ms ease-in-out, transform 6500ms ease-out", willChange: "opacity, transform" }}
+          // Pudar 1,4 dtk (halus), zoom pelan 11 dtk — durasi dibedakan lewat style.
+          style={{ transition: "opacity 1400ms ease-in-out, transform 11000ms ease-out", willChange: "opacity, transform" }}
         />
       ))}
     </div>

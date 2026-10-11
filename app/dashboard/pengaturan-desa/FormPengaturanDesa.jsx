@@ -372,34 +372,13 @@ export default function FormPengaturanDesa({ config }) {
         />
       </div>
 
-      {/* Foto latar beranda */}
-      <div>
-        <Label>Foto latar beranda (background hero)</Label>
-        <p className="mb-2 text-xs text-slate-400">
-          Format JPG/PNG/WEBP, maksimal 8MB. Foto akan tampil sebagai latar belakang identitas
-          desa di halaman utama.
-        </p>
-        <div className="flex flex-wrap items-center gap-3">
-          <input
-            type="file"
-            name="foto"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleFotoChange}
-            className="text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-navy file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-navy-light"
-          />
-          {preview && (
-            <button
-              type="button"
-              onClick={handleHapusFoto}
-              className="text-xs text-red-600 underline"
-            >
-              Hapus foto
-            </button>
-          )}
-        </div>
-        {hapusFoto && (
-          <input type="hidden" name="hapus_foto" value="1" />
-        )}
+      {/* Foto latar beranda: dikelola di halaman sendiri (bisa banyak foto) */}
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">
+        Foto latar beranda sekarang diatur di menu{" "}
+        <a href="/dashboard/pengaturan-desa/foto-beranda" className="font-semibold text-navy underline">
+          Foto Beranda
+        </a>{" "}
+        — bisa lebih dari satu dan berganti otomatis.
       </div>
 
       {/* Logo desa */}

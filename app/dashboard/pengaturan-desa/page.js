@@ -36,7 +36,7 @@ export default async function PengaturanDesaPage() {
         <h1 className="text-lg font-bold text-slate-800">Pengaturan Desa</h1>
         <p className="text-sm text-slate-500">
           Identitas desa/kelurahan ini akan tampil di bagian atas halaman utama (beranda) —
-          termasuk foto latar yang dipilih di bawah.
+          termasuk foto latar yang diatur di menu Foto Beranda.
         </p>
       </div>
 
@@ -48,6 +48,19 @@ export default async function PengaturanDesaPage() {
           <span className="font-semibold text-slate-700">Profil Desa</span>
           <span className="block text-xs text-slate-400">
             Sejarah, visi-misi, dan batas wilayah untuk halaman publik /profil
+          </span>
+        </span>
+        <span className="text-navy">&rarr;</span>
+      </Link>
+
+      <Link
+        href="/dashboard/pengaturan-desa/foto-beranda"
+        className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-sm transition hover:border-navy"
+      >
+        <span>
+          <span className="font-semibold text-slate-700">Foto Beranda</span>
+          <span className="block text-xs text-slate-400">
+            Foto latar bagian atas beranda — bisa lebih dari satu, berganti otomatis
           </span>
         </span>
         <span className="text-navy">&rarr;</span>

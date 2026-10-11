@@ -37,6 +37,7 @@ import {
 } from "@/lib/statistikBeranda";
 import { getConfigDesa, labelWilayah } from "@/lib/configDesa";
 import { getGaleri, getGaleriCount } from "@/lib/galeri";
+import { getFotoHero } from "@/lib/fotoHero";
 import { getWisata, getWisataCount } from "@/lib/wisata";
 import { getBeritaTerbit } from "@/lib/berita";
 import { getStrukturPublik } from "@/lib/strukturOrganisasi";
@@ -128,7 +129,7 @@ const LENCANA_HERO = [
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal, wisataItems, wisataTotal, berita, apbdes, pengunjung, struktur] = await Promise.all([
+  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal, wisataItems, wisataTotal, berita, apbdes, pengunjung, struktur, fotoHeroRows] = await Promise.all([
     getStatistikBeranda(),
     getStatistikBerandaDetail(),
     getStatistikPerDusun(),
@@ -141,22 +142,25 @@ export default async function HomePage() {
     getRingkasanApbdesTerbaru(supabase),
     getPengunjung(),
     getStrukturPublik(supabase),
+    getFotoHero(supabase),
   ]);
 
   const wilayah = labelWilayah(config);
 
-  // Foto hero: foto utama desa dulu, lalu foto galeri terbaru (tanpa duplikat, maks. 6).
-  const fotoHero = [config.foto_url, ...galeriItems.map((g) => g.foto_url)]
+  // Foto hero: dari menu admin "Foto Beranda". Kalau belum ada, pakai foto latar
+  // lama (config_desa.foto_url) supaya beranda lama tidak mendadak kosong.
+  const fotoHero = (fotoHeroRows.length > 0
+    ? fotoHeroRows.map((r) => r.gambar_url)
+    : [config.foto_url]
+  )
     .filter(Boolean)
-    .filter((url, i, arr) => arr.indexOf(url) === i)
-    .slice(0, 6)
     .map((src) => ({ src }));
 
   return (
     <main className="overflow-x-clip bg-white">
       {/* Hero — identitas desa: latar putih bersih, judul hitam, aksen merah secukupnya. */}
       <section id="hero-beranda" className="latar-terang relative overflow-hidden">
-        {/* Foto latar: foto desa + foto galeri terbaru, berganti tiap 5 detik (crossfade). */}
+        {/* Foto latar dari admin (Foto Beranda), berganti tiap 10 detik (crossfade). */}
         <HeroSlideshow images={fotoHero} />
 
         {/* Lapisan putih hanya di sisi teks (kiri) agar tulisan tetap terbaca;
