@@ -47,7 +47,7 @@ export default async function KelolaAkunPage() {
 
   // Daftar profil diambil pakai admin client (melewati RLS). Tabel profiles
   // hanya mengizinkan staf melihat baris miliknya sendiri, jadi kalau pakai
-  // client biasa, akun Kadus/Ketua RT yang baru disetujui tidak ikut muncul.
+  // client biasa, akun staf lain yang baru dibuat/disetujui tidak ikut muncul.
   // Aman karena akses halaman ini sudah dibatasi ke admin di atas (server-side).
   let daftar = [];
   let error = null;
@@ -64,11 +64,10 @@ export default async function KelolaAkunPage() {
 
     const authUsers = await ambilSemuaAuthUsers(adminClient);
     const emailById = new Map(authUsers.map((u) => [u.id, u.email]));
-    // Jumlah data penduduk yang diinput tiap akun Kadus/Ketua RT, ditampilkan
-    // di konfirmasi hapus supaya admin tahu data itu tetap aman.
+    // Jumlah data penduduk yang diinput tiap akun, ditampilkan di konfirmasi
+    // hapus supaya admin tahu data itu tetap aman.
     const jumlahWargaById = new Map();
     for (const p of profiles ?? []) {
-      if (p.role !== "kadus" && p.role !== "ketua_rt") continue;
       const { count } = await adminClient
         .from("warga")
         .select("id", { count: "exact", head: true })
@@ -79,7 +78,7 @@ export default async function KelolaAkunPage() {
     daftar = (profiles ?? []).map((p) => ({
       ...p,
       email: emailById.get(p.id) || "-",
-      bisaDihapus: (p.role === "kadus" || p.role === "ketua_rt") && p.id !== user?.id,
+      bisaDihapus: p.id !== user?.id,
       jumlahWarga: jumlahWargaById.get(p.id) ?? 0,
     }));
   } catch (e) {
