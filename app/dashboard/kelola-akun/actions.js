@@ -147,21 +147,22 @@ export async function buatAkunStaf(prevState, formData) {
 }
 
 /**
- * Hapus akun Kepala Dusun / Ketua RT (hanya admin).
+ * Hapus akun staf apa pun (Kepala Desa, Sekdes, Kaur, Kasi, BPD, Kadus,
+ * Ketua RT, admin lain). Hanya admin yang boleh.
  *
  * Pengamanan:
- *  - Hanya role kadus & ketua_rt; akun sendiri dan role lain ditolak.
+ *  - Akun sendiri ditolak, jadi selalu tersisa minimal satu admin.
  *  - Data penduduk yang pernah diinput akun ini TIDAK ikut terhapus: kolom
  *    warga.dibuat_oleh memakai ON DELETE SET NULL, dan nama/peran/wilayah
  *    penginput sudah tersalin sebagai teks di baris warga (migrasi 0015).
- *    Data tetap terlihat oleh admin dan oleh Kadus/RT pengganti di wilayah itu.
- *  - Slot posisi dikosongkan lebih dulu (profile_id memakai foreign key) supaya
- *    wilayahnya bisa didaftar ulang oleh orang lain.
+ *    Data tetap terlihat oleh admin dan oleh pengganti di wilayah itu.
+ *  - Slot posisi yang dipegang akun ini (kalau ada) dikosongkan lebih dulu
+ *    (profile_id memakai foreign key) supaya posisinya bisa diisi ulang.
  *  - Kalau akun tidak bisa dihapus karena masih dirujuk riwayat lain di
  *    database, akun DINONAKTIFKAN (tidak bisa login) alih-alih dihapus paksa.
  *  - Kalau keduanya gagal, slot dikembalikan seperti semula.
  */
-export async function hapusAkunWilayah(prevState, formData) {
+export async function hapusAkunStaf(prevState, formData) {
   const cek = await pastikanAdmin();
   if (cek.error) return { error: cek.error };
 
@@ -178,9 +179,6 @@ export async function hapusAkunWilayah(prevState, formData) {
     .maybeSingle();
 
   if (!profil) return { error: "Akun tidak ditemukan." };
-  if (!["kadus", "ketua_rt"].includes(profil.role)) {
-    return { error: "Hanya akun Kepala Dusun dan Ketua RT yang bisa dihapus dari sini." };
-  }
 
   const { count: jumlahWarga } = await adminClient
     .from("warga")
