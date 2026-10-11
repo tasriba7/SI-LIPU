@@ -1,4 +1,11 @@
-import { ROLE_LABELS, terimaPemberitahuanLayanan, isBpdRole } from "@/lib/roles";
+import {
+  ROLE_LABELS,
+  terimaPemberitahuanLayanan,
+  isBpdRole,
+  bisaTerbitkanSurat,
+} from "@/lib/roles";
+import { ambilRingkasanPelayanan } from "@/lib/ringkasanPelayanan";
+import RingkasanPelayanan from "@/components/dashboard/RingkasanPelayanan";
 import { ambilPemberitahuanLayanan } from "@/lib/pemberitahuanLayanan";
 import PemberitahuanLayanan from "@/components/dashboard/PemberitahuanLayanan";
 import Link from "next/link";
@@ -55,7 +62,7 @@ function labelRolePenginput(role) {
 export default async function DashboardPage() {
   const supabase = await createClient();
 
-  // Peran akun yang sedang login: menentukan kartu modul yang ditampilkan.
+  // Peran akun yang sedang login: menentukan isi beranda dan kartu modul.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -66,10 +73,20 @@ export default async function DashboardPage() {
   // Kartu modul dikelompokkan sama persis dengan sidebar (lib/menuDashboard.js).
   const grupModul = grupUntukRole(peran);
 
-  // Ringkasan data warga belum lengkap PER PENGINPUT. Mengikuti RLS: staf
-  // desa (admin) melihat semua penginput dari semua wilayah — termasuk yang
-  // ditambahkan Kadus/Ketua RT — sedangkan Kadus/Ketua RT hanya melihat
-  // ringkasan wilayahnya sendiri.
+  // Isi beranda berbeda per peran:
+  //  * pemantau  (Kepala Desa, Anggota BPD): ringkasan pelayanan & pengaduan.
+  //              Tidak mengurus pengisian data, jadi tanpa banner "data belum
+  //              lengkap" dan tanpa rincian per penginput.
+  //  * pemroses  (admin, Sekretaris, Kaur, Kasi): pengajuan yang menunggu
+  //              diproses + data belum lengkap se-desa.
+  //  * wilayah   (Kadus, Ketua RT): data belum lengkap di wilayahnya sendiri
+  //              (dibatasi RLS); Ketua RT juga menerima pemberitahuan.
+  const bpd = isBpdRole(peran);
+  const kades = peran === "kepala_desa";
+  const pemantau = bpd || kades;
+  const pemroses = bisaTerbitkanSurat(peran);
+  const tampilKelengkapan = !pemantau;
+
   // Statistik kependudukan (angka agregat; sama dengan beranda publik).
   const [statRingkas, statDetail, statDusun] = await Promise.all([
     getStatistikBeranda(),
@@ -77,56 +94,49 @@ export default async function DashboardPage() {
     getStatistikPerDusun(),
   ]);
 
-  const { data: ringkasanKelengkapan } = await supabase
-    .from("ringkasan_kelengkapan_penginput")
-    .select("dibuat_oleh, nama, role, wilayah, total, belum_lengkap")
-    .gt("belum_lengkap", 0)
-    .order("belum_lengkap", { ascending: false })
-    .limit(8);
+  // Ringkasan data warga belum lengkap PER PENGINPUT (hanya untuk yang
+  // mengisi data: staf desa melihat semua wilayah, Kadus/Ketua RT wilayahnya).
+  let ringkasanKelengkapan = null;
+  let kolomTersering = null;
+  if (tampilKelengkapan) {
+    const [{ data: a }, { data: b }] = await Promise.all([
+      supabase
+        .from("ringkasan_kelengkapan_penginput")
+        .select("dibuat_oleh, nama, role, wilayah, total, belum_lengkap")
+        .gt("belum_lengkap", 0)
+        .order("belum_lengkap", { ascending: false })
+        .limit(8),
+      supabase
+        .from("ringkasan_kolom_kosong")
+        .select("kolom, jumlah")
+        .order("jumlah", { ascending: false })
+        .limit(5),
+    ]);
+    ringkasanKelengkapan = a;
+    kolomTersering = b;
+  }
 
-  const { data: kolomTersering } = await supabase
-    .from("ringkasan_kolom_kosong")
-    .select("kolom, jumlah")
-    .order("jumlah", { ascending: false })
-    .limit(5);
-
-  const { count: menunggu } = await supabase
-    .from("pengajuan_layanan")
-    .select("id", { count: "exact", head: true })
-    .eq("status", "diajukan");
+  // Pengajuan menunggu: hanya untuk yang memang memprosesnya.
+  let menunggu = 0;
+  if (pemroses) {
+    const { count } = await supabase
+      .from("pengajuan_layanan")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "diajukan");
+    menunggu = count ?? 0;
+  }
 
   // Kepala Desa & Ketua RT: pemberitahuan pengajuan baru (siapa yang mengajukan;
-  // pengaduan anonim tanpa identitas). Role lain tetap memakai banner "menunggu".
+  // pengaduan anonim tanpa identitas).
   const adaPemberitahuan = terimaPemberitahuanLayanan(peran);
   const pemberitahuan = adaPemberitahuan
     ? await ambilPemberitahuanLayanan(supabase, peran, { tampil: 8 })
     : null;
 
-  // Anggota BPD: ringkasan pelayanan (dari view pantau, tanpa data pribadi).
-  const bpd = isBpdRole(peran);
-  let ringkasanBpd = null;
-  if (bpd) {
-    const hitung = (status, kategori) => {
-      let c = supabase
-        .from("pengajuan_layanan_pantau")
-        .select("id", { count: "exact", head: true })
-        .eq("status", status);
-      if (kategori) c = c.eq("kategori", kategori);
-      return c;
-    };
-    const [a, b, c, d] = await Promise.all([
-      hitung("diajukan"),
-      hitung("diproses"),
-      hitung("diajukan", "pengaduan"),
-      hitung("diproses", "pengaduan"),
-    ]);
-    ringkasanBpd = {
-      belumDitangani: a.count ?? 0,
-      sedangDiproses: b.count ?? 0,
-      aduanBaru: c.count ?? 0,
-      aduanDiproses: d.count ?? 0,
-    };
-  }
+  // Kepala Desa & Anggota BPD: ringkasan pelayanan (hanya angka).
+  const ringkasanPelayanan = pemantau
+    ? await ambilRingkasanPelayanan(supabase, bpd ? "pantau" : "langsung")
+    : null;
 
   const totalBelumLengkap = (ringkasanKelengkapan ?? []).reduce(
     (a, r) => a + (r.belum_lengkap || 0),
@@ -138,36 +148,23 @@ export default async function DashboardPage() {
       <div>
         <h1 className="text-lg font-bold text-slate-800">Dashboard</h1>
         <p className="text-sm text-slate-500">
-          Pilih modul di bawah untuk mulai bekerja.
+          {pemantau
+            ? "Ringkasan pelayanan dan data kependudukan desa."
+            : "Pilih modul di bawah untuk mulai bekerja."}
         </p>
       </div>
 
       {pemberitahuan && <PemberitahuanLayanan {...pemberitahuan} />}
 
-      {ringkasanBpd && (
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <Link
-            href="/dashboard/layanan"
-            className="rounded-2xl border border-teal-200 bg-teal-50 p-5 transition hover:shadow-md"
-          >
-            <h2 className="text-sm font-bold text-teal-800">Pelayanan administrasi</h2>
-            <p className="mt-1 text-xs text-teal-700">
-              {ringkasanBpd.belumDitangani} belum disentuh &middot; {ringkasanBpd.sedangDiproses} sedang diproses
-            </p>
-          </Link>
-          <Link
-            href="/dashboard/pengaduan"
-            className="rounded-2xl border border-teal-200 bg-teal-50 p-5 transition hover:shadow-md"
-          >
-            <h2 className="text-sm font-bold text-teal-800">Pengaduan warga</h2>
-            <p className="mt-1 text-xs text-teal-700">
-              {ringkasanBpd.aduanBaru} aduan baru &middot; {ringkasanBpd.aduanDiproses} sedang ditangani
-            </p>
-          </Link>
-        </div>
+      {ringkasanPelayanan && (
+        <RingkasanPelayanan
+          ringkasan={ringkasanPelayanan}
+          hrefLayanan="/dashboard/layanan"
+          hrefPengaduan={bpd ? "/dashboard/pengaduan" : "/dashboard/layanan"}
+        />
       )}
 
-      {!bpd && !adaPemberitahuan && menunggu > 0 && (
+      {pemroses && menunggu > 0 && (
         <Link
           href="/dashboard/layanan?status=diajukan"
           className="flex items-center justify-between gap-4 rounded-2xl border border-gold/50 bg-gold/10 p-5 transition hover:shadow-md"
@@ -186,7 +183,7 @@ export default async function DashboardPage() {
         </Link>
       )}
 
-      {!bpd && ringkasanKelengkapan && ringkasanKelengkapan.length > 0 && (
+      {tampilKelengkapan && ringkasanKelengkapan && ringkasanKelengkapan.length > 0 && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5">
           <div className="flex items-start justify-between gap-4">
             <div>

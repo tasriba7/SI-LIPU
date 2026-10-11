@@ -45,7 +45,9 @@ export default async function DashboardLayout({ children }) {
   return (
     <DashboardShell
       jumlahPendaftaran={jumlahPendaftaran ?? 0}
-      jumlahDataKurang={profile?.role === "bpd" ? 0 : (jumlahDataKurang ?? 0)}
+      jumlahDataKurang={
+        profile?.role === "bpd" || profile?.role === "kepala_desa" ? 0 : (jumlahDataKurang ?? 0)
+      }
       jumlahPengajuanBaru={pemberitahuanLayanan.total}
       profile={profile ?? { nama: user.email, role: "kasi" }}
       logoutAction={logout}
