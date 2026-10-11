@@ -6,6 +6,7 @@ import StatistikDetailBeranda from "@/components/StatistikDetailBeranda";
 import Reveal from "@/components/Reveal";
 import AuroraBackground from "@/components/AuroraBackground";
 import GaleriBeranda from "@/components/GaleriBeranda";
+import HeroSlideshow from "@/components/HeroSlideshow";
 import WisataBeranda from "@/components/WisataBeranda";
 import BeritaBeranda from "@/components/BeritaBeranda";
 import BmkgBeranda from "@/components/BmkgBeranda";
@@ -144,21 +145,23 @@ export default async function HomePage() {
 
   const wilayah = labelWilayah(config);
 
+  // Foto hero: foto utama desa dulu, lalu foto galeri terbaru (tanpa duplikat, maks. 6).
+  const fotoHero = [config.foto_url, ...galeriItems.map((g) => g.foto_url)]
+    .filter(Boolean)
+    .filter((url, i, arr) => arr.indexOf(url) === i)
+    .slice(0, 6)
+    .map((src) => ({ src }));
+
   return (
     <main className="overflow-x-clip bg-white">
       {/* Hero — identitas desa: latar putih bersih, judul hitam, aksen merah secukupnya. */}
       <section id="hero-beranda" className="latar-terang relative overflow-hidden">
-        {config.foto_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={config.foto_url}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover opacity-90 [mask-image:radial-gradient(ellipse_75%_85%_at_62%_45%,black_28%,transparent_78%)]"
-          />
-        )}
+        {/* Foto latar: foto desa + foto galeri terbaru, berganti tiap 5 detik (crossfade). */}
+        <HeroSlideshow images={fotoHero} />
 
-        {/* Lapisan putih tipis di sisi teks (kiri) supaya tulisan tetap jelas; foto tetap tampil di kanan. */}
-        <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/45 to-transparent max-lg:from-white/70 max-lg:via-white/50 max-lg:to-white/60" />
+        {/* Lapisan putih hanya di sisi teks (kiri) agar tulisan tetap terbaca;
+            sisi kanan dibiarkan bersih supaya foto tampil jelas. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/85 via-white/25 to-transparent max-lg:from-white/70 max-lg:via-white/35 max-lg:to-white/45" />
 
         
 
