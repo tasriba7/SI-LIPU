@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import sharp from "sharp";
 import { createClient } from "@/lib/supabase/server";
 import { pastikanAdmin } from "@/lib/akses";
 import { MAKS_FOTO_HERO } from "@/lib/fotoHero";
@@ -8,6 +9,24 @@ import { MAKS_FOTO_HERO } from "@/lib/fotoHero";
 const EKSTENSI_DIIZINKAN = ["jpg", "jpeg", "png", "webp"];
 const UKURAN_MAKS_MB = 8;
 const BUCKET = "desa-media";
+const SISI_MAKS_PX = 3000;
+
+// Lapis kedua setelah pengecilan di browser: pastikan tidak ada foto > 3000px
+// yang tersimpan, diputar sesuai EXIF, dan disimpan sebagai WEBP berkualitas tinggi.
+// Kalau sharp gagal, berkas asli tetap dipakai.
+async function siapkanFoto(file, ekstensiAsli) {
+  const asli = Buffer.from(await file.arrayBuffer());
+  try {
+    const data = await sharp(asli)
+      .rotate()
+      .resize({ width: SISI_MAKS_PX, height: SISI_MAKS_PX, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 88 })
+      .toBuffer();
+    return { data, ekstensi: "webp", tipe: "image/webp" };
+  } catch {
+    return { data: asli, ekstensi: ekstensiAsli, tipe: file.type || undefined };
+  }
+}
 
 function segarkan() {
   revalidatePath("/");
@@ -50,11 +69,12 @@ export async function tambahFotoHero(prevState, formData) {
   let urutan = Math.max(-1, ...(ada ?? []).map((r) => r.urutan ?? 0)) + 1;
   const baris = [];
   for (const [i, f] of files.entries()) {
-    const ekstensi = (f.name.split(".").pop() || "").toLowerCase();
+    const ekstensiAsli = (f.name.split(".").pop() || "").toLowerCase();
+    const { data, ekstensi, tipe } = await siapkanFoto(f, ekstensiAsli);
     const namaFile = `hero-${Date.now()}-${i}.${ekstensi}`;
     const { error: errorUpload } = await supabase.storage
       .from(BUCKET)
-      .upload(namaFile, f, { upsert: true, contentType: f.type || undefined });
+      .upload(namaFile, data, { upsert: true, contentType: tipe });
     if (errorUpload) {
       return { error: `Gagal mengunggah "${f.name}": ${errorUpload.message}` };
     }

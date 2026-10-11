@@ -36,7 +36,7 @@ export default async function FotoBerandaAdminPage() {
         <h1 className="mt-2 text-lg font-bold text-slate-800">Foto Beranda</h1>
         <p className="text-sm text-slate-500">
           Foto latar di bagian atas beranda. Kalau ada lebih dari satu, foto bergeser otomatis (kiri-kanan) tiap
-          10 detik sesuai urutan di bawah. Format JPG/PNG/WEBP, maksimal 8MB per foto, maksimal{" "}
+          10 detik sesuai urutan di bawah. Format JPG/PNG/WEBP. Foto besar (mis. dari kamera HP) otomatis diperkecil ke 3000px agar tetap tajam, maksimal{" "}
           {MAKS_FOTO_HERO} foto. Gunakan foto lebar (landscape) beresolusi tinggi agar tampil tajam.
         </p>
       </div>

@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { kecilkanGambar } from "@/lib/kecilkanGambar";
 import { tambahFotoHero, hapusFotoHero, geserFotoHero } from "./actions";
 
 function TombolUnggah() {
@@ -12,7 +13,7 @@ function TombolUnggah() {
       disabled={pending}
       className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white transition hover:bg-navy-light disabled:opacity-60"
     >
-      {pending ? "Mengunggah..." : "Unggah foto"}
+      {pending ? "Memproses & mengunggah..." : "Unggah foto"}
     </button>
   );
 }
@@ -27,6 +28,10 @@ export default function PengelolaFoto({ foto, maks }) {
     <div className="space-y-6">
       <form
         action={async (fd) => {
+          // Perkecil dulu di browser (sisi terpanjang 3000px) supaya tajam & ringan.
+          const asli = fd.getAll("foto").filter((x) => x && x.size > 0);
+          fd.delete("foto");
+          for (const x of asli) fd.append("foto", await kecilkanGambar(x));
           await formAction(fd);
           setDipilih([]);
           if (inputRef.current) inputRef.current.value = "";
@@ -53,7 +58,7 @@ export default function PengelolaFoto({ foto, maks }) {
           <TombolUnggah />
         </div>
         {dipilih.length > 0 && (
-          <p className="text-xs text-slate-500">{dipilih.length} foto dipilih, klik &quot;Unggah foto&quot; untuk menyimpan.</p>
+          <p className="text-xs text-slate-500">{dipilih.length} foto dipilih, klik &quot;Unggah foto&quot; untuk menyimpan. Foto besar otomatis diperkecil agar tetap tajam dan cepat dimuat.</p>
         )}
         {penuh && <p className="text-xs text-amber-600">Sudah mencapai batas. Hapus foto lama untuk menambah.</p>}
         {state?.error && <p className="text-sm text-red-600">{state.error}</p>}

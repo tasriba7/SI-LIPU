@@ -111,7 +111,7 @@ export default function HeroSlideshow({ images = [], className = "" }) {
           decoding="async"
           className="absolute inset-0 h-full w-full object-cover"
           // Foto pertama tampil; sisanya menunggu di luar layar (kanan).
-          style={{ transform: i === 0 ? "translateX(0%)" : "translateX(100%)", willChange: "transform" }}
+          style={{ transform: i === 0 ? "translateX(0%)" : "translateX(100%)" }}
         />
       ))}
     </div>
