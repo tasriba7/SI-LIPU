@@ -1,6 +1,7 @@
 import "../styles/globals.css";
 import { Playfair_Display, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import SplashScreen from "@/components/SplashScreen";
+import FullscreenButton from "@/components/FullscreenButton";
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin"],
@@ -51,6 +52,7 @@ export default function RootLayout({ children }) {
       </head>
       <body>
         <SplashScreen>{children}</SplashScreen>
+        <FullscreenButton />
       </body>
     </html>
   );
