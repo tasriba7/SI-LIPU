@@ -218,9 +218,9 @@ export default async function KependudukanPage({ searchParams }) {
 
       {/* Kartu ringkasan */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-xl border border-sky-200 bg-gradient-to-br from-sky-50 to-white p-4">
-          <div className="flex items-center gap-2 text-xs font-medium text-sky-700">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-100">
+        <div className="rounded-xl border border-zinc-200 bg-gradient-to-br from-zinc-50 to-white p-4">
+          <div className="flex items-center gap-2 text-xs font-medium text-zinc-700">
+            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-100">
               <IconUsers className="h-4 w-4" />
             </span>
             Warga aktif
@@ -235,7 +235,7 @@ export default async function KependudukanPage({ searchParams }) {
             Laki-laki / Perempuan
           </div>
           <p className="mt-2 text-2xl font-bold tabular-nums text-slate-800">
-            <span className="text-sky-600">{fmt(totalLaki)}</span>
+            <span className="text-zinc-600">{fmt(totalLaki)}</span>
             <span className="mx-1.5 text-slate-300">/</span>
             <span className="text-pink-600">{fmt(totalPerempuan)}</span>
           </p>
@@ -266,7 +266,7 @@ export default async function KependudukanPage({ searchParams }) {
       <div className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
         <Link
           href="/dashboard/kependudukan/kartu-keluarga"
-          className="flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-medium text-indigo-700 transition hover:bg-indigo-100"
+          className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100"
         >
           <IconUsers className="h-4 w-4" />
           Kartu Keluarga
@@ -371,7 +371,7 @@ export default async function KependudukanPage({ searchParams }) {
             </thead>
             <tbody className="text-slate-600">
               {daftar.map((w, i) => (
-                <tr key={w.id} className="odd:bg-white even:bg-sky-50/40 hover:bg-sky-50">
+                <tr key={w.id} className="odd:bg-white even:bg-zinc-50/40 hover:bg-zinc-50">
                   <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2.5 text-center tabular-nums text-slate-400">
                     {i + 1}
                   </td>
@@ -382,7 +382,7 @@ export default async function KependudukanPage({ searchParams }) {
                           title={w.jenis_kelamin === "L" ? "Laki-laki" : "Perempuan"}
                           className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
                             w.jenis_kelamin === "L"
-                              ? "bg-sky-100 text-sky-700"
+                              ? "bg-zinc-100 text-zinc-700"
                               : "bg-pink-100 text-pink-700"
                           }`}
                         >
@@ -466,7 +466,7 @@ export default async function KependudukanPage({ searchParams }) {
                       {w.no_kk && (
                         <Link
                           href={`/dashboard/kependudukan/keluarga/${w.no_kk}?warga=${w.id}`}
-                          className="rounded-md bg-indigo-50 px-2 py-1 text-[12px] font-medium text-indigo-700 hover:bg-indigo-100"
+                          className="rounded-md bg-zinc-50 px-2 py-1 text-[12px] font-medium text-zinc-700 hover:bg-zinc-100"
                           title="Lihat seluruh anggota keluarga ini"
                         >
                           Keluarga

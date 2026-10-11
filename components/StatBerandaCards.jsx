@@ -29,8 +29,8 @@ const STAT_CARDS = [
     key: "totalAjuanDiproses",
     label: "Ajuan Sudah Diproses",
     icon: IconClipboardCheck,
-    ikon: "from-seablue to-sky-300 shadow-seablue/35",
-    garis: "from-seablue to-sky-300",
+    ikon: "from-seablue to-zinc-300 shadow-seablue/35",
+    garis: "from-seablue to-zinc-300",
     pendar: "group-hover:bg-seablue/20",
   },
 ];

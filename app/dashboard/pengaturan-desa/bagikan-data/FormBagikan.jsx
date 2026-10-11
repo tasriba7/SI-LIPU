@@ -133,7 +133,7 @@ export default function FormBagikan() {
                 value={s.id}
                 checked={terpilih.includes(s.id)}
                 onChange={() => toggle(s.id)}
-                className="mt-0.5 h-4 w-4 accent-[#0B2C6B]"
+                className="mt-0.5 h-4 w-4 accent-[#141414]"
               />
               <span>
                 <span className="block text-sm font-semibold text-slate-700">

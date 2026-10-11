@@ -266,7 +266,7 @@ export default async function HomePage() {
               />
               {/* Titik emas mengorbit di tepi cincin luar. */}
               <span aria-hidden className="absolute inset-0 motion-safe:animate-orbit">
-                <span className="absolute left-1/2 top-[1.5%] h-3 w-3 -translate-x-1/2 rounded-full bg-gold shadow-[0_0_14px_3px_rgba(245,177,0,0.75)]" />
+                <span className="absolute left-1/2 top-[1.5%] h-3 w-3 -translate-x-1/2 rounded-full bg-gold shadow-[0_0_14px_3px_rgba(201,162,77,0.75)]" />
               </span>
               <VillageSeal
                 className="aspect-square transition-transform duration-500 group-hover:scale-105"
@@ -525,7 +525,7 @@ export default async function HomePage() {
                   sejajar tengah lingkaran angka (h-14 → 1.75rem dari atas). */}
               <span
                 aria-hidden
-                className="absolute left-[16.66%] right-[16.66%] top-7 hidden h-px bg-gradient-to-r from-gold/0 via-gold to-gold/0 shadow-[0_0_10px_rgba(245,177,0,0.7)] md:block"
+                className="absolute left-[16.66%] right-[16.66%] top-7 hidden h-px bg-gradient-to-r from-gold/0 via-gold to-gold/0 shadow-[0_0_10px_rgba(201,162,77,0.7)] md:block"
               />
               {CARA_KERJA.map(({ nomor, judul, teks }, i) => (
                 <Reveal key={nomor} delay={i * 160} variant="zoom" className="relative h-full">

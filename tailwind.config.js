@@ -15,25 +15,25 @@ module.exports = {
         mono: ["var(--font-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
       },
       colors: {
-        // Warna diambil dari logo SI-LIPU
+        // Palet: putih, hitam (navy), merah (royal), emas redup (gold)
         navy: {
-          DEFAULT: "#0B2C6B",
-          dark: "#081E4A",
-          light: "#123A8A",
+          DEFAULT: "#141414",
+          dark: "#0a0a0a",
+          light: "#2a2a2a",
         },
         // Emas dibuat lebih jenuh (lebih "menyala") dari versi sebelumnya.
         gold: {
-          DEFAULT: "#F5B100",
-          light: "#FFCF4A",
+          DEFAULT: "#c9a24d",
+          light: "#e3c47a",
         },
-        seablue: "#1E9BF0",
+        seablue: "#e8574f",
         // Biru kobalt tegas — warna aksi utama (tombol, ikon, penanda aktif)
         // di tampilan terang. Dipadukan dengan navy (teks) & emas (sorotan).
         royal: {
-          DEFAULT: "#1448D6",
-          dark: "#0C2E9E",
-          light: "#3D7BFF",
-          pale: "#E8F0FF",
+          DEFAULT: "#d62828",
+          dark: "#a61e1e",
+          light: "#ef4444",
+          pale: "#fdecec",
         },
       },
       keyframes: {
@@ -105,8 +105,8 @@ module.exports = {
         },
         // Pendar tombol utama yang "bernapas".
         napasCahaya: {
-          "0%, 100%": { boxShadow: "0 10px 28px -8px rgba(20,72,214,0.55)" },
-          "50%": { boxShadow: "0 14px 38px -6px rgba(20,72,214,0.85)" },
+          "0%, 100%": { boxShadow: "0 10px 28px -8px rgba(214,40,40,0.55)" },
+          "50%": { boxShadow: "0 14px 38px -6px rgba(214,40,40,0.85)" },
         },
         // Garis aksen yang tumbuh dari kiri saat judul muncul.
         garisTumbuh: {

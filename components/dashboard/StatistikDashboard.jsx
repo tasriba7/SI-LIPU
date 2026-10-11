@@ -22,8 +22,8 @@ import { cariBalita, KELOMPOK_BALITA, BATAS_BALITA } from "@/lib/balita";
 // ---------------------------------------------------------------------------
 
 // Warna jenis kelamin dipakai konsisten di donat, kartu, dan grafik dusun.
-const WARNA_L = "#1E5AA8";
-const WARNA_P = "#E8B933";
+const WARNA_L = "#8e1b1b";
+const WARNA_P = "#c9a24d";
 const WARNA_KOSONG = "#CBD5E1";
 const WARNA_LAINNYA = "#94A3B8";
 // Ungu khusus lansia: emas sudah dipakai untuk perempuan, jadi tidak boleh tertukar.
@@ -31,7 +31,7 @@ const WARNA_LANSIA = "#7C3AED";
 // Teal khusus balita: belum dipakai untuk jenis kelamin (biru/emas) maupun lansia (ungu).
 const WARNA_BALITA = "#0D9488";
 const PALET = [
-  "#0B2C6B", "#3FA9F5", "#E8B933", "#10B981",
+  "#141414", "#e8574f", "#c9a24d", "#10B981",
   "#8B5CF6", "#F97316", "#EC4899", "#14B8A6",
 ];
 
@@ -303,7 +303,7 @@ function BatangUsia({ data, total, siap }) {
                     ? `linear-gradient(to top, ${WARNA_LANSIA}, #A78BFA)`
                     : d.label === KELOMPOK_BALITA
                       ? `linear-gradient(to top, ${WARNA_BALITA}, #5EEAD4)`
-                      : "linear-gradient(to top, #0B2C6B, #3FA9F5)",
+                      : "linear-gradient(to top, #141414, #e8574f)",
                 transitionDelay: `${i * 60}ms`,
               }}
               title={`${d.label}: ${fmt(d.jumlah)} (${persen(d.jumlah, total)})`}

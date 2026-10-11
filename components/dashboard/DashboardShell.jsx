@@ -106,7 +106,7 @@ export default function DashboardShell({
     if (href === "/dashboard/layanan" && jumlahPengajuanBaru > 0)
       return {
         n: jumlahPengajuanBaru,
-        kelas: "bg-sky-500",
+        kelas: "bg-zinc-500",
         label: `${jumlahPengajuanBaru} pengajuan layanan baru`,
         title: "Ada pengajuan layanan baru dari warga",
       };

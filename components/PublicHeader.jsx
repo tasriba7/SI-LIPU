@@ -266,7 +266,7 @@ export default function PublicHeader() {
         kapsul:
           "bg-white/10 ring-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_10px_28px_-14px_rgba(0,0,0,0.6)]",
         pilAktif:
-          "bg-gradient-to-b from-gold-light to-gold shadow-[0_4px_16px_-4px_rgba(232,185,51,0.75),inset_0_1px_0_rgba(255,255,255,0.55)]",
+          "bg-gradient-to-b from-gold-light to-gold shadow-[0_4px_16px_-4px_rgba(201,162,77,0.75),inset_0_1px_0_rgba(255,255,255,0.55)]",
         pilSorot: "bg-white/15 ring-1 ring-white/30",
         menuAktif: "text-navy-dark",
         menuBiasa: "text-white/80 hover:text-white",
@@ -281,14 +281,14 @@ export default function PublicHeader() {
       }
     : {
         header: scrolled
-          ? "border-royal/10 bg-white/85 shadow-[0_8px_30px_-12px_rgba(20,72,214,0.35)]"
+          ? "border-royal/10 bg-white/85 shadow-[0_8px_30px_-12px_rgba(214,40,40,0.35)]"
           : "border-white/70 bg-white/65",
         nama: "text-navy-dark",
         subjudul: "text-slate-400",
         kapsul:
           "bg-white/55 ring-slate-300/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_22px_-14px_rgba(11,44,107,0.35)]",
         pilAktif:
-          "bg-gradient-to-b from-royal-light to-royal shadow-[0_6px_16px_-6px_rgba(20,72,214,0.75),inset_0_1px_0_rgba(255,255,255,0.3)]",
+          "bg-gradient-to-b from-royal-light to-royal shadow-[0_6px_16px_-6px_rgba(214,40,40,0.75),inset_0_1px_0_rgba(255,255,255,0.3)]",
         pilSorot: "bg-royal/10 ring-1 ring-royal/25",
         menuAktif: "text-white",
         menuBiasa: "text-slate-700 hover:text-royal",
@@ -426,7 +426,7 @@ export default function PublicHeader() {
           </nav>
 
           {/* Login — selalu terlihat di semua ukuran layar. */}
-          <LoginButton className="ml-auto shrink-0 rounded-full bg-gradient-to-r from-royal to-royal-light px-5 py-2 text-[13px] font-semibold text-white shadow-[0_6px_18px_-6px_rgba(20,72,214,0.8)] transition hover:-translate-y-px hover:brightness-110 hover:shadow-[0_10px_24px_-6px_rgba(20,72,214,0.9)] lg:ml-0">
+          <LoginButton className="ml-auto shrink-0 rounded-full bg-gradient-to-r from-royal to-royal-light px-5 py-2 text-[13px] font-semibold text-white shadow-[0_6px_18px_-6px_rgba(214,40,40,0.8)] transition hover:-translate-y-px hover:brightness-110 hover:shadow-[0_10px_24px_-6px_rgba(214,40,40,0.9)] lg:ml-0">
             Login
           </LoginButton>
         </div>

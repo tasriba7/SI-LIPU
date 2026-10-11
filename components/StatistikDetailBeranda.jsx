@@ -126,7 +126,7 @@ const C = 2 * Math.PI * R;
 // Warna irisan donut untuk kategori selain jenis kelamin. Teal & ungu
 // dicadangkan untuk balita & lansia (sama seperti batang dan kartu di atas).
 const WARNA_IRISAN = [
-  "#3FA9F5", "#E8B933", "#FB7185", "#F97316",
+  "#e8574f", "#c9a24d", "#FB7185", "#F97316",
   "#84CC16", "#E879F9", "#22D3EE", "#818CF8",
 ];
 
@@ -344,8 +344,8 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
   const totalPenduduk = laki + perempuan + belumJk;
 
   const segmen = [
-    { label: "Laki-laki", jumlah: laki, warna: "#3FA9F5" },
-    { label: "Perempuan", jumlah: perempuan, warna: "#E8B933" },
+    { label: "Laki-laki", jumlah: laki, warna: "#e8574f" },
+    { label: "Perempuan", jumlah: perempuan, warna: "#c9a24d" },
     ...(belumJk > 0 ? [{ label: BELUM, jumlah: belumJk, warna: "rgba(255,255,255,0.3)" }] : []),
   ];
   const lansia = cariLansia(perRentangUsia);
@@ -403,7 +403,7 @@ export default function StatistikDetailBeranda({ detail, perDusun = [], namaDesa
   return (
     <section className="relative overflow-hidden bg-navy-dark py-16 md:py-24">
       {/* Cahaya lembut latar */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_85%_0%,rgba(63,169,245,0.16),transparent),radial-gradient(45%_40%_at_5%_100%,rgba(232,185,51,0.10),transparent)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_85%_0%,rgba(232,87,79,0.16),transparent),radial-gradient(45%_40%_at_5%_100%,rgba(201,162,77,0.10),transparent)]" />
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
 
       <div className="relative mx-auto max-w-6xl px-6">

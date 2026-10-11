@@ -126,7 +126,7 @@ export default function GerbangTautan({
           type="checkbox"
           checked={paham}
           onChange={(e) => setPaham(e.target.checked)}
-          className="mt-0.5 h-4 w-4 accent-[#0B2C6B]"
+          className="mt-0.5 h-4 w-4 accent-[#141414]"
         />
         <span>
           Saya sudah membaca dan mengerti bahwa tautan ini hanya bisa dibuka

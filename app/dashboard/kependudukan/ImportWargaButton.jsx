@@ -110,8 +110,8 @@ function PanelProses({ prog, tampil, sisaMs, menghentikan, onHentikan }) {
         <svg viewBox="0 0 120 120" className="relative h-full w-full -rotate-90" aria-hidden>
           <defs>
             <linearGradient id="impGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#E8B933" />
-              <stop offset="100%" stopColor="#3FA9F5" />
+              <stop offset="0%" stopColor="#c9a24d" />
+              <stop offset="100%" stopColor="#e8574f" />
             </linearGradient>
           </defs>
           <circle cx="60" cy="60" r={R} fill="none" stroke="rgba(255,255,255,0.09)" strokeWidth="9" />
@@ -209,7 +209,7 @@ function PanelHasil({ hasil, onLagi, onSelesai }) {
   const konfig = {
     sukses: { warna: "#34D399", judul: "Impor selesai", ket: `${fmt(berhasil)} data warga berhasil disimpan.` },
     sebagian: {
-      warna: "#E8B933",
+      warna: "#c9a24d",
       judul: dihentikan ? "Impor dihentikan" : "Sebagian berhasil",
       ket: `${fmt(berhasil)} data tersimpan, ${fmt(gagal)} perlu diperbaiki${dihentikan ? `, ${fmt(sisa)} belum diproses` : ""}.`,
     },
@@ -300,7 +300,7 @@ function PanelHasil({ hasil, onLagi, onSelesai }) {
         <button
           type="button"
           onClick={onSelesai}
-          className="rounded-xl bg-gradient-to-r from-gold to-gold-light px-5 py-2 text-sm font-semibold text-navy-dark shadow-[0_6px_18px_-6px_rgba(232,185,51,0.8)] transition hover:brightness-105"
+          className="rounded-xl bg-gradient-to-r from-gold to-gold-light px-5 py-2 text-sm font-semibold text-navy-dark shadow-[0_6px_18px_-6px_rgba(201,162,77,0.8)] transition hover:brightness-105"
         >
           Selesai
         </button>
@@ -560,7 +560,7 @@ export default function ImportWargaButton() {
     <button
       type="button"
       onClick={() => setOpen(true)}
-      className="flex items-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700 transition hover:bg-sky-100"
+      className="flex items-center gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100"
     >
       <IconUpload className="h-4 w-4" />
       Impor Data Penduduk
@@ -595,7 +595,7 @@ export default function ImportWargaButton() {
                 onClick={(e) => e.stopPropagation()}
               >
                 {gelap && (
-                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_50%_at_50%_0%,rgba(63,169,245,0.20),transparent),radial-gradient(50%_40%_at_90%_100%,rgba(232,185,51,0.12),transparent)]" />
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_50%_at_50%_0%,rgba(232,87,79,0.20),transparent),radial-gradient(50%_40%_at_90%_100%,rgba(201,162,77,0.12),transparent)]" />
                 )}
 
                 <div className="relative">

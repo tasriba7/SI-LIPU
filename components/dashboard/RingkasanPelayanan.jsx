@@ -22,8 +22,8 @@ function Kartu({ judul, data, href }) {
           <p className="text-sm font-semibold text-slate-700">{data.diajukan}</p>
           <p className="text-slate-400">Baru</p>
         </div>
-        <div className="rounded-lg bg-sky-50 py-1.5">
-          <p className="text-sm font-semibold text-sky-700">{data.diproses}</p>
+        <div className="rounded-lg bg-zinc-50 py-1.5">
+          <p className="text-sm font-semibold text-zinc-700">{data.diproses}</p>
           <p className="text-slate-400">Diproses</p>
         </div>
         <div className="rounded-lg bg-emerald-50 py-1.5">

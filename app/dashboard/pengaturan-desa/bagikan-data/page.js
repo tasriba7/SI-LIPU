@@ -10,7 +10,7 @@ import TombolBatalkan from "./TombolBatalkan";
 export const dynamic = "force-dynamic";
 
 const BADGE = {
-  aktif: { teks: "Menunggu dibuka", kelas: "bg-sky-100 text-sky-700" },
+  aktif: { teks: "Menunggu dibuka", kelas: "bg-zinc-100 text-zinc-700" },
   dibuka: { teks: "Sudah dibuka", kelas: "bg-emerald-100 text-emerald-700" },
   kedaluwarsa: { teks: "Hangus (tidak sempat dibuka)", kelas: "bg-slate-100 text-slate-500" },
   dibatalkan: { teks: "Dibatalkan", kelas: "bg-red-100 text-red-600" },

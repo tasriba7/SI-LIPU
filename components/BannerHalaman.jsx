@@ -67,7 +67,7 @@ export default async function BannerHalaman({ kunci, kecil, judul, deskripsi, ri
           </Reveal>
         )}
       </div>
-      <div className="relative h-1 w-full bg-gradient-to-r from-gold via-gold-light to-gold shadow-[0_0_14px_rgba(232,185,51,0.55)]" />
+      <div className="relative h-1 w-full bg-gradient-to-r from-gold via-gold-light to-gold shadow-[0_0_14px_rgba(201,162,77,0.55)]" />
     </section>
   );
 }
