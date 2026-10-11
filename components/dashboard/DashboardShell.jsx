@@ -101,7 +101,7 @@ export default function DashboardShell({
 
   // Badge notifikasi per menu (angka di sebelah nama menu).
   function badgeUntuk(href) {
-    if (href === "/dashboard/pendaftaran" && jumlahPendaftaran > 0)
+    if (href === "/dashboard/kelola-akun" && jumlahPendaftaran > 0)
       return { n: jumlahPendaftaran, kelas: "bg-red-500", label: `${jumlahPendaftaran} pendaftaran menunggu` };
     if (href === "/dashboard/layanan" && jumlahPengajuanBaru > 0)
       return {
