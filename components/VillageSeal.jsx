@@ -19,7 +19,7 @@ export default function VillageSeal({ className = "", logoUrl = null }) {
           r="114"
           fill="none"
           stroke="currentColor"
-          strokeOpacity="0.25"
+          strokeOpacity="0.35"
           strokeWidth="1"
         />
         <circle
@@ -28,10 +28,10 @@ export default function VillageSeal({ className = "", logoUrl = null }) {
           r="92"
           fill="none"
           stroke="currentColor"
-          strokeOpacity="0.45"
+          strokeOpacity="0.55"
           strokeWidth="1"
         />
-        <g stroke="currentColor" strokeOpacity="0.55">
+        <g stroke="currentColor" strokeOpacity="0.7">
           {TITIK.map((_, i) => {
             const sudut = (i * 360) / TITIK.length;
             const utama = i % 4 === 0;
@@ -50,7 +50,7 @@ export default function VillageSeal({ className = "", logoUrl = null }) {
         </g>
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="flex h-[42%] w-[42%] items-center justify-center rounded-full bg-white/5 ring-1 ring-white/15 backdrop-blur-sm">
+        <div className="flex h-[42%] w-[42%] items-center justify-center rounded-full bg-white shadow-xl shadow-royal/25 ring-2 ring-royal/15">
           {/* Logo desa kalau sudah diunggah admin, kalau belum tetap logo
               aplikasi SI-LIPU sebagai identitas bawaan. */}
           <img

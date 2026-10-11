@@ -53,7 +53,7 @@ function KolomTautan({ judul, daftar }) {
 
 export default function PublicFooter({ namaDesa, jenisWilayah, wilayah, alamat, pengunjung }) {
   return (
-    <footer className="relative overflow-hidden bg-navy-dark text-white">
+    <footer className="relative overflow-hidden bg-gradient-to-b from-royal-dark to-navy-dark text-white">
       {/* Garis emas puncak footer, senada dengan header & hero */}
       <div className="h-[3px] w-full bg-gradient-to-r from-gold via-gold-light to-gold" />
       <div

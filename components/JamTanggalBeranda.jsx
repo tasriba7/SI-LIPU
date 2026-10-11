@@ -77,7 +77,7 @@ export default function JamTanggalBeranda() {
 
   return (
     <div className="mb-4 flex justify-center md:mb-5">
-      <div className="inline-flex h-9 max-w-full items-center gap-2.5 whitespace-nowrap rounded-full bg-navy-dark/85 px-3.5 shadow-lg shadow-black/25 ring-1 ring-gold/50 backdrop-blur-sm sm:h-11 sm:gap-3.5 sm:px-5">
+      <div className="inline-flex h-9 max-w-full items-center gap-2.5 whitespace-nowrap rounded-full bg-gradient-to-r from-navy-dark to-royal-dark px-3.5 shadow-lg shadow-royal/30 ring-2 ring-gold/70 sm:h-11 sm:gap-3.5 sm:px-5">
         <IconCalendarRange className="hidden h-4 w-4 shrink-0 text-gold-light sm:block" />
 
         {/* Hari & tanggal — di HP memakai singkatan agar muat satu baris. */}

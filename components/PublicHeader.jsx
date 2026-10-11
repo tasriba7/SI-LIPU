@@ -148,8 +148,6 @@ function MenuDropdown({ item, aktif, tema, pathname, onSorot }) {
 
 export default function PublicHeader() {
   const [scrolled, setScrolled] = useState(false);
-  // true selama header masih berada di atas foto hero beranda (tema gelap).
-  const [diHero, setDiHero] = useState(true);
   const pathname = usePathname();
   const stripRef = useRef(null);
   const headerRef = useRef(null);
@@ -168,7 +166,8 @@ export default function PublicHeader() {
   // kaca transparannya benar-benar memperlihatkan foto di belakangnya.
   // Di halaman lain header tetap di alur biasa (sticky).
   const adaBeranda = pathname === "/";
-  const gelap = adaBeranda && diHero;
+  // Hero beranda kini terang, jadi header memakai tema terang di mana pun.
+  const gelap = false;
 
   useEffect(() => {
     let batal = false;
@@ -186,16 +185,10 @@ export default function PublicHeader() {
     };
   }, []);
 
-  // Saat discroll: kaca sedikit menebal, dan (di beranda) tema header
-  // berganti dari gelap (di atas hero) ke terang (setelah hero lewat).
+  // Saat discroll: kaca header sedikit menebal.
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 4);
-      if (adaBeranda) {
-        const hero = document.getElementById("hero-beranda");
-        const tinggiHeader = headerRef.current?.offsetHeight ?? 72;
-        setDiHero(hero ? hero.getBoundingClientRect().bottom > tinggiHeader : false);
-      }
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -204,7 +197,7 @@ export default function PublicHeader() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onScroll);
     };
-  }, [adaBeranda]);
+  }, []);
 
   // Beritahu halaman berapa tinggi header (CSS variable --header-h) supaya
   // isi hero di beranda mulai tepat di bawah header yang mengambang.
@@ -287,24 +280,24 @@ export default function PublicHeader() {
       }
     : {
         header: scrolled
-          ? "border-slate-200/70 bg-white/75 shadow-[0_8px_30px_-12px_rgba(11,44,107,0.28)]"
-          : "border-white/60 bg-white/60",
-        nama: "text-navy",
+          ? "border-royal/10 bg-white/85 shadow-[0_8px_30px_-12px_rgba(20,72,214,0.35)]"
+          : "border-white/70 bg-white/65",
+        nama: "text-navy-dark",
         subjudul: "text-slate-400",
         kapsul:
           "bg-white/55 ring-slate-300/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_8px_22px_-14px_rgba(11,44,107,0.35)]",
         pilAktif:
-          "bg-gradient-to-b from-navy-light to-navy shadow-[0_6px_16px_-6px_rgba(11,44,107,0.65),inset_0_1px_0_rgba(255,255,255,0.18)]",
-        pilSorot: "bg-white/90 ring-1 ring-gold/50 shadow-md shadow-navy/10",
+          "bg-gradient-to-b from-royal-light to-royal shadow-[0_6px_16px_-6px_rgba(20,72,214,0.75),inset_0_1px_0_rgba(255,255,255,0.3)]",
+        pilSorot: "bg-royal/10 ring-1 ring-royal/25",
         menuAktif: "text-white",
-        menuBiasa: "text-slate-600 hover:text-navy",
+        menuBiasa: "text-slate-700 hover:text-royal",
         menuMati: "text-slate-300",
-        garisBawah: "via-gold/50",
+        garisBawah: "via-royal/30",
         stripBatas: "border-slate-200/60",
         chipBiasa: "border-slate-200/80 bg-white/70 text-slate-600 active:bg-white",
-        chipAktif: "border-navy bg-navy text-white shadow-sm shadow-navy/25",
+        chipAktif: "border-royal bg-royal text-white shadow-sm shadow-royal/30",
         chipMati: "border-slate-200 text-slate-300",
-        ring: "ring-navy/10 group-hover:ring-gold/60",
+        ring: "ring-royal/15 group-hover:ring-gold",
       };
 
   const gesekPil = `pointer-events-none absolute inset-y-1 left-0 rounded-full ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
@@ -322,7 +315,7 @@ export default function PublicHeader() {
         } border-b backdrop-blur-xl backdrop-saturate-150 transition-[background-color,border-color,box-shadow] duration-500 ${tema.header}`}
       >
         {/* Garis emas tipis di puncak header — aksen "kop surat", konsisten dengan hero. */}
-        <div className="h-[3px] w-full bg-gradient-to-r from-gold via-gold-light to-gold" />
+        <div className="h-[3px] w-full bg-gradient-to-r from-royal via-seablue to-gold" />
 
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-5 py-3 sm:px-6">
           {/* shrink-0: nama desa TIDAK BOLEH ikut menyempit demi memberi ruang
@@ -432,7 +425,7 @@ export default function PublicHeader() {
           </nav>
 
           {/* Login — selalu terlihat di semua ukuran layar. */}
-          <LoginButton className="ml-auto shrink-0 rounded-full bg-gradient-to-r from-gold to-gold-light px-5 py-2 text-[13px] font-semibold text-navy-dark shadow-[0_6px_18px_-6px_rgba(232,185,51,0.8)] transition hover:brightness-105 hover:shadow-[0_8px_22px_-6px_rgba(232,185,51,0.9)] lg:ml-0">
+          <LoginButton className="ml-auto shrink-0 rounded-full bg-gradient-to-r from-royal to-royal-light px-5 py-2 text-[13px] font-semibold text-white shadow-[0_6px_18px_-6px_rgba(20,72,214,0.8)] transition hover:-translate-y-px hover:brightness-110 hover:shadow-[0_10px_24px_-6px_rgba(20,72,214,0.9)] lg:ml-0">
             Login
           </LoginButton>
         </div>

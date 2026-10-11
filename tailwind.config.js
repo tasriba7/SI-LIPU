@@ -21,11 +21,20 @@ module.exports = {
           dark: "#081E4A",
           light: "#123A8A",
         },
+        // Emas dibuat lebih jenuh (lebih "menyala") dari versi sebelumnya.
         gold: {
-          DEFAULT: "#E8B933",
-          light: "#F2CC5B",
+          DEFAULT: "#F5B100",
+          light: "#FFCF4A",
         },
-        seablue: "#3FA9F5",
+        seablue: "#1E9BF0",
+        // Biru kobalt tegas — warna aksi utama (tombol, ikon, penanda aktif)
+        // di tampilan terang. Dipadukan dengan navy (teks) & emas (sorotan).
+        royal: {
+          DEFAULT: "#1448D6",
+          dark: "#0C2E9E",
+          light: "#3D7BFF",
+          pale: "#E8F0FF",
+        },
       },
       keyframes: {
         fadeIn: {
@@ -89,6 +98,21 @@ module.exports = {
           "0%": { transform: "scaleX(0)" },
           "100%": { transform: "scaleX(1)" },
         },
+        // Titik kecil mengorbit lambang hero.
+        orbit: {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        // Pendar tombol utama yang "bernapas".
+        napasCahaya: {
+          "0%, 100%": { boxShadow: "0 10px 28px -8px rgba(20,72,214,0.55)" },
+          "50%": { boxShadow: "0 14px 38px -6px rgba(20,72,214,0.85)" },
+        },
+        // Garis aksen yang tumbuh dari kiri saat judul muncul.
+        garisTumbuh: {
+          "0%": { transform: "scaleX(0)" },
+          "100%": { transform: "scaleX(1)" },
+        },
       },
       animation: {
         fadeIn: "fadeIn 0.6s ease-out forwards",
@@ -107,6 +131,9 @@ module.exports = {
         cincinDenyut: "cincinDenyut 2.8s ease-out infinite",
         gelombang: "gelombang 22s linear infinite",
         isiBar: "isiBar 1.2s cubic-bezier(0.22, 1, 0.36, 1) both",
+        orbit: "orbit 18s linear infinite",
+        napasCahaya: "napasCahaya 2.8s ease-in-out infinite",
+        garisTumbuh: "garisTumbuh 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both",
       },
     },
   },

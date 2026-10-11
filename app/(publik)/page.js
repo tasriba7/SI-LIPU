@@ -142,25 +142,27 @@ export default async function HomePage() {
 
   return (
     <main className="overflow-x-clip bg-white">
-      {/* Hero — identitas desa: latar mesh gradasi (+ foto desa bila ada), butiran halus, pendar bergerak */}
-      <section id="hero-beranda" className="latar-mesh butiran relative overflow-hidden">
+      {/* Hero — identitas desa: latar terang berpendar (biru kobalt, langit, emas),
+          tekstur titik halus, blob yang melayang pelan; foto desa (bila ada) samar di belakang. */}
+      <section id="hero-beranda" className="latar-terang relative overflow-hidden">
         {config.foto_url && (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={config.foto_url}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover opacity-85"
+            className="absolute inset-0 h-full w-full object-cover opacity-20"
           />
         )}
 
-        {/* Lapisan gelap di atas foto supaya teks tetap kontras. */}
-        <div className="absolute inset-0 bg-gradient-to-b from-navy-dark/70 via-navy-dark/55 to-navy-dark/90" />
+        {/* Lapisan putih di atas foto supaya teks gelap tetap kontras & tampilan tetap cerah. */}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/55 via-white/20 to-white/80" />
 
-        {/* Pendar warna logo yang melayang pelan + tekstur titik yang memudar ke tepi. */}
+        {/* Pendar warna yang melayang pelan + tekstur titik yang memudar ke tepi. */}
         <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="aurora-blob anim-saat-tampil -left-24 top-10 h-[24rem] w-[24rem] bg-seablue/25" />
-          <div className="aurora-blob anim-saat-tampil -right-20 top-1/3 h-[26rem] w-[26rem] bg-gold/20 [animation-delay:-9s]" />
-          <div className="pola-titik absolute inset-0 [mask-image:radial-gradient(ellipse_at_30%_30%,black,transparent_72%)]" />
+          <div className="aurora-blob anim-saat-tampil -left-24 top-10 h-[26rem] w-[26rem] bg-royal-light/30" />
+          <div className="aurora-blob anim-saat-tampil -right-20 top-1/4 h-[28rem] w-[28rem] bg-gold/35 [animation-delay:-9s]" />
+          <div className="aurora-blob anim-saat-tampil bottom-0 left-1/3 h-[22rem] w-[22rem] bg-seablue/25 [animation-delay:-14s]" />
+          <div className="pola-titik-gelap absolute inset-0 [mask-image:radial-gradient(ellipse_at_30%_30%,black,transparent_72%)]" />
         </div>
 
         <div className="relative mx-auto grid max-w-6xl items-center gap-10 px-6 pt-[calc(var(--header-h)+1.5rem)] md:pt-[calc(var(--header-h)+2.5rem)] lg:grid-cols-[1.15fr_0.85fr] lg:gap-8">
@@ -174,21 +176,21 @@ export default async function HomePage() {
             </Reveal>
 
             <Reveal delay={120}>
-              <p className="inline-flex items-center gap-2.5 font-mono text-xs uppercase tracking-[0.25em] text-gold">
-                <span aria-hidden className="hidden h-px w-8 bg-gradient-to-r from-transparent to-gold lg:block" />
+              <p className="inline-flex items-center gap-2.5 font-mono text-xs font-semibold uppercase tracking-[0.25em] text-royal">
+                <span aria-hidden className="hidden h-[2px] w-8 bg-gradient-to-r from-transparent to-royal lg:block" />
                 {config.jenis_wilayah || "Desa"}
                 {wilayah ? ` · ${wilayah}` : ""}
               </p>
             </Reveal>
 
             <Reveal delay={200}>
-              <h1 className="mt-4 font-display font-bold leading-[1.05] text-white drop-shadow-md">
+              <h1 className="mt-4 font-display font-bold leading-[1.05] text-navy-dark">
                 {config.nama_desa ? (
                   <>
-                    <span className="block text-2xl font-medium italic text-white/85 sm:text-3xl">
+                    <span className="block text-2xl font-medium italic text-navy/70 sm:text-3xl">
                       {config.jenis_wilayah || "Desa"}
                     </span>
-                    <span className="teks-emas mt-1 block pb-2 text-5xl sm:text-6xl lg:text-7xl">
+                    <span className="teks-royal mt-1 block pb-2 text-5xl sm:text-6xl lg:text-7xl">
                       {config.nama_desa}
                     </span>
                   </>
@@ -196,23 +198,31 @@ export default async function HomePage() {
                   <span className="block text-4xl sm:text-6xl">Portal Layanan Digital Desa</span>
                 )}
               </h1>
+              {/* Garis aksen: tumbuh dari kiri begitu hero terlihat. */}
+              <span
+                aria-hidden
+                className="garis-aksen anim-saat-tampil mx-auto mt-1 block origin-left motion-safe:animate-garisTumbuh lg:mx-0"
+              />
               {wilayah && (
-                <p className="mt-3 text-sm text-white/80 drop-shadow sm:text-base">{wilayah}</p>
+                <p className="mt-4 text-sm font-medium text-slate-700 sm:text-base">{wilayah}</p>
               )}
-              {config.alamat && <p className="mt-1 text-xs text-white/60">{config.alamat}</p>}
+              {config.alamat && <p className="mt-1 text-xs text-slate-500">{config.alamat}</p>}
             </Reveal>
 
             {/* Sambutan singkat & tombol cepat */}
             <Reveal delay={300}>
-              <p className="mt-8 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-3.5 py-1.5 font-mono text-[11px] uppercase tracking-[0.22em] text-gold-light">
-                <IconSparkle className="h-3.5 w-3.5" />
+              <p className="mt-8 inline-flex items-center gap-2 rounded-full border border-royal/20 bg-royal/10 px-3.5 py-1.5 font-mono text-[11px] font-semibold uppercase tracking-[0.22em] text-royal">
+                <IconSparkle className="h-3.5 w-3.5 text-gold" />
                 Portal Layanan Digital Desa
               </p>
-              <h2 className="mx-auto mt-4 max-w-xl font-display text-2xl font-semibold leading-[1.25] text-white sm:text-3xl lg:mx-0">
-                Satu kali isi form, <em className="italic text-gold-light">tanpa</em> bolak-balik
-                kantor desa.
+              <h2 className="mx-auto mt-4 max-w-xl font-display text-2xl font-semibold leading-[1.25] text-navy-dark sm:text-3xl lg:mx-0">
+                Satu kali isi form,{" "}
+                <em className="italic text-royal underline decoration-gold decoration-[3px] underline-offset-[6px]">
+                  tanpa
+                </em>{" "}
+                bolak-balik kantor desa.
               </h2>
-              <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-white/75 lg:mx-0">
+              <p className="mx-auto mt-4 max-w-lg text-base leading-relaxed text-slate-600 lg:mx-0">
                 SI-LIPU mengurus surat, pengaduan, dan informasi desa langsung dari ponsel Anda —
                 tanpa akun, tanpa antre di loket.
               </p>
@@ -222,14 +232,14 @@ export default async function HomePage() {
               <div className="mt-8 flex flex-col items-center justify-center gap-3.5 sm:flex-row lg:justify-start">
                 <Link
                   href="/layanan"
-                  className="tombol-kilau group inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-light px-7 py-3.5 text-sm font-semibold text-navy-dark shadow-lg shadow-gold/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-gold/40 sm:w-auto"
+                  className="tombol-kilau group inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-royal to-royal-light px-7 py-3.5 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 motion-safe:animate-napasCahaya sm:w-auto"
                 >
                   Ajukan Layanan
                   <IconArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
                 <Link
                   href="/layanan/cek"
-                  className="kaca inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl px-7 py-3.5 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:border-white/50 hover:bg-white/15 sm:w-auto"
+                  className="group inline-flex w-full max-w-xs items-center justify-center gap-2 rounded-xl border-2 border-royal/25 bg-white px-7 py-3.5 text-sm font-semibold text-royal shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-royal hover:bg-royal hover:text-white hover:shadow-lg hover:shadow-royal/25 sm:w-auto"
                 >
                   Cek Status Pengajuan
                 </Link>
@@ -237,21 +247,25 @@ export default async function HomePage() {
             </Reveal>
           </div>
 
-          {/* Kolom lambang — cincin cahaya memancar + lencana kaca melayang */}
+          {/* Kolom lambang — cakram putih bercahaya, cincin memancar, titik emas mengorbit, lencana melayang */}
           <Reveal variant="zoom" delay={320} className="order-first lg:order-none">
-            <div className="anim-saat-tampil group relative mx-auto w-44 text-gold-light/80 sm:w-56 lg:w-full lg:max-w-sm">
+            <div className="anim-saat-tampil group relative mx-auto w-44 text-royal sm:w-56 lg:w-full lg:max-w-sm">
               <div
                 aria-hidden
-                className="absolute inset-[-12%] -z-10 rounded-full bg-gold/15 blur-3xl transition duration-500 group-hover:bg-gold/30"
+                className="absolute inset-[-14%] -z-10 rounded-full bg-gradient-to-br from-royal-light/35 via-seablue/25 to-gold/35 blur-3xl transition duration-500 group-hover:from-royal-light/55 group-hover:to-gold/55"
               />
               <span
                 aria-hidden
-                className="absolute inset-0 rounded-full border border-gold/40 motion-safe:animate-cincinDenyut"
+                className="absolute inset-0 rounded-full border-2 border-royal/40 motion-safe:animate-cincinDenyut"
               />
               <span
                 aria-hidden
-                className="absolute inset-0 rounded-full border border-seablue/40 motion-safe:animate-cincinDenyut [animation-delay:-1.4s]"
+                className="absolute inset-0 rounded-full border-2 border-gold/70 motion-safe:animate-cincinDenyut [animation-delay:-1.4s]"
               />
+              {/* Titik emas mengorbit di tepi cincin luar. */}
+              <span aria-hidden className="absolute inset-0 motion-safe:animate-orbit">
+                <span className="absolute left-1/2 top-[1.5%] h-3 w-3 -translate-x-1/2 rounded-full bg-gold shadow-[0_0_14px_3px_rgba(245,177,0,0.75)]" />
+              </span>
               <VillageSeal
                 className="aspect-square transition-transform duration-500 group-hover:scale-105"
                 logoUrl={config.logo_url}
@@ -261,9 +275,9 @@ export default async function HomePage() {
                 <div
                   key={teks}
                   aria-hidden
-                  className={`kaca absolute hidden items-center gap-2 rounded-2xl px-3.5 py-2 text-xs font-medium text-white motion-safe:animate-melayang sm:flex ${posisi} ${jeda}`}
+                  className={`kartu-terang absolute hidden items-center gap-2 rounded-2xl px-3.5 py-2 text-xs font-semibold text-navy-dark motion-safe:animate-melayang sm:flex ${posisi} ${jeda}`}
                 >
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gold text-navy-dark">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-royal to-royal-light text-white">
                     <IconCheck className="h-3 w-3 stroke-[3]" />
                   </span>
                   {teks}
@@ -281,11 +295,11 @@ export default async function HomePage() {
           <a
             href="#layanan"
             aria-label="Gulir ke daftar layanan"
-            className="mx-auto mt-10 hidden w-fit flex-col items-center gap-2 text-[10px] font-medium uppercase tracking-[0.3em] text-white/45 transition hover:text-gold-light md:flex"
+            className="mx-auto mt-10 hidden w-fit flex-col items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-400 transition hover:text-royal md:flex"
           >
             Gulir
-            <span className="flex h-9 w-5 justify-center rounded-full border border-white/30 pt-1.5">
-              <span className="anim-saat-tampil h-1.5 w-1 rounded-full bg-gold motion-safe:animate-melayang" />
+            <span className="flex h-9 w-5 justify-center rounded-full border-2 border-royal/30 pt-1.5">
+              <span className="anim-saat-tampil h-1.5 w-1 rounded-full bg-royal motion-safe:animate-melayang" />
             </span>
           </a>
         </div>
@@ -307,10 +321,10 @@ export default async function HomePage() {
                 judul={`Sambutan ${config.jenis_wilayah === "Kelurahan" ? "Lurah" : "Kepala Desa"}`}
               />
 
-              <div className="bingkai-gradasi mt-10 overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-lg shadow-slate-200/50 transition-shadow duration-300 hover:shadow-2xl hover:shadow-navy/10">
+              <div className="bingkai-gradasi mt-10 overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-lg shadow-slate-200/50 transition-shadow duration-300 hover:shadow-2xl hover:shadow-royal/15">
                 <div className="grid gap-0 md:grid-cols-[300px_1fr]">
-                  <div className="relative flex flex-col items-center justify-center gap-4 overflow-hidden bg-navy px-6 py-10 text-center">
-                    <div className="absolute inset-0 bg-gradient-to-br from-navy-light via-navy to-navy-dark" />
+                  <div className="relative flex flex-col items-center justify-center gap-4 overflow-hidden bg-royal px-6 py-10 text-center">
+                    <div className="absolute inset-0 bg-gradient-to-br from-royal-light via-royal to-royal-dark" />
                     <div aria-hidden className="pola-titik absolute inset-0 opacity-60 [mask-image:radial-gradient(circle_at_50%_40%,black,transparent_75%)]" />
                     <div className="relative">
                       <div aria-hidden className="absolute -inset-3 rounded-full bg-gold/25 blur-xl" />
@@ -322,7 +336,7 @@ export default async function HomePage() {
                           className="relative h-36 w-36 rounded-full border-4 border-gold-light/80 object-cover shadow-2xl"
                         />
                       ) : (
-                        <div className="relative flex h-36 w-36 items-center justify-center rounded-full border-4 border-gold-light/80 bg-navy-light font-display text-5xl font-semibold text-gold-light shadow-2xl">
+                        <div className="relative flex h-36 w-36 items-center justify-center rounded-full border-4 border-gold-light/80 bg-royal-dark font-display text-5xl font-semibold text-gold-light shadow-2xl">
                           {config.kepala_desa_nama.charAt(0).toUpperCase()}
                         </div>
                       )}
@@ -376,9 +390,9 @@ export default async function HomePage() {
                       {...(href ? { href } : {})}
                       className={`group relative flex h-full flex-col overflow-hidden rounded-2xl border p-7 transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl ${
                         unggulan
-                          ? "border-navy-light/50 bg-gradient-to-br from-navy via-navy-light to-navy-dark shadow-xl shadow-navy/25 hover:shadow-navy/40 sm:p-9"
+                          ? "border-royal-light/50 bg-gradient-to-br from-royal-light via-royal to-royal-dark shadow-xl shadow-royal/30 hover:shadow-royal/50 sm:p-9"
                           : href
-                            ? "bingkai-gradasi border-slate-200/80 bg-white/90 hover:bg-white hover:shadow-navy/10"
+                            ? "bingkai-gradasi border-slate-200/80 bg-white/95 hover:bg-white hover:shadow-royal/15"
                             : "border-dashed border-slate-300 bg-white/60"
                       }`}
                     >
@@ -415,8 +429,8 @@ export default async function HomePage() {
                           unggulan
                             ? "bg-gradient-to-br from-gold to-gold-light text-navy-dark shadow-lg shadow-gold/30"
                             : href
-                              ? "bg-navy text-gold-light shadow-md shadow-navy/20"
-                              : "bg-navy/10 text-navy"
+                              ? "bg-gradient-to-br from-royal to-royal-light text-white shadow-md shadow-royal/30"
+                              : "bg-royal/10 text-royal"
                         }`}
                       >
                         <Icon className={unggulan ? "h-6 w-6" : "h-5 w-5"} />
@@ -441,7 +455,7 @@ export default async function HomePage() {
                           className={`relative mt-auto inline-flex items-center gap-1.5 pt-5 text-sm font-semibold transition-colors ${
                             unggulan
                               ? "text-gold-light group-hover:text-white"
-                              : "text-navy group-hover:text-navy-light"
+                              : "text-royal group-hover:text-royal-dark"
                           }`}
                         >
                           {cta ?? "Mulai ajukan"}
@@ -504,16 +518,16 @@ export default async function HomePage() {
                   sejajar tengah lingkaran angka (h-14 → 1.75rem dari atas). */}
               <span
                 aria-hidden
-                className="absolute left-[16.66%] right-[16.66%] top-7 hidden h-px bg-gradient-to-r from-gold/0 via-gold to-gold/0 shadow-[0_0_10px_rgba(232,185,51,0.6)] md:block"
+                className="absolute left-[16.66%] right-[16.66%] top-7 hidden h-px bg-gradient-to-r from-gold/0 via-gold to-gold/0 shadow-[0_0_10px_rgba(245,177,0,0.7)] md:block"
               />
               {CARA_KERJA.map(({ nomor, judul, teks }, i) => (
                 <Reveal key={nomor} delay={i * 160} variant="zoom" className="relative h-full">
                   <div className="flex h-full flex-col items-center text-center">
-                    <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/40 bg-gradient-to-br from-navy to-navy-dark font-display text-2xl font-bold text-gold shadow-lg shadow-navy/30 ring-4 ring-white">
+                    <div className="relative z-10 flex h-14 w-14 items-center justify-center rounded-2xl border border-gold/60 bg-gradient-to-br from-royal-light to-royal-dark font-display text-2xl font-bold text-white shadow-lg shadow-royal/35 ring-4 ring-white">
                       {nomor}
                     </div>
                     <SpotlightCard className="-mt-7 h-full w-full rounded-2xl">
-                      <div className="bingkai-gradasi flex h-full flex-col items-center rounded-2xl border border-slate-200/80 bg-white/90 px-7 pb-7 pt-12 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-2 hover:bg-white hover:shadow-xl hover:shadow-navy/10">
+                      <div className="bingkai-gradasi flex h-full flex-col items-center rounded-2xl border border-slate-200/80 bg-white/90 px-7 pb-7 pt-12 text-center shadow-sm transition-all duration-300 ease-out hover:-translate-y-2 hover:bg-white hover:shadow-xl hover:shadow-royal/15">
                         <h3 className="font-display text-lg font-semibold text-slate-800">{judul}</h3>
                         <p className="mt-2 text-sm leading-relaxed text-slate-500">{teks}</p>
                       </div>
@@ -561,7 +575,7 @@ export default async function HomePage() {
               </p>
               <Link
                 href="/layanan"
-                className="tombol-kilau group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-light px-8 py-3.5 text-sm font-semibold text-navy-dark shadow-lg shadow-gold/25 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-gold/40"
+                className="tombol-kilau group inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-gold to-gold-light px-8 py-3.5 text-sm font-bold text-navy-dark shadow-lg shadow-gold/35 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-gold/55"
               >
                 Mulai Ajukan Layanan
                 <IconArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />

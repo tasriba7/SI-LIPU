@@ -57,17 +57,17 @@ html { scroll-behavior: smooth; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
-::selection { background: rgba(232, 185, 51, 0.38); color: #081e4a; }
+::selection { background: rgba(245, 177, 0, 0.4); color: #081e4a; }
 
 /* Teks emas berkilau (judul hero, angka sorotan). */
 .teks-emas {
   background-image: linear-gradient(
     100deg,
-    #f2cc5b 0%,
-    #e8b933 30%,
-    #fff3c4 50%,
-    #e8b933 70%,
-    #f2cc5b 100%
+    #ffcf4a 0%,
+    #f5b100 30%,
+    #fff1b8 50%,
+    #f5b100 70%,
+    #ffcf4a 100%
   );
   background-size: 220% auto;
   -webkit-background-clip: text;
@@ -82,7 +82,7 @@ html { scroll-behavior: smooth; }
 
 /* Teks gradasi navy -> biru laut untuk judul di latar terang. */
 .teks-laut {
-  background-image: linear-gradient(95deg, #0b2c6b 0%, #123a8a 45%, #3fa9f5 100%);
+  background-image: linear-gradient(95deg, #0c2e9e 0%, #1448d6 50%, #1e9bf0 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -99,13 +99,53 @@ html { scroll-behavior: smooth; }
     0 18px 40px -22px rgba(0, 0, 0, 0.6);
 }
 
-/* Latar mesh gradasi untuk hero & banner: beberapa pendar warna logo di atas navy. */
+/* Latar mesh gradasi untuk banner & pita penutup: biru royal jenuh dengan
+   pendar langit dan emas. Lebih terang & tegas dari versi navy sebelumnya. */
 .latar-mesh {
-  background-color: #081e4a;
+  background-color: #0c2e9e;
   background-image:
-    radial-gradient(60rem 32rem at 12% -8%, rgba(63, 169, 245, 0.28), transparent 60%),
-    radial-gradient(46rem 28rem at 92% 8%, rgba(232, 185, 51, 0.2), transparent 62%),
-    radial-gradient(52rem 30rem at 50% 118%, rgba(18, 58, 138, 0.9), transparent 65%);
+    radial-gradient(60rem 32rem at 12% -8%, rgba(30, 155, 240, 0.55), transparent 60%),
+    radial-gradient(46rem 28rem at 92% 8%, rgba(255, 207, 74, 0.32), transparent 62%),
+    radial-gradient(52rem 30rem at 50% 118%, rgba(61, 123, 255, 0.85), transparent 65%),
+    linear-gradient(160deg, #1448d6 0%, #0c2e9e 55%, #0a2580 100%);
+}
+
+/* Latar hero terang: putih kebiruan dengan pendar warna di sudut-sudutnya. */
+.latar-terang {
+  background-color: #f4f8ff;
+  background-image:
+    radial-gradient(52rem 30rem at 8% -6%, rgba(61, 123, 255, 0.28), transparent 62%),
+    radial-gradient(44rem 26rem at 96% 4%, rgba(255, 207, 74, 0.34), transparent 64%),
+    radial-gradient(50rem 28rem at 60% 112%, rgba(30, 155, 240, 0.22), transparent 66%),
+    linear-gradient(180deg, #ffffff 0%, #eaf2ff 100%);
+}
+
+/* Teks gradasi royal -> langit (nama desa di hero terang). */
+.teks-royal {
+  background-image: linear-gradient(100deg, #0c2e9e 0%, #1448d6 35%, #1e9bf0 65%, #1448d6 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: geserGradasiCss 8s ease-in-out infinite;
+}
+
+/* Kartu putih tegas dengan bayangan berwarna biru (statistik, lencana). */
+.kartu-terang {
+  background: #ffffff;
+  border: 1px solid rgba(20, 72, 214, 0.12);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9) inset,
+    0 18px 36px -20px rgba(12, 46, 158, 0.45);
+}
+
+/* Garis aksen di bawah judul bagian; tumbuh dari kiri saat muncul. */
+.garis-aksen {
+  height: 4px;
+  width: 3.5rem;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #1448d6, #1e9bf0 60%, #f5b100);
+  transform-origin: left center;
 }
 
 /* Butiran halus (grain) supaya latar gelap tidak terlihat "plastik". */
@@ -125,7 +165,7 @@ html { scroll-behavior: smooth; }
   background-size: 22px 22px;
 }
 .pola-titik-gelap {
-  background-image: radial-gradient(rgba(11, 44, 107, 0.12) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(20, 72, 214, 0.16) 1px, transparent 1px);
   background-size: 22px 22px;
 }
 
@@ -143,8 +183,8 @@ html { scroll-behavior: smooth; }
   transition: opacity 0.35s ease;
   background: radial-gradient(
     380px circle at var(--mx, 50%) var(--my, 50%),
-    rgba(232, 185, 51, 0.2),
-    rgba(63, 169, 245, 0.08) 40%,
+    rgba(245, 177, 0, 0.18),
+    rgba(30, 155, 240, 0.1) 40%,
     transparent 65%
   );
 }
@@ -161,7 +201,7 @@ html { scroll-behavior: smooth; }
   padding: 1.5px;
   border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(135deg, rgba(232, 185, 51, 0.9), rgba(63, 169, 245, 0.7) 55%, rgba(232, 185, 51, 0.15));
+  background: linear-gradient(135deg, #1448d6, rgba(30, 155, 240, 0.85) 55%, #f5b100);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
@@ -199,10 +239,10 @@ html { scroll-behavior: smooth; }
   content: "";
   height: 1px;
   flex: 1;
-  background: linear-gradient(90deg, transparent, rgba(232, 185, 51, 0.7));
+  background: linear-gradient(90deg, transparent, rgba(245, 177, 0, 0.85));
 }
 .ornamen::after { transform: scaleX(-1); }
 
 @media (prefers-reduced-motion: reduce) {
-  .teks-emas, .tombol-kilau::after { animation: none; }
+  .teks-emas, .teks-royal, .tombol-kilau::after { animation: none; }
 }
