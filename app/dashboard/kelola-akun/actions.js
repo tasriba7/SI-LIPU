@@ -142,8 +142,48 @@ export async function buatAkunStaf(prevState, formData) {
     return { error: `Gagal membuat akun: ${error.message}` };
   }
 
+  // Profil staf biasanya dibuat otomatis oleh trigger handle_new_user. Tapi
+  // trigger bisa tidak membuatnya (app_metadata belum terbaca saat INSERT,
+  // trigger hilang/berbeda) atau membuatnya dengan role yang salah (trigger
+  // versi lama). Pastikan di sini: profil ada DAN role/jabatan sesuai.
+  const userId = data.user.id;
+  const jabatan = jabatanInput || ROLE_LABELS[role];
+
+  const { data: profilAda, error: errCek } = await adminClient
+    .from("profiles")
+    .select("id, role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  let errProfil = errCek;
+  if (!errProfil) {
+    if (!profilAda) {
+      ({ error: errProfil } = await adminClient
+        .from("profiles")
+        .insert({ id: userId, nama, role, jabatan }));
+    } else if (profilAda.role !== role) {
+      ({ error: errProfil } = await adminClient
+        .from("profiles")
+        .update({ role, jabatan, nama })
+        .eq("id", userId));
+    }
+  }
+
+  if (errProfil) {
+    console.error("buatAkunStaf: gagal menyiapkan profil", errProfil);
+    const { error: errHapus } = await adminClient.auth.admin.deleteUser(userId);
+    if (errHapus) {
+      return {
+        error: `Akun ${email} sempat dibuat tapi profilnya gagal dibuat dan akun gagal dibatalkan otomatis. Hapus akun itu di Supabase Dashboard (Authentication > Users) sebelum mencoba lagi.`,
+      };
+    }
+    return {
+      error: `Gagal membuat profil staf (${errProfil.code ?? "tanpa kode"}: ${errProfil.message}). Tidak ada akun yang dibuat.`,
+    };
+  }
+
   revalidatePath("/dashboard/kelola-akun");
-  return { success: true, email, password: passwordBaru, userId: data.user.id };
+  return { success: true, email, password: passwordBaru, userId };
 }
 
 /**
