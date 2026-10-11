@@ -160,7 +160,7 @@ export default async function HomePage() {
     <main className="overflow-x-clip bg-white">
       {/* Hero — identitas desa: latar putih bersih, judul hitam, aksen merah secukupnya. */}
       <section id="hero-beranda" className="latar-terang relative overflow-hidden">
-        {/* Foto latar dari admin (Foto Beranda), berganti tiap 10 detik (crossfade). */}
+        {/* Foto latar dari admin (Foto Beranda), bergeser kiri-kanan tiap 10 detik. */}
         <HeroSlideshow images={fotoHero} />
 
         {/* Lapisan putih hanya di sisi teks (kiri) agar tulisan tetap terbaca;
