@@ -25,7 +25,7 @@ function anggotaKosong() {
   };
 }
 
-function TombolSimpan({ disabled }) {
+function TombolSimpan({ disabled, label = "Simpan Data Keluarga" }) {
   const { pending } = useFormStatus();
   return (
     <button
@@ -33,21 +33,41 @@ function TombolSimpan({ disabled }) {
       disabled={disabled || pending}
       className="rounded-lg bg-navy px-5 py-2.5 text-sm font-medium text-white hover:bg-navy-light disabled:opacity-60"
     >
-      {pending ? "Menyimpan..." : "Simpan Data Keluarga"}
+      {pending ? "Menyimpan..." : label}
     </button>
   );
 }
 
-export default function FormTambahKeluarga({ pilihanDusun = [], dusunTerkunci = false }) {
+// Dua mode:
+//  - Biasa (keluargaAda = null): keluarga baru, No. KK + alamat diisi di form.
+//  - Tambah anggota (keluargaAda terisi): No. KK dikirim sebagai isian
+//    tersembunyi dan alamat/dusun/RT/RW SENGAJA tidak dikirim, sehingga
+//    anggota baru otomatis ikut alamat keluarga yang sudah tercatat
+//    (trigger database `sinkronkan_keluarga`, migrasi 0012) dan tidak mengubah
+//    data alamat anggota lain.
+export default function FormTambahKeluarga({
+  pilihanDusun = [],
+  dusunTerkunci = false,
+  keluargaAda = null,
+}) {
   const router = useRouter();
   const [state, formAction] = useActionState(tambahKeluargaWarga, {});
   const [anggota, setAnggota] = useState([anggotaKosong()]);
+  const modeTambahAnggota = Boolean(keluargaAda);
+  const wilayahKeluarga = keluargaAda
+    ? [keluargaAda.dusun, keluargaAda.rt && `RT ${keluargaAda.rt}`, keluargaAda.rw && `RW ${keluargaAda.rw}`]
+        .filter(Boolean)
+        .join(" · ")
+    : "";
+  const halamanKeluarga = modeTambahAnggota
+    ? `/dashboard/kependudukan/keluarga/${keluargaAda.no_kk}`
+    : "/dashboard/kependudukan";
 
   useEffect(() => {
     if (state?.success) {
-      router.push("/dashboard/kependudukan");
+      router.push(halamanKeluarga);
     }
-  }, [state, router]);
+  }, [state, router, halamanKeluarga]);
 
   function ubahAnggota(idx, field, value) {
     setAnggota((prev) =>
@@ -66,16 +86,64 @@ export default function FormTambahKeluarga({ pilihanDusun = [], dusunTerkunci = 
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-lg font-bold text-slate-800">Tambah Data Keluarga</h1>
+        {modeTambahAnggota && (
+          <Link href={halamanKeluarga} className="text-sm text-slate-400 hover:text-slate-600">
+            &larr; Kembali ke detail keluarga
+          </Link>
+        )}
+        <h1 className={`text-lg font-bold text-slate-800 ${modeTambahAnggota ? "mt-2" : ""}`}>
+          {modeTambahAnggota ? "Tambah Anggota Keluarga" : "Tambah Data Keluarga"}
+        </h1>
         <p className="text-sm text-slate-500">
-          No. KK dan alamat cukup diisi sekali untuk seluruh anggota keluarga.
-          Kalau kartu keluarga ini cuma berisi 1 orang, biarkan hanya 1 baris
-          anggota di bawah — tidak wajib ditambah.
+          {modeTambahAnggota
+            ? "No. KK dan alamat sudah terisi otomatis dari keluarga ini. Cukup isi data orang yang ingin ditambahkan."
+            : "No. KK dan alamat cukup diisi sekali untuk seluruh anggota keluarga. Kalau kartu keluarga ini cuma berisi 1 orang, biarkan hanya 1 baris anggota di bawah — tidak wajib ditambah."}
         </p>
       </div>
 
       <form action={formAction} className="space-y-6">
-        {/* Data kartu keluarga (No. KK + alamat, sekali untuk semua anggota) */}
+        {/* Mode tambah anggota: ringkasan keluarga (hanya baca) + No. KK tersembunyi */}
+        {modeTambahAnggota && (
+          <div className="space-y-3 rounded-2xl border border-navy/15 bg-navy/5 p-6">
+            <input type="hidden" name="no_kk" value={keluargaAda.no_kk} />
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 className="text-sm font-semibold text-slate-700">Keluarga yang ditambah</h2>
+              <span className="rounded-full bg-white px-2.5 py-0.5 text-xs font-medium text-slate-500 ring-1 ring-slate-200">
+                Terkunci
+              </span>
+            </div>
+            <dl className="grid gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <dt className="text-xs text-slate-400">No. KK</dt>
+                <dd className="font-mono font-medium text-slate-800">{keluargaAda.no_kk}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-400">Kepala Keluarga</dt>
+                <dd className="font-medium text-slate-800">
+                  {keluargaAda.namaKepala ?? <span className="text-slate-400">Belum ditentukan</span>}
+                  <span className="ml-1.5 text-xs font-normal text-slate-400">
+                    ({keluargaAda.jumlahAnggota} anggota aktif)
+                  </span>
+                </dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-xs text-slate-400">Alamat</dt>
+                <dd className="text-slate-800">
+                  {keluargaAda.alamat || <span className="text-slate-400">Belum diisi</span>}
+                  {wilayahKeluarga && (
+                    <span className="block text-xs text-slate-500">{wilayahKeluarga}</span>
+                  )}
+                </dd>
+              </div>
+            </dl>
+            <p className="text-xs text-slate-500">
+              Anggota baru otomatis ikut alamat ini. Untuk mengubah alamat keluarga, gunakan menu Edit pada salah satu anggota.
+            </p>
+          </div>
+        )}
+
+        {/* Data kartu keluarga (No. KK + alamat, sekali untuk semua anggota) — hanya untuk keluarga baru */}
+        {!modeTambahAnggota && (
         <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
           <h2 className="text-sm font-semibold text-slate-700">Data Kartu Keluarga</h2>
           <div className="grid grid-cols-2 gap-4">
@@ -137,6 +205,7 @@ export default function FormTambahKeluarga({ pilihanDusun = [], dusunTerkunci = 
             </div>
           </div>
         </div>
+        )}
 
         {/* Anggota keluarga, bisa ditambah berulang */}
         <div className="space-y-4">
@@ -247,14 +316,19 @@ export default function FormTambahKeluarga({ pilihanDusun = [], dusunTerkunci = 
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy"
                 >
                   <option value="" disabled>Pilih</option>
-                  <option value="Kepala Keluarga">Kepala Keluarga</option>
+                  <option value="Kepala Keluarga" disabled={modeTambahAnggota && keluargaAda.adaKepala}>
+                    Kepala Keluarga
+                    {modeTambahAnggota && keluargaAda.adaKepala ? " (sudah ada)" : ""}
+                  </option>
                   <option value="Istri">Istri</option>
                   <option value="Anak">Anak</option>
                   <option value="Famili Lain">Famili Lain</option>
                   <option value="Lainnya">Lainnya</option>
                 </select>
                 <p className="mt-1 text-xs text-slate-400">
-                  Maksimal 1 orang "Kepala Keluarga" per No. KK — sistem akan menolak otomatis kalau ada 2.
+                  {modeTambahAnggota && keluargaAda.adaKepala
+                    ? `Keluarga ini sudah punya Kepala Keluarga (${keluargaAda.namaKepala}), jadi pilih hubungan lain seperti Istri atau Anak.`
+                    : 'Maksimal 1 orang "Kepala Keluarga" per No. KK — sistem akan menolak otomatis kalau ada 2.'}
                 </p>
               </div>
 
@@ -336,8 +410,8 @@ export default function FormTambahKeluarga({ pilihanDusun = [], dusunTerkunci = 
         )}
 
         <div className="flex items-center gap-3">
-          <TombolSimpan disabled={anggota.length === 0} />
-          <Link href="/dashboard/kependudukan" className="text-sm text-slate-500 hover:text-slate-700">
+          <TombolSimpan disabled={anggota.length === 0} label={modeTambahAnggota ? "Simpan Anggota Baru" : undefined} />
+          <Link href={halamanKeluarga} className="text-sm text-slate-500 hover:text-slate-700">
             Batal
           </Link>
         </div>
