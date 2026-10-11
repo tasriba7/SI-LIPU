@@ -30,9 +30,11 @@ export default function FormBuatAkun() {
     <section className="rounded-2xl border border-slate-200 bg-white p-4">
       <h2 className="text-sm font-bold text-slate-800">Buat akun staf baru</h2>
       <p className="mb-3 mt-1 text-xs text-slate-500">
-        Untuk Kepala Desa, Sekretaris Desa, Kaur, Kasi, atau Administrator lain.
-        Akun Kepala Desa bersifat hanya lihat. Kadus &amp; Ketua RT dibuat lewat
-        Slot Posisi + Pendaftaran Akun.
+        Untuk Kepala Desa, Sekretaris Desa, Kaur, Kasi, Anggota BPD, atau
+        Administrator lain. Akun Kepala Desa dan BPD bersifat hanya lihat.
+        Kadus &amp; Ketua RT tidak dibuat di sini: buka slotnya di Slot Posisi,
+        mereka mendaftar sendiri, lalu Anda menyetujuinya di tab Pendaftaran
+        Masuk.
       </p>
 
       <form action={formAction} className="grid gap-3 md:grid-cols-2">
