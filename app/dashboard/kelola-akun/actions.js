@@ -114,7 +114,7 @@ export async function buatAkunStaf(prevState, formData) {
   if (!ROLE_BISA_DIBUAT_ADMIN.includes(role)) {
     return {
       error:
-        "Role ini tidak dibuat dari sini. Kadus & Ketua RT dibuat lewat Slot Posisi + Pendaftaran Akun.",
+        "Role ini tidak dibuat dari sini. Kadus & Ketua RT dibuat lewat Slot Posisi, lalu mendaftar sendiri dan disetujui di tab Pendaftaran Masuk.",
     };
   }
   if (mode === "manual" && passwordManual.length < PASSWORD_MINIMAL) {
