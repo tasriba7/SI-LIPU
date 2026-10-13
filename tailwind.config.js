@@ -58,7 +58,7 @@ module.exports = {
         // yang menempel membuat seluruh isi halaman jadi satu lapisan GPU raksasa
         // dan membuat elemen `position: fixed` di dalamnya ikut ter-scroll.
         pageIn: {
-          "0%": { opacity: "0", transform: "translateY(6px)" },
+          "0%": { opacity: "0", transform: "translateY(3px)" },
           "100%": { opacity: "1", transform: "none" },
         },
         // Angka jam "naik" ala odometer: angka baru masuk dari bawah,
@@ -131,7 +131,7 @@ module.exports = {
         // bukan bikin pengguna menunggu.
         // `backwards` (bukan `forwards`): setelah selesai, animasi dilepas total
         // sehingga halaman kembali "polos" dan scroll tidak membebani GPU.
-        pageIn: "pageIn 0.28s ease-out backwards",
+        pageIn: "pageIn 0.16s ease-out backwards",
         naikMasuk: "naikMasuk 0.45s cubic-bezier(0.22, 1, 0.36, 1) both",
         naikKeluar: "naikKeluar 0.45s cubic-bezier(0.22, 1, 0.36, 1) forwards",
         melayang: "melayang 7s ease-in-out infinite",
