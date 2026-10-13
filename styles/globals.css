@@ -301,14 +301,14 @@ html { scroll-behavior: smooth; }
 /* Latar beranda yang berganti saat scroll (components/LatarGulirBeranda.jsx) */
 @keyframes latarGulirZoom {
   from { transform: scale(1.06); }
-  to   { transform: scale(1.2) translate3d(-1.5%, -1%, 0); }
+  to   { transform: scale(1.14) translate3d(-1%, -0.5%, 0); }
 }
 .latar-gulir-foto { transform: scale(1.06); will-change: transform; }
 .latar-gulir-aktif { animation: latarGulirZoom 18s ease-out forwards; }
 
 @keyframes latarGulirMengambang {
   0%, 100% { transform: translate3d(0, 0, 0); }
-  50%      { transform: translate3d(40px, -30px, 0); }
+  50%      { transform: translate3d(24px, -20px, 0); }
 }
 .latar-gulir-pendar { animation: latarGulirMengambang 14s ease-in-out infinite; }
 
