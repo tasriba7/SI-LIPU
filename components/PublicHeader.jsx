@@ -253,7 +253,6 @@ export default function PublicHeader() {
         menuAktif: "text-navy-dark",
         menuBiasa: "text-white/80 hover:text-white",
         menuMati: "text-white/35",
-        garisBawah: "via-white/40",
         stripBatas: "border-white/10",
         chipBiasa: "border-white/20 bg-white/10 text-white/85 active:bg-white/20",
         chipAktif:
@@ -272,7 +271,6 @@ export default function PublicHeader() {
         menuAktif: "text-white",
         menuBiasa: "text-slate-700 hover:text-navy",
         menuMati: "text-slate-300",
-        garisBawah: "via-royal/30",
         stripBatas: "border-slate-200/60",
         chipBiasa: "border-slate-200/80 bg-white/70 text-slate-600 active:bg-white",
         chipAktif: "border-navy bg-royal text-white shadow-sm shadow-navy/30",
@@ -445,12 +443,6 @@ export default function PublicHeader() {
             <span className="w-4 shrink-0" aria-hidden />
           </nav>
         </div>
-
-        {/* Garis cahaya halus di tepi bawah kaca. */}
-        <div
-          aria-hidden
-          className={`pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent to-transparent transition-colors duration-500 ${tema.garisBawah}`}
-        />
       </header>
     </div>
   );
