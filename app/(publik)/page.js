@@ -4,13 +4,11 @@ import StatBerandaCards from "@/components/StatBerandaCards";
 import StatistikDetailBeranda from "@/components/StatistikDetailBeranda";
 import Reveal from "@/components/Reveal";
 import LatarGulirBeranda from "@/components/LatarGulirBeranda";
-import GaleriBeranda from "@/components/GaleriBeranda";
 import HeroSlideshow from "@/components/HeroSlideshow";
 import WisataBeranda from "@/components/WisataBeranda";
 import BeritaBeranda from "@/components/BeritaBeranda";
 import AduanPopulerBeranda from "@/components/AduanPopulerBeranda";
 import BmkgBeranda from "@/components/BmkgBeranda";
-import StrukturBeranda from "@/components/StrukturBeranda";
 import ApbdesBeranda from "@/components/ApbdesBeranda";
 import JamTanggalBeranda from "@/components/JamTanggalBeranda";
 import SpotlightCard from "@/components/SpotlightCard";
@@ -36,16 +34,13 @@ import {
   getStatistikPerDusun,
 } from "@/lib/statistikBeranda";
 import { getConfigDesa, labelWilayah } from "@/lib/configDesa";
-import { getGaleri, getGaleriCount } from "@/lib/galeri";
 import { getFotoHero } from "@/lib/fotoHero";
 import { getWisata, getWisataCount } from "@/lib/wisata";
 import { getBeritaTerbit } from "@/lib/berita";
 import { getAduanPopuler } from "@/lib/aduanPopuler";
-import { getStrukturPublik } from "@/lib/strukturOrganisasi";
 import { getRingkasanApbdesTerbaru } from "@/lib/apbdes";
 import { createClient } from "@/lib/supabase/server";
 
-const JUMLAH_GALERI_BERANDA = 8;
 const JUMLAH_WISATA_BERANDA = 4;
 const JUMLAH_BERITA_BERANDA = 3;
 const JUMLAH_ADUAN_BERANDA = 6;
@@ -131,19 +126,16 @@ const LENCANA_HERO = [
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal, wisataItems, wisataTotal, berita, apbdes, pengunjung, struktur, fotoHeroRows, aduanPopuler] = await Promise.all([
+  const [stats, statsDetail, statsDusun, config, wisataItems, wisataTotal, berita, apbdes, pengunjung, fotoHeroRows, aduanPopuler] = await Promise.all([
     getStatistikBeranda(),
     getStatistikBerandaDetail(),
     getStatistikPerDusun(),
     getConfigDesa(supabase),
-    getGaleri(supabase, { limit: JUMLAH_GALERI_BERANDA }),
-    getGaleriCount(supabase),
     getWisata(supabase, { limit: JUMLAH_WISATA_BERANDA }),
     getWisataCount(supabase),
     getBeritaTerbit(supabase, { limit: JUMLAH_BERITA_BERANDA }),
     getRingkasanApbdesTerbaru(supabase),
     getPengunjung(),
-    getStrukturPublik(supabase),
     getFotoHero(supabase),
     getAduanPopuler(JUMLAH_ADUAN_BERANDA),
   ]);
@@ -413,13 +405,8 @@ export default async function HomePage() {
         </section>
       </div>
 
-      {/* Kelompok 2: struktur, cuaca, berita */}
+      {/* Kelompok 2: cuaca, berita */}
       <div data-latar-grup="1">
-        {/* Struktur organisasi — bagan perangkat desa; tampil hanya kalau admin sudah mengisi */}
-        <Reveal blur={false}>
-          <StrukturBeranda pohon={struktur} />
-        </Reveal>
-
         {/* Cuaca & gempa dari BMKG — di-stream lewat Suspense supaya beranda tidak
             menunggu BMKG; tidak tampil kalau BMKG tidak bisa dihubungi. */}
         <Suspense fallback={null}>
@@ -439,16 +426,11 @@ export default async function HomePage() {
 
       </div>
 
-      {/* Kelompok 3: wisata & galeri */}
+      {/* Kelompok 3: wisata */}
       <div data-latar-grup="2">
         {/* Wisata desa — tampil hanya kalau admin sudah mengisi minimal satu */}
         <Reveal blur={false}>
           <WisataBeranda items={wisataItems} totalSemua={wisataTotal} />
-        </Reveal>
-
-        {/* Galeri kegiatan — pembungkus besar: tanpa blur supaya ringan */}
-        <Reveal blur={false}>
-          <GaleriBeranda items={galeriItems} totalSemua={galeriTotal} />
         </Reveal>
 
       </div>
