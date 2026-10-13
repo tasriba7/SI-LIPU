@@ -148,7 +148,6 @@ function MenuDropdown({ item, aktif, tema, pathname, onSorot }) {
 }
 
 export default function PublicHeader() {
-  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const stripRef = useRef(null);
   const headerRef = useRef(null);
@@ -183,20 +182,6 @@ export default function PublicHeader() {
       });
     return () => {
       batal = true;
-    };
-  }, []);
-
-  // Saat discroll: kaca header sedikit menebal.
-  useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 4);
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
     };
   }, []);
 
@@ -258,9 +243,6 @@ export default function PublicHeader() {
   // Kelas tema (gelap = di atas hero, terang = selain itu).
   const tema = gelap
     ? {
-        header: scrolled
-          ? "border-white/20 bg-navy-dark/35 shadow-[0_8px_32px_-12px_rgba(0,0,0,0.55)]"
-          : "border-white/15 bg-navy-dark/15",
         nama: "text-white",
         subjudul: "text-white/60",
         kapsul:
@@ -280,9 +262,6 @@ export default function PublicHeader() {
         ring: "ring-white/30 group-hover:ring-gold/70",
       }
     : {
-        header: scrolled
-          ? "border-navy/10 bg-white/85 shadow-[0_8px_30px_-12px_rgba(20,20,20,0.35)]"
-          : "border-white/70 bg-white/65",
         nama: "text-navy-dark",
         subjudul: "text-slate-400",
         kapsul:
@@ -313,7 +292,7 @@ export default function PublicHeader() {
         ref={headerRef}
         className={`${
           adaBeranda ? "absolute inset-x-0 top-0" : "relative"
-        } border-b backdrop-blur-xl backdrop-saturate-150 transition-[background-color,border-color,box-shadow] duration-500 ${tema.header}`}
+        }`}
       >
         {/* Garis emas tipis di puncak header — aksen "kop surat", konsisten dengan hero. */}
         <div className="h-[3px] w-full bg-gradient-to-r from-royal via-navy-light to-gold" />
