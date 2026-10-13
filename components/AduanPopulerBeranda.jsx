@@ -2,9 +2,66 @@ import Link from "next/link";
 import { IconArrowRight, IconMegaphone } from "@/components/icons";
 import SectionHeading from "@/components/SectionHeading";
 
+// Ringkasan "apakah aduan warga ditindaklanjuti": persen selesai, rata-rata
+// lama penyelesaian, dan sebaran status. Angka agregat dari migrasi 0050.
+// Bilah status TIDAK mengandalkan warna saja: setiap bagian punya label
+// angka di legenda di bawahnya.
+function RingkasanPenanganan({ p }) {
+  const bagian = [
+    { kunci: "selesai", label: "Selesai", jumlah: p.selesai, warna: "bg-emerald-600", titik: "bg-emerald-600" },
+    { kunci: "diproses", label: "Sedang diproses", jumlah: p.diproses, warna: "bg-gold", titik: "bg-gold" },
+    { kunci: "menunggu", label: "Menunggu", jumlah: p.menunggu, warna: "bg-slate-300", titik: "bg-slate-300" },
+  ];
+
+  return (
+    <div className="mt-10 rounded-2xl border border-slate-200 bg-white/80 p-6 shadow-sm backdrop-blur">
+      <div className="grid gap-6 sm:grid-cols-2">
+        <div>
+          <p className="font-display text-4xl font-bold text-navy-dark">{p.persenSelesai}%</p>
+          <p className="mt-1 text-sm text-slate-500">
+            aduan sudah selesai ditangani ({p.selesai} dari {p.total} aduan)
+          </p>
+        </div>
+        {p.lamaRataRata && (
+          <div>
+            <p className="font-display text-4xl font-bold text-navy-dark">{p.lamaRataRata}</p>
+            <p className="mt-1 text-sm text-slate-500">rata-rata waktu sampai aduan selesai</p>
+          </div>
+        )}
+      </div>
+
+      <div
+        className="mt-6 flex h-3 overflow-hidden rounded-full bg-slate-100"
+        role="img"
+        aria-label={`Status aduan: ${p.selesai} selesai, ${p.diproses} sedang diproses, ${p.menunggu} menunggu`}
+      >
+        {bagian.map(
+          (b) =>
+            b.jumlah > 0 && (
+              <div
+                key={b.kunci}
+                className={`h-full ${b.warna}`}
+                style={{ width: `${(b.jumlah / p.total) * 100}%` }}
+              />
+            ),
+        )}
+      </div>
+      <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1 text-xs text-slate-600">
+        {bagian.map((b) => (
+          <li key={b.kunci} className="flex items-center gap-1.5">
+            <span aria-hidden className={`h-2.5 w-2.5 rounded-full ${b.titik}`} />
+            {b.label}: <strong className="font-semibold text-slate-800">{b.jumlah}</strong>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 // "Aduan yang Sering Disampaikan" di beranda: peringkat jenis pengaduan
-// terbanyak dari warga. Hanya angka agregat (lihat migrasi 0049) -- tidak ada
-// identitas atau isi pengaduan. Belum ada pengaduan -> section tidak tampil.
+// terbanyak dari warga + ringkasan penanganannya. Hanya angka agregat (lihat
+// migrasi 0049 dan 0050) -- tidak ada identitas atau isi pengaduan. Belum ada
+// pengaduan -> section tidak tampil.
 export default function AduanPopulerBeranda({ data }) {
   if (!data || !data.items || data.items.length === 0) return null;
 
@@ -12,8 +69,8 @@ export default function AduanPopulerBeranda({ data }) {
     <section className="mx-auto max-w-6xl px-6 py-16 md:py-24">
       <SectionHeading
         kecil="Suara Warga"
-        judul="Aduan yang Sering Disampaikan"
-        deskripsi="Jenis pengaduan yang paling banyak disampaikan warga. Identitas pelapor tidak pernah ditampilkan."
+        judul="Aduan Warga & Penanganannya"
+        deskripsi="Jenis pengaduan yang paling banyak disampaikan warga dan sejauh mana ditindaklanjuti. Identitas pelapor tidak pernah ditampilkan."
         aksi={
           <Link
             href="/layanan"
@@ -25,7 +82,12 @@ export default function AduanPopulerBeranda({ data }) {
         }
       />
 
-      <ol className="mt-10 grid gap-4 lg:grid-cols-2">
+      {data.penanganan && <RingkasanPenanganan p={data.penanganan} />}
+
+      <h3 className="mt-12 font-display text-lg font-semibold text-navy-dark">
+        Jenis aduan terbanyak
+      </h3>
+      <ol className="mt-4 grid gap-4 lg:grid-cols-2">
         {data.items.map((item, i) => (
           <li
             key={item.jenis}
