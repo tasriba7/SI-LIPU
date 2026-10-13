@@ -303,14 +303,18 @@ html { scroll-behavior: smooth; }
   from { transform: scale(1.06); }
   to   { transform: scale(1.14) translate3d(-1%, -0.5%, 0); }
 }
-.latar-gulir-foto { transform: scale(1.06); will-change: transform; }
-.latar-gulir-aktif { animation: latarGulirZoom 18s ease-out forwards; }
+/* will-change hanya di foto yang sedang aktif: dulu menempel di keempat foto
+   layar penuh sekaligus sehingga memakan memori GPU tanpa guna. */
+.latar-gulir-foto { transform: scale(1.06); }
+.latar-gulir-aktif { will-change: transform; animation: latarGulirZoom 18s ease-out forwards; }
 
 @keyframes latarGulirMengambang {
   0%, 100% { transform: translate3d(0, 0, 0); }
   50%      { transform: translate3d(24px, -20px, 0); }
 }
 .latar-gulir-pendar { animation: latarGulirMengambang 14s ease-in-out infinite; }
+/* Pendar pada lapisan yang sedang tidak tampil tidak perlu bergerak. */
+[data-nyala="false"] .latar-gulir-pendar { animation-play-state: paused; }
 
 @media (prefers-reduced-motion: reduce) {
   .latar-gulir-aktif, .latar-gulir-pendar { animation: none; }

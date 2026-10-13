@@ -84,10 +84,15 @@ export default function LatarGulirBeranda({ foto = [], children }) {
           const src = fotoUntuk(i);
           const nyala = aktif === i;
           return (
+            // Lapisan yang tidak aktif diberi `invisible` (setelah memudar) dan
+            // animasinya dijeda lewat data-nyala (lihat globals.css), supaya
+            // browser tidak terus menggambar 3 lapisan tak terlihat berisi foto
+            // + pendar blur sambil halaman di-scroll.
             <div
               key={i}
-              className={`absolute inset-0 overflow-hidden transition-opacity duration-[1400ms] ease-in-out motion-reduce:transition-none ${
-                nyala ? "opacity-100" : "opacity-0"
+              data-nyala={nyala ? "true" : "false"}
+              className={`absolute inset-0 overflow-hidden transition-[opacity,visibility] duration-[1400ms] ease-in-out motion-reduce:transition-none ${
+                nyala ? "visible opacity-100" : "invisible opacity-0"
               }`}
             >
               {src && (

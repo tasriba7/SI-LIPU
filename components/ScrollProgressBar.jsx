@@ -5,33 +5,46 @@ import { useEffect, useRef } from "react";
 // Garis progres scroll di paling atas layar. Ringan: tidak memakai state
 // React (tanpa render ulang tiap scroll), dibatasi sekali per frame lewat
 // requestAnimationFrame, dan digerakkan dengan transform (dikerjakan GPU).
+//
+// Tinggi halaman (scrollHeight) hanya diukur saat ukuran berubah (resize /
+// konten bertambah), BUKAN di setiap event scroll — membaca scrollHeight saat
+// scroll bisa memaksa browser menghitung ulang layout di tengah gerakan scroll.
 export default function ScrollProgressBar() {
   const batang = useRef(null);
 
   useEffect(() => {
     let frame = 0;
+    let maks = 0;
 
-    const perbarui = () => {
-      frame = 0;
+    const ukur = () => {
       const el = document.documentElement;
-      const maks = el.scrollHeight - el.clientHeight;
-      const p = maks > 0 ? Math.min(Math.max(el.scrollTop / maks, 0), 1) : 0;
+      maks = el.scrollHeight - el.clientHeight;
+    };
+
+    const gambar = () => {
+      frame = 0;
+      const p = maks > 0 ? Math.min(Math.max(window.scrollY / maks, 0), 1) : 0;
       if (batang.current) batang.current.style.transform = `scaleX(${p})`;
     };
     const jadwalkan = () => {
-      if (!frame) frame = requestAnimationFrame(perbarui);
+      if (!frame) frame = requestAnimationFrame(gambar);
+    };
+    const saatUkuranBerubah = () => {
+      ukur();
+      jadwalkan();
     };
 
     window.addEventListener("scroll", jadwalkan, { passive: true });
-    window.addEventListener("resize", jadwalkan);
+    window.addEventListener("resize", saatUkuranBerubah);
     // Tinggi halaman bisa berubah setelah konten selesai dimuat.
-    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(jadwalkan) : null;
+    const ro = typeof ResizeObserver !== "undefined" ? new ResizeObserver(saatUkuranBerubah) : null;
     ro?.observe(document.body);
-    perbarui();
+    ukur();
+    gambar();
 
     return () => {
       window.removeEventListener("scroll", jadwalkan);
-      window.removeEventListener("resize", jadwalkan);
+      window.removeEventListener("resize", saatUkuranBerubah);
       ro?.disconnect();
       if (frame) cancelAnimationFrame(frame);
     };

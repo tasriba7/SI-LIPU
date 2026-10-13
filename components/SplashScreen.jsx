@@ -87,7 +87,7 @@ export default function SplashScreen({ children, minDurationMs = 1600 }) {
       )}
       {/* Konten aplikasi dirender dari awal juga (di-cover splash di atasnya)
           supaya begitu splash hilang, halaman sudah siap tanpa jeda. */}
-      <div data-splash-content className={visible ? "invisible" : "animate-fadeIn"}>
+      <div data-splash-content className={visible ? "invisible" : "animate-fadeInLepas"}>
         {children}
       </div>
     </>
