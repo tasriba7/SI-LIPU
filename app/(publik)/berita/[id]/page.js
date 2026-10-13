@@ -24,7 +24,7 @@ export default async function DetailBeritaPage({ params }) {
     .filter(Boolean);
 
   return (
-    <main className="bg-white pb-16">
+    <main className="pb-16">
       <article className="mx-auto max-w-3xl px-6 pt-10">
         <Link href="/berita" className="text-sm text-slate-400 hover:text-navy">
           &larr; Semua berita

@@ -27,7 +27,7 @@ export default async function WisataPublikPage({ searchParams }) {
     }`;
 
   return (
-    <main className="bg-white">
+    <main>
       <BannerHalaman
         kunci="wisata"
         kecil="Jelajahi Desa"

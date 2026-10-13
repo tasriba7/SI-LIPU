@@ -65,7 +65,7 @@ export default async function CekBantuanPage({ searchParams }) {
   const sampai = Math.min(hal * UKURAN_HALAMAN_BANTUAN, total);
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen">
       <div className="mx-auto max-w-3xl px-4 py-10">
         <div className="rounded-2xl bg-white p-6 shadow-sm sm:p-8">
           <div className="flex items-start gap-3">

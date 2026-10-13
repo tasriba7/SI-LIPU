@@ -13,7 +13,7 @@ export default async function PendaftaranPage() {
     .order("wilayah");
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen">
       <BannerHalaman
         kunci="pendaftaran"
         kecil="Perangkat Desa"

@@ -48,7 +48,7 @@ export default async function ProfilDesaPage() {
   const jabatanKepala = jenis === "Kelurahan" ? "Lurah" : "Kepala Desa";
 
   return (
-    <main className="overflow-x-clip bg-white">
+    <main className="overflow-x-clip">
       <BannerHalaman
         kunci="profil"
         kecil={`Profil ${jenis}`}

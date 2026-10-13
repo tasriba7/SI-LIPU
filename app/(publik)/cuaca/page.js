@@ -29,7 +29,7 @@ export default async function CuacaPublikPage() {
   const titikDesa = cuacaAda ? { lat: cuaca.lokasi.lat, lon: cuaca.lokasi.lon } : null;
 
   return (
-    <main className="bg-white">
+    <main>
       <BannerHalaman
         kunci="cuaca"
         kecil="Info BMKG"

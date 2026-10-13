@@ -10,7 +10,7 @@ export default async function StrukturOrganisasiPage() {
   const pohon = await getStrukturPublik(supabase);
 
   return (
-    <main className="bg-gradient-to-b from-white via-royal-pale/60 to-white">
+    <main>
       <BannerHalaman
         kunci="struktur"
         kecil="Pemerintahan Desa"

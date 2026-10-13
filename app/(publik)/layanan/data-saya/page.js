@@ -84,7 +84,7 @@ export default function DataSayaPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen">
       <div className="flex items-start justify-center px-4 py-10">
         <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm">
           <h1 className="text-center text-xl font-bold text-navy">Data Saya</h1>

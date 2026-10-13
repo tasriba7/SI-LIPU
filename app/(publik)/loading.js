@@ -3,7 +3,7 @@
 // terasa merespons langsung, bukan diam dulu sebelum mendadak muncul.
 export default function PublikLoading() {
   return (
-    <div className="flex min-h-[60vh] items-center justify-center bg-white">
+    <div className="flex min-h-[60vh] items-center justify-center">
       <div className="flex flex-col items-center gap-4">
         {/* Dua cincin berputar berlawanan arah: navy di luar, emas di dalam */}
         <div className="relative h-12 w-12">

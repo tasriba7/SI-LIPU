@@ -19,7 +19,7 @@ export default async function DaftarLayananPage() {
     .order("kategori");
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen">
       <div className="mx-auto max-w-3xl px-4 py-12">
         <div className="mb-8 text-center">
           <p className="font-mono text-xs uppercase tracking-[0.25em] text-royal">

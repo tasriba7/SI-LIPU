@@ -13,7 +13,7 @@ export default function PanelWargaLayout({ children }) {
         judul="Panel Warga"
         ringkas
       />
-      <div className="bg-slate-50 px-4 pt-8">
+      <div className="px-4 pt-8">
         <div className="mx-auto max-w-3xl text-center">
           <PanelWargaTabs />
         </div>

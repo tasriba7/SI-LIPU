@@ -39,7 +39,7 @@ export default async function DetailWisataPage({ params }) {
     .filter(Boolean);
 
   return (
-    <main className="bg-white pb-16">
+    <main className="pb-16">
       <div className="relative h-64 overflow-hidden bg-navy-dark sm:h-80 md:h-[26rem]">
         {w.foto_url && (
           // eslint-disable-next-line @next/next/no-img-element

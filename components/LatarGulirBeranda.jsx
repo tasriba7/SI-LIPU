@@ -44,7 +44,10 @@ const LAPIS = [
   },
 ];
 
-export default function LatarGulirBeranda({ foto = [], children }) {
+// `jumlah` = berapa lapisan latar yang dirender. Beranda memakai semuanya
+// (berganti saat scroll); halaman lain cukup 1 lapisan supaya hemat memori
+// dan tidak mengunduh foto yang tidak pernah tampil.
+export default function LatarGulirBeranda({ foto = [], jumlah = LAPIS.length, children }) {
   const wadah = useRef(null);
   const [aktif, setAktif] = useState(0);
 
@@ -80,7 +83,7 @@ export default function LatarGulirBeranda({ foto = [], children }) {
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 max-w-full overflow-hidden bg-white [contain:paint]"
       >
-        {LAPIS.map((l, i) => {
+        {LAPIS.slice(0, jumlah).map((l, i) => {
           const src = fotoUntuk(i);
           const nyala = aktif === i;
           return (

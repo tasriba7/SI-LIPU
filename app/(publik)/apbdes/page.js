@@ -109,7 +109,7 @@ export default async function ApbdesPublikPage({ searchParams }) {
 
   if (daftarTahun.length === 0) {
     return (
-      <main className="bg-white">
+      <main>
         <BannerHalaman kunci="apbdes" kecil="Transparansi" judul="APBDes" deskripsi="Anggaran Pendapatan dan Belanja Desa." />
         <section className="mx-auto max-w-3xl px-6 py-20 text-center">
           <p className="text-sm text-slate-400">
@@ -129,7 +129,7 @@ export default async function ApbdesPublikPage({ searchParams }) {
   const maksBelanja = Math.max(1, ...belanja.map((g) => g.anggaran));
 
   return (
-    <main className="bg-white pb-16">
+    <main className="pb-16">
       <BannerHalaman
         kunci="apbdes"
         kecil="Transparansi"

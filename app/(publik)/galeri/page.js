@@ -10,7 +10,7 @@ export default async function GaleriPublikPage() {
   const items = await getGaleri(supabase);
 
   return (
-    <main className="bg-white">
+    <main>
       <BannerHalaman
         kunci="galeri"
         kecil="Dokumentasi"

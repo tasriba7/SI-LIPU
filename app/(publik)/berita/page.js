@@ -40,7 +40,7 @@ export default async function BeritaPublikPage({ searchParams }) {
     "rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:border-gold hover:text-navy";
 
   return (
-    <main className="bg-white">
+    <main>
       <BannerHalaman
         kunci="berita"
         kecil="Kabar Desa"

@@ -18,7 +18,7 @@ export default async function AjukanLayananPage({ params }) {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="min-h-screen">
       <div className="flex items-center justify-center px-4 py-10">
         <FormPengajuan jenisLayanan={jenisLayanan} />
       </div>
