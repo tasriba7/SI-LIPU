@@ -72,15 +72,21 @@ export default function LatarGulirBeranda({ foto = [], children }) {
   const fotoUntuk = (i) => (foto.length > 0 ? foto[(i + 1) % foto.length] : null);
 
   return (
-    <div ref={wadah} className="relative isolate [clip-path:inset(0)]">
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-white">
+    <div ref={wadah} className="relative isolate w-full max-w-full overflow-x-clip [clip-path:inset(0)]">
+      {/* overflow-hidden + contain: semua yang menjulur (foto yang di-zoom,
+          pendar warna) dipotong tepat di tepi layar, jadi TIDAK bisa melebarkan
+          halaman atau memunculkan scroll samping. */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10 max-w-full overflow-hidden bg-white [contain:paint]"
+      >
         {LAPIS.map((l, i) => {
           const src = fotoUntuk(i);
           const nyala = aktif === i;
           return (
             <div
               key={i}
-              className={`absolute inset-0 transition-opacity duration-[1400ms] ease-in-out motion-reduce:transition-none ${
+              className={`absolute inset-0 overflow-hidden transition-opacity duration-[1400ms] ease-in-out motion-reduce:transition-none ${
                 nyala ? "opacity-100" : "opacity-0"
               }`}
             >
@@ -99,10 +105,10 @@ export default function LatarGulirBeranda({ foto = [], children }) {
               )}
               <div className={`absolute inset-0 bg-gradient-to-b ${l.kerudung}`} />
               <div
-                className={`latar-gulir-pendar absolute -left-24 top-1/4 h-96 w-96 rounded-full blur-3xl ${l.pendar}`}
+                className={`latar-gulir-pendar absolute left-0 top-1/4 h-72 w-72 rounded-full blur-3xl sm:h-96 sm:w-96 ${l.pendar}`}
               />
               <div
-                className={`latar-gulir-pendar absolute -right-24 bottom-1/4 h-80 w-80 rounded-full blur-3xl [animation-delay:-7s] ${l.pendar}`}
+                className={`latar-gulir-pendar absolute bottom-1/4 right-0 h-64 w-64 rounded-full blur-3xl [animation-delay:-7s] sm:h-80 sm:w-80 ${l.pendar}`}
               />
             </div>
           );
