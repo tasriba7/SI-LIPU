@@ -8,6 +8,7 @@ import GaleriBeranda from "@/components/GaleriBeranda";
 import HeroSlideshow from "@/components/HeroSlideshow";
 import WisataBeranda from "@/components/WisataBeranda";
 import BeritaBeranda from "@/components/BeritaBeranda";
+import AduanPopulerBeranda from "@/components/AduanPopulerBeranda";
 import BmkgBeranda from "@/components/BmkgBeranda";
 import StrukturBeranda from "@/components/StrukturBeranda";
 import ApbdesBeranda from "@/components/ApbdesBeranda";
@@ -39,6 +40,7 @@ import { getGaleri, getGaleriCount } from "@/lib/galeri";
 import { getFotoHero } from "@/lib/fotoHero";
 import { getWisata, getWisataCount } from "@/lib/wisata";
 import { getBeritaTerbit } from "@/lib/berita";
+import { getAduanPopuler } from "@/lib/aduanPopuler";
 import { getStrukturPublik } from "@/lib/strukturOrganisasi";
 import { getRingkasanApbdesTerbaru } from "@/lib/apbdes";
 import { createClient } from "@/lib/supabase/server";
@@ -46,6 +48,7 @@ import { createClient } from "@/lib/supabase/server";
 const JUMLAH_GALERI_BERANDA = 8;
 const JUMLAH_WISATA_BERANDA = 4;
 const JUMLAH_BERITA_BERANDA = 3;
+const JUMLAH_ADUAN_BERANDA = 6;
 
 const LAYANAN = [
   {
@@ -128,7 +131,7 @@ const LENCANA_HERO = [
 
 export default async function HomePage() {
   const supabase = await createClient();
-  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal, wisataItems, wisataTotal, berita, apbdes, pengunjung, struktur, fotoHeroRows] = await Promise.all([
+  const [stats, statsDetail, statsDusun, config, galeriItems, galeriTotal, wisataItems, wisataTotal, berita, apbdes, pengunjung, struktur, fotoHeroRows, aduanPopuler] = await Promise.all([
     getStatistikBeranda(),
     getStatistikBerandaDetail(),
     getStatistikPerDusun(),
@@ -142,6 +145,7 @@ export default async function HomePage() {
     getPengunjung(),
     getStrukturPublik(supabase),
     getFotoHero(supabase),
+    getAduanPopuler(JUMLAH_ADUAN_BERANDA),
   ]);
 
   const wilayah = labelWilayah(config);
@@ -425,6 +429,12 @@ export default async function HomePage() {
         {/* Berita terbaru — tampil hanya kalau ada berita terbit */}
         <Reveal blur={false}>
           <BeritaBeranda items={berita.items} totalSemua={berita.total} />
+        </Reveal>
+
+        {/* Aduan yang sering disampaikan warga — agregat tanpa identitas;
+            tampil hanya kalau sudah ada pengaduan masuk */}
+        <Reveal blur={false}>
+          <AduanPopulerBeranda data={aduanPopuler} />
         </Reveal>
 
       </div>
