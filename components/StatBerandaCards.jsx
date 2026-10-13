@@ -65,27 +65,32 @@ function StatCard({ icon: Icon, label, value, suffix = "", ikon, garis, pendar }
   }, [value, inView]);
 
   return (
-    <div ref={ref} className="kartu-terang group relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl px-6 py-6 text-center transition-all sm:flex-row sm:gap-4 sm:text-left duration-300 ease-out hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-navy/20">
-      {/* Garis warna di sisi atas kartu: melebar penuh saat kartu disorot */}
+    <div ref={ref} className="kartu-terang group relative flex items-center gap-3.5 overflow-hidden rounded-2xl py-3.5 pl-5 pr-4 transition-all duration-300 ease-out hover:-translate-y-1 hover:shadow-xl hover:shadow-navy/20 sm:gap-4 sm:py-4">
+      {/* Aksen warna di sisi kiri kartu: memanjang penuh saat kartu disorot */}
       <span
         aria-hidden
-        className={`absolute inset-x-0 top-0 h-1 origin-left scale-x-[0.28] bg-gradient-to-r transition-transform duration-500 ease-out group-hover:scale-x-100 ${garis}`}
+        className={`absolute left-0 top-1/2 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b h-7 transition-all duration-500 ease-out group-hover:h-full ${garis}`}
       />
       {/* Pendar warna di pojok yang menyala saat kartu disorot */}
       <div
         aria-hidden
-        className={`pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-transparent blur-2xl transition-colors duration-500 ${pendar}`}
+        className={`pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-transparent blur-2xl transition-colors duration-500 ${pendar}`}
       />
-      <div className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 ${ikon}`}>
-        <Icon className="h-5 w-5" />
+      {/* Ikon besar samar sebagai hiasan di sudut kanan bawah */}
+      <Icon
+        aria-hidden
+        className="pointer-events-none absolute -bottom-3 -right-2 h-16 w-16 -rotate-12 text-slate-900/[0.05] transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110"
+      />
+      <div className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br text-white shadow-md transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 ${ikon}`}>
+        <Icon className="h-[18px] w-[18px]" />
       </div>
 
-      <div className="relative">
-        <p className="font-display text-4xl font-bold tabular-nums leading-none text-navy-dark">
+      <div className="relative min-w-0">
+        <p className="font-display text-[1.7rem] font-bold tabular-nums leading-none text-navy-dark sm:text-3xl">
           {displayValue.toLocaleString("id-ID")}
           {suffix}
         </p>
-        <p className="mt-1.5 text-sm font-medium text-slate-500">{label}</p>
+        <p className="mt-1 text-[13px] font-medium leading-tight text-slate-500">{label}</p>
       </div>
     </div>
   );
@@ -93,7 +98,7 @@ function StatCard({ icon: Icon, label, value, suffix = "", ikon, garis, pendar }
 
 export default function StatBerandaCards({ stats }) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-5">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
       {STAT_CARDS.map((c, i) => (
         <Reveal key={c.key} delay={i * 130} variant="up" className="h-full">
           <StatCard {...c} value={stats[c.key]} />
