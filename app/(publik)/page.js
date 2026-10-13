@@ -232,7 +232,7 @@ export default async function HomePage() {
         </div>
 
         {/* Kartu statistik singkat */}
-        <div className="relative mx-auto max-w-6xl px-6 pb-20 pt-12 md:pb-28 md:pt-16">
+        <div className="relative mx-auto max-w-6xl px-6 pb-16 pt-8 md:pb-20 md:pt-10">
           <StatBerandaCards stats={stats} />
 
           
