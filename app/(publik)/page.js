@@ -3,7 +3,7 @@ import Link from "next/link";
 import StatBerandaCards from "@/components/StatBerandaCards";
 import StatistikDetailBeranda from "@/components/StatistikDetailBeranda";
 import Reveal from "@/components/Reveal";
-import AuroraBackground from "@/components/AuroraBackground";
+import LatarGulirBeranda from "@/components/LatarGulirBeranda";
 import GaleriBeranda from "@/components/GaleriBeranda";
 import HeroSlideshow from "@/components/HeroSlideshow";
 import WisataBeranda from "@/components/WisataBeranda";
@@ -244,7 +244,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <AuroraBackground>
+      {/* Bagian di bawah hero dibagi 4 kelompok; latar belakangnya berganti
+          saat di-scroll (hero di atas tidak ikut berubah). */}
+      <LatarGulirBeranda foto={fotoHero.map((f) => f.src)}>
+      {/* Kelompok 1: sambutan & layanan */}
+      <div data-latar-grup="0">
         {/* Sambutan Kepala Desa / Lurah */}
         {config.kepala_desa_nama && config.kepala_desa_sambutan && (
           <section className="py-16 md:py-24">
@@ -403,7 +407,10 @@ export default async function HomePage() {
             })}
           </div>
         </section>
+      </div>
 
+      {/* Kelompok 2: struktur, cuaca, berita */}
+      <div data-latar-grup="1">
         {/* Struktur organisasi — bagan perangkat desa; tampil hanya kalau admin sudah mengisi */}
         <Reveal blur={false}>
           <StrukturBeranda pohon={struktur} />
@@ -420,6 +427,10 @@ export default async function HomePage() {
           <BeritaBeranda items={berita.items} totalSemua={berita.total} />
         </Reveal>
 
+      </div>
+
+      {/* Kelompok 3: wisata & galeri */}
+      <div data-latar-grup="2">
         {/* Wisata desa — tampil hanya kalau admin sudah mengisi minimal satu */}
         <Reveal blur={false}>
           <WisataBeranda items={wisataItems} totalSemua={wisataTotal} />
@@ -430,6 +441,10 @@ export default async function HomePage() {
           <GaleriBeranda items={galeriItems} totalSemua={galeriTotal} />
         </Reveal>
 
+      </div>
+
+      {/* Kelompok 4: statistik, APBDes, cara kerja */}
+      <div data-latar-grup="3">
         {/* Statistik kependudukan — pembungkus besar: tanpa blur */}
         <Reveal blur={false}>
           <StatistikDetailBeranda
@@ -477,7 +492,8 @@ export default async function HomePage() {
             </div>
           </div>
         </section>
-      </AuroraBackground>
+      </div>
+      </LatarGulirBeranda>
 
       {/* Jaminan — pita gelap penutup sebelum footer, berisi tiga janji + ajakan bertindak */}
       <section className="latar-mesh butiran relative overflow-hidden">
