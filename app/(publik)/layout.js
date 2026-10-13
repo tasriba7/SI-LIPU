@@ -1,5 +1,6 @@
 import PublicHeader from "@/components/PublicHeader";
 import ScrollProgressBar from "@/components/ScrollProgressBar";
+import ScrollKeAtas from "@/components/ScrollKeAtas";
 import LatarHalamanPublik from "@/components/LatarHalamanPublik";
 import { createClient } from "@/lib/supabase/server";
 import { getFotoHero } from "@/lib/fotoHero";
@@ -21,6 +22,7 @@ export default async function PublikLayout({ children }) {
       <ScrollProgressBar />
       <PublicHeader />
       <LatarHalamanPublik foto={foto}>{children}</LatarHalamanPublik>
+      <ScrollKeAtas />
     </>
   );
 }
