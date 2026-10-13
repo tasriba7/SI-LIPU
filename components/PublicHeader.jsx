@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import LoginButton from "@/components/LoginButton";
+import KotakCariHeader from "@/components/KotakCariHeader";
 import { createClient } from "@/lib/supabase/client";
 import { DEFAULT_CONFIG_DESA } from "@/lib/configDesa";
 
@@ -402,8 +403,11 @@ export default function PublicHeader() {
             })}
           </nav>
 
+          {/* Cari di situs — kaca pembesar yang membuka kotak cari. */}
+          <KotakCariHeader className="ml-auto lg:ml-0" />
+
           {/* Login — selalu terlihat di semua ukuran layar. */}
-          <LoginButton className="ml-auto shrink-0 rounded-full bg-gradient-to-r from-royal to-royal-light px-5 py-2 text-[13px] font-semibold text-white shadow-[0_6px_18px_-6px_rgba(20,20,20,0.8)] transition hover:-translate-y-px hover:brightness-110 hover:shadow-[0_10px_24px_-6px_rgba(20,20,20,0.9)] lg:ml-0">
+          <LoginButton className="shrink-0 rounded-full bg-gradient-to-r from-royal to-royal-light px-5 py-2 text-[13px] font-semibold text-white shadow-[0_6px_18px_-6px_rgba(20,20,20,0.8)] transition hover:-translate-y-px hover:brightness-110 hover:shadow-[0_10px_24px_-6px_rgba(20,20,20,0.9)]">
             Login
           </LoginButton>
         </div>
