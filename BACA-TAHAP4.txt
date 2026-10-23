@@ -1,0 +1,4 @@
+Pilkades tahap 3 (bagian 1: migrasi) - Calon & Daftar Hadir
+1. Jalankan supabase/migrations/0054_pilkades_calon_dan_hadir.sql di SQL Editor (setelah 0052; 0053 boleh sebelum/sesudah).
+2. Jalankan supabase/verifikasi_0054.sql.
+Belum ada perubahan tampilan; halaman Calon & Daftar Hadir menyusul di bagian 2.
