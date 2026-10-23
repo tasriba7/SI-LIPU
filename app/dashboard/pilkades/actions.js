@@ -154,6 +154,6 @@ export async function terapkanFilterUsia(formData) {
   const h = Array.isArray(data) ? data[0] : data;
   if (error || !h) redirect("/dashboard/pilkades/pemilih?filter=gagal");
   redirect(
-    `/dashboard/pilkades/pemilih?filter=ok&m=${h.memenuhi}&t=${h.tidak_memenuhi}&b=${h.belum}`
+    `/dashboard/pilkades/pemilih?filter=ok&m=${h.memenuhi}&t=${h.tidak_memenuhi}&p=${h.perlu_dicek}&b=${h.belum}`
   );
 }

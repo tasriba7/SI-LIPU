@@ -42,8 +42,13 @@ export default async function PemilihPage({ searchParams }) {
     (r) =>
       (!cari || r.nama_lengkap.toLowerCase().includes(cari)) &&
       (!fDusun || r.dusun === fDusun) &&
-      (!fStatus || r.status_verifikasi === fStatus)
+      (fStatus === "semua" ||
+        (fStatus ? r.status_verifikasi === fStatus : r.status_verifikasi !== "tidak_memenuhi"))
   );
+  // Secara bawaan nama yang "tidak memenuhi syarat" (mis. belum cukup usia) disembunyikan.
+  const jumlahDisembunyikan = fStatus
+    ? 0
+    : (semua ?? []).filter((r) => r.status_verifikasi === "tidak_memenuhi").length;
   const halaman = Math.max(1, parseInt(sp.hal ?? "1", 10) || 1);
   const totalHal = Math.max(1, Math.ceil(hasil.length / PER_HALAMAN));
   const tampil = hasil.slice((halaman - 1) * PER_HALAMAN, halaman * PER_HALAMAN);
@@ -62,7 +67,7 @@ export default async function PemilihPage({ searchParams }) {
         <div>
           <h1 className="text-lg font-bold text-slate-800">Daftar Pemilih &mdash; {periode.nama}</h1>
           <p className="text-sm text-slate-500">
-            {semua?.length ?? 0} calon pemilih. Umur dihitung pada tanggal pemungutan
+            {hasil.length} calon pemilih ditampilkan{jumlahDisembunyikan > 0 ? ` (${jumlahDisembunyikan} tidak memenuhi syarat disembunyikan)` : ""}. Umur dihitung pada tanggal pemungutan
             {periode.tanggal_pemungutan ? "" : " (belum diisi, memakai hari ini)"}. Penentuan
             &ldquo;memenuhi syarat&rdquo; mengikuti aturan Pilkades daerah, dilakukan manual oleh panitia.
           </p>
@@ -79,7 +84,7 @@ export default async function PemilihPage({ searchParams }) {
 
       {sp.filter === "ok" && (
         <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          Filter usia diterapkan: {sp.m} ditandai memenuhi syarat, {sp.t} tidak memenuhi syarat (kurang usia), {sp.b} masih belum diperiksa.
+          Filter usia diterapkan: {sp.m} ditandai memenuhi syarat, {sp.t} tidak memenuhi syarat (kurang usia), {sp.p ?? 0} perlu dicek (data tidak wajar), {sp.b} masih belum diperiksa.
         </p>
       )}
       {sp.filter === "gagal" && (
@@ -110,11 +115,12 @@ export default async function PemilihPage({ searchParams }) {
 
         {pratinjau && (
           <div className="space-y-3">
-            <div className="grid gap-2 sm:grid-cols-4">
+            <div className="grid gap-2 sm:grid-cols-5">
               {[
                 ["Total calon", pratinjau.total, "text-slate-800"],
                 ["Cukup usia", pratinjau.layak, "text-emerald-700"],
                 ["Belum cukup usia", pratinjau.di_bawah_usia, "text-red-600"],
+                ["Perlu dicek (data tidak wajar)", pratinjau.perlu_dicek, "text-amber-600"],
                 ["Dikunci manual", pratinjau.dikunci_manual, "text-slate-500"],
               ].map(([label, n, warna]) => (
                 <div key={label} className="rounded-lg bg-slate-50 px-3 py-2">
@@ -157,7 +163,8 @@ export default async function PemilihPage({ searchParams }) {
           {dusunList.map((d) => <option key={d} value={d}>{d}</option>)}
         </select>
         <select name="status" defaultValue={fStatus} className={input}>
-          <option value="">Semua status</option>
+          <option value="">Tanpa yang tidak memenuhi syarat</option>
+          <option value="semua">Semua (termasuk tidak memenuhi)</option>
           {Object.entries(STATUS_VERIFIKASI).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
         <button className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50">Terapkan</button>
@@ -180,7 +187,7 @@ export default async function PemilihPage({ searchParams }) {
             {tampil.map((r) => {
               const formId = `f-${r.id}`;
               return (
-                <tr key={r.id} className="align-top">
+                <tr key={`${r.id}-${r.status_verifikasi}-${r.tps_id ?? ""}-${r.catatan ?? ""}`} className="align-top">
                   <td className="px-3 py-2">
                     <p className="font-medium text-slate-800">{r.nama_lengkap}</p>
                     <p className="text-xs text-slate-400">{r.nik_samar} · {r.jenis_kelamin ?? "-"}</p>

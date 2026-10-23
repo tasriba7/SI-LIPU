@@ -1,0 +1,6 @@
+Perbaikan filter usia
+1. Jalankan supabase/migrations/0057_pilkades_filter_usia_perbaikan.sql (setelah 0056).
+2. Timpa: app/dashboard/pilkades/pemilih/page.js, app/dashboard/pilkades/actions.js
+3. Buka Daftar Pemilih (akun panitia) > "Terapkan filter usia" LAGI. Baris otomatis dihitung ulang
+   (keputusan manual tidak berubah). Yang berstatus kawin tetapi usia < 15 tahun jadi "Perlu dicek".
+4. Daftar kini menyembunyikan yang "tidak memenuhi syarat" secara bawaan; pilih "Semua" di filter status untuk melihatnya.
