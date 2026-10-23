@@ -1,0 +1,11 @@
+Sembunyikan yang di bawah batas usia + penjaga penetapan
+Prasyarat: 0056 dan 0057 sudah dijalankan.
+1. Jalankan supabase/migrations/0058_pilkades_penjaga_usia_penetapan.sql
+2. Timpa: lib/pilkades.js, app/dashboard/pilkades/pemilih/page.js, app/cetak/pilkades/page.js
+3. Hasil: Daftar Pemilih dan cetak DRAF tidak menampilkan siapa pun yang usianya < batas periode
+   (usia 16,9 tahun sampai 0). Pilih "Semua" di filter status bila perlu melihat mereka.
+4. Penetapan DPS/DPT ditolak bila masih ada "Memenuhi syarat" yang usianya kurang dari batas.
+5. DPS versi 1 yang memuat UJI COBA NAMA TIDAK berubah (arsip tetap). Setelah data benar
+   (terapkan ulang filter usia), tetapkan DPS versi 2; versi tertinggi yang berlaku.
+Catatan: batas yang dipakai tampilan adalah angka yang TERAKHIR DITERAPKAN ("Terapkan filter usia"),
+bawaan 17 bila belum pernah diterapkan.

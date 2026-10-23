@@ -4,7 +4,7 @@ import { jagaHalamanPilkades } from "@/lib/akses";
 import { getConfigDesa } from "@/lib/configDesa";
 import { adalahUuid } from "@/lib/validasiPengajuan";
 import {
-  ambilPeriode, ambilDaftarPemilih, ambilIsiArsip, hitungUmur, formatTanggal,
+  ambilPeriode, ambilDaftarPemilih, ambilIsiArsip, hitungUmur, formatTanggal, terlaluMuda,
   STATUS_VERIFIKASI, JENIS_DAFTAR_LABEL,
 } from "@/lib/pilkades";
 import TombolCetak from "./TombolCetak";
@@ -52,11 +52,13 @@ export default async function CetakPilkades({ searchParams }) {
     sumber = (data ?? []).map((r) => ({ ...r, tps: tpsNama[r.tps_id] ?? null }));
   }
 
+  const acuan = periode.tanggal_pemungutan ? new Date(periode.tanggal_pemungutan) : new Date();
   const namaTpsDipilih = fTps && fTps !== "none" ? tpsNama[fTps] : null;
   const baris = sumber.filter(
     (r) =>
       (!fTps || (fTps === "none" ? !r.tps : r.tps === namaTpsDipilih)) &&
       (!fDusun || r.dusun === fDusun) &&
+      (arsip || !terlaluMuda(r, periode, acuan)) && // draf tidak mencetak yang belum cukup usia
       (arsip || fStatus === "semua" || r.status_verifikasi === fStatus)
   );
 
@@ -69,7 +71,6 @@ export default async function CetakPilkades({ searchParams }) {
     p_detail: `${arsip ? `${arsip.jenis} versi ${arsip.versi}` : "Draf"} · ${sasaran} · ${baris.length} pemilih`,
   });
 
-  const acuan = periode.tanggal_pemungutan ? new Date(periode.tanggal_pemungutan) : new Date();
   const per = BARIS_PER_KOLOM * KOLOM_PER_HALAMAN;
   const jumlahHal = Math.max(1, Math.ceil(baris.length / per));
   const halaman = Array.from({ length: jumlahHal }, (_, i) => baris.slice(i * per, (i + 1) * per));

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
 import {
-  ambilPeriode, ambilDaftarPemilih, hitungUmur, formatTanggal, STATUS_VERIFIKASI, STATUS_BADGE_CLASS,
+  ambilPeriode, ambilDaftarPemilih, hitungUmur, formatTanggal, terlaluMuda, STATUS_VERIFIKASI, STATUS_BADGE_CLASS,
 } from "@/lib/pilkades";
 import { ambilCalonPemilih, simpanPemilih, terapkanFilterUsia } from "../actions";
 
@@ -34,6 +34,7 @@ export default async function PemilihPage({ searchParams }) {
     pratinjau = Array.isArray(data) ? data[0] : data;
   }
 
+  const acuan = periode.tanggal_pemungutan ? new Date(periode.tanggal_pemungutan) : new Date();
   const dusunList = [...new Set((semua ?? []).map((r) => r.dusun).filter(Boolean))].sort();
   const cari = (sp.cari ?? "").toString().toLowerCase();
   const fDusun = sp.dusun ?? "";
@@ -43,16 +44,19 @@ export default async function PemilihPage({ searchParams }) {
       (!cari || r.nama_lengkap.toLowerCase().includes(cari)) &&
       (!fDusun || r.dusun === fDusun) &&
       (fStatus === "semua" ||
-        (fStatus ? r.status_verifikasi === fStatus : r.status_verifikasi !== "tidak_memenuhi"))
+        (fStatus
+          ? r.status_verifikasi === fStatus
+          : r.status_verifikasi !== "tidak_memenuhi" && !terlaluMuda(r, periode, acuan)))
   );
   // Secara bawaan nama yang "tidak memenuhi syarat" (mis. belum cukup usia) disembunyikan.
   const jumlahDisembunyikan = fStatus
     ? 0
-    : (semua ?? []).filter((r) => r.status_verifikasi === "tidak_memenuhi").length;
+    : (semua ?? []).filter(
+        (r) => r.status_verifikasi === "tidak_memenuhi" || terlaluMuda(r, periode, acuan)
+      ).length;
   const halaman = Math.max(1, parseInt(sp.hal ?? "1", 10) || 1);
   const totalHal = Math.max(1, Math.ceil(hasil.length / PER_HALAMAN));
   const tampil = hasil.slice((halaman - 1) * PER_HALAMAN, halaman * PER_HALAMAN);
-  const acuan = periode.tanggal_pemungutan ? new Date(periode.tanggal_pemungutan) : new Date();
 
   const qs = (o) => {
     const p = new URLSearchParams({ cari: sp.cari ?? "", dusun: fDusun, status: fStatus, ...o });
@@ -67,7 +71,7 @@ export default async function PemilihPage({ searchParams }) {
         <div>
           <h1 className="text-lg font-bold text-slate-800">Daftar Pemilih &mdash; {periode.nama}</h1>
           <p className="text-sm text-slate-500">
-            {hasil.length} calon pemilih ditampilkan{jumlahDisembunyikan > 0 ? ` (${jumlahDisembunyikan} tidak memenuhi syarat disembunyikan)` : ""}. Umur dihitung pada tanggal pemungutan
+            {hasil.length} calon pemilih ditampilkan{jumlahDisembunyikan > 0 ? ` (${jumlahDisembunyikan} belum cukup usia / tidak memenuhi syarat disembunyikan)` : ""}. Umur dihitung pada tanggal pemungutan
             {periode.tanggal_pemungutan ? "" : " (belum diisi, memakai hari ini)"}. Penentuan
             &ldquo;memenuhi syarat&rdquo; mengikuti aturan Pilkades daerah, dilakukan manual oleh panitia.
           </p>
