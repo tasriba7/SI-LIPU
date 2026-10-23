@@ -126,7 +126,8 @@ export default function LoginModal({ open, onClose }) {
             ))}
           </div>
 
-          <form action={formAction} className="space-y-4">
+          <form key={pintu} action={formAction} className="space-y-4">
+            <input type="hidden" name="pintu" value={pintu} />
             <div>
               <label className="mb-1 block text-sm text-slate-600">
                 Email
@@ -152,7 +153,7 @@ export default function LoginModal({ open, onClose }) {
               />
             </div>
 
-            {state?.error && (
+            {state?.error && state?.pintu === pintu && (
               <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
                 {state.error}
               </p>

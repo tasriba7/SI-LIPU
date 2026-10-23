@@ -4,17 +4,20 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Server Action untuk login ADMIN/PETUGAS DESA dan PANITIA PILKADES.
- * Satu sistem login yang sama; tujuan setelah login ditentukan oleh ROLE di
- * database (bukan tombol/pintu yang diklik). Field "via" hanya mengubah
- * tampilan popup.
+ * Server Action login. Satu sistem akun (Supabase Auth + profiles), tetapi
+ * dua pintu yang KETAT menurut role di database:
+ *  - pintu "panitia": hanya akun role panitia_pilkades yang boleh masuk.
+ *  - pintu "desa"   : akun panitia_pilkades ditolak (harus lewat pintu panitia).
+ * Tanpa field "pintu" (mis. halaman /login lama): masuk sesuai role.
+ * Penolakan dilakukan SETELAH password benar lalu sesi langsung ditutup.
  */
 export async function login(prevState, formData) {
   const email = formData.get("email");
   const password = formData.get("password");
+  const pintu = formData.get("pintu"); // "panitia" | "desa" | null
 
   if (!email || !password) {
-    return { error: "Email dan kata sandi wajib diisi." };
+    return { error: "Email dan kata sandi wajib diisi.", pintu };
   }
 
   const supabase = await createClient();
@@ -24,7 +27,13 @@ export async function login(prevState, formData) {
   });
 
   if (error) {
-    return { error: "Email atau kata sandi salah. Coba lagi." };
+    return {
+      pintu,
+      error:
+        pintu === "panitia"
+          ? "Email atau kata sandi salah, atau akun Panitia Pilkades belum dibuat. Akun panitia dibuat oleh Administrator desa."
+          : "Email atau kata sandi salah. Coba lagi.",
+    };
   }
 
   const { data: profil } = await supabase
@@ -32,8 +41,25 @@ export async function login(prevState, formData) {
     .select("role")
     .eq("id", data.user.id)
     .maybeSingle();
+  const role = profil?.role ?? null;
+  const adalahPanitia = role === "panitia_pilkades";
 
-  redirect(
-    profil?.role === "panitia_pilkades" ? "/dashboard/pilkades" : "/dashboard"
-  );
+  if (pintu === "panitia" && !adalahPanitia) {
+    await supabase.auth.signOut();
+    return {
+      pintu,
+      error:
+        "Akun ini bukan akun Panitia Pilkades. Gunakan tab \"Perangkat Desa\" untuk akun admin/perangkat desa, atau minta Administrator membuatkan akun panitia.",
+    };
+  }
+  if (pintu === "desa" && adalahPanitia) {
+    await supabase.auth.signOut();
+    return {
+      pintu,
+      error:
+        "Ini akun Panitia Pilkades. Silakan masuk lewat tab \"Panitia Pilkades\".",
+    };
+  }
+
+  redirect(adalahPanitia ? "/dashboard/pilkades" : "/dashboard");
 }
