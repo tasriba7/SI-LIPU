@@ -4,10 +4,10 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 /**
- * Server Action untuk login ADMIN/PETUGAS DESA.
- * Tidak ada pendaftaran publik — akun dibuat manual oleh superadmin lewat
- * Supabase Dashboard (lihat supabase/migrations/0001_init_profiles.sql).
- * Dipanggil dari <form action={login}> di app/login/page.js.
+ * Server Action untuk login ADMIN/PETUGAS DESA dan PANITIA PILKADES.
+ * Satu sistem login yang sama; tujuan setelah login ditentukan oleh ROLE di
+ * database (bukan tombol/pintu yang diklik). Field "via" hanya mengubah
+ * tampilan popup.
  */
 export async function login(prevState, formData) {
   const email = formData.get("email");
@@ -18,7 +18,7 @@ export async function login(prevState, formData) {
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -27,5 +27,13 @@ export async function login(prevState, formData) {
     return { error: "Email atau kata sandi salah. Coba lagi." };
   }
 
-  redirect("/dashboard");
+  const { data: profil } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .maybeSingle();
+
+  redirect(
+    profil?.role === "panitia_pilkades" ? "/dashboard/pilkades" : "/dashboard"
+  );
 }

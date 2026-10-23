@@ -9,6 +9,7 @@ import RingkasanPelayanan from "@/components/dashboard/RingkasanPelayanan";
 import { ambilPemberitahuanLayanan } from "@/lib/pemberitahuanLayanan";
 import PemberitahuanLayanan from "@/components/dashboard/PemberitahuanLayanan";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { grupUntukRole } from "@/lib/menuDashboard";
 import { createClient } from "@/lib/supabase/server";
 import { ringkasKolomKosong } from "@/lib/kelengkapan";
@@ -70,6 +71,7 @@ export default async function DashboardPage() {
     ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
     : { data: null };
   const peran = profilSaya?.role ?? null;
+  if (peran === "panitia_pilkades") redirect("/dashboard/pilkades");
   // Kartu modul dikelompokkan sama persis dengan sidebar (lib/menuDashboard.js).
   const grupModul = grupUntukRole(peran);
 

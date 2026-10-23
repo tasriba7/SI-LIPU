@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { ambilPemberitahuanLayanan } from "@/lib/pemberitahuanLayanan";
@@ -19,6 +20,15 @@ export default async function DashboardLayout({ children }) {
     .select("nama, role, jabatan, dusun")
     .eq("id", user.id)
     .single();
+
+  // Panitia Pilkades hanya boleh berada di /dashboard/pilkades. Halaman lain
+  // dialihkan (lapisan kedua; lapisan utama tetap RLS database).
+  if (profile?.role === "panitia_pilkades") {
+    const path = (await headers()).get("x-pathname");
+    if (path && !path.startsWith("/dashboard/pilkades")) {
+      redirect("/dashboard/pilkades");
+    }
+  }
 
   // Jumlah pendaftaran akun yang menunggu -> badge notifikasi di sidebar.
   const { count: jumlahPendaftaran } = await supabase

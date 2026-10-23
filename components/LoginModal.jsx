@@ -29,6 +29,10 @@ function TombolLogin() {
  */
 export default function LoginModal({ open, onClose }) {
   const [state, formAction] = useActionState(login, {});
+  // Pintu masuk: hanya mengubah tampilan. Tujuan setelah login ditentukan role
+  // di database (lihat app/login/actions.js), bukan pilihan ini.
+  const [pintu, setPintu] = useState("desa");
+  const panitia = pintu === "panitia";
 
   // Portal butuh `document`, yang cuma ada di browser (bukan saat SSR).
   // `mounted` memastikan createPortal baru dipanggil setelah komponen
@@ -94,11 +98,33 @@ export default function LoginModal({ open, onClose }) {
             id="login-modal-title"
             className="text-center text-xl font-bold text-navy"
           >
-            Beranda Login
+            {panitia ? "Login Panitia Pilkades" : "Beranda Login"}
           </h1>
-          <p className="mb-6 mt-1 text-center text-sm text-slate-500">
-            Masukkan Username dan Password anda.
+          <p className="mt-1 text-center text-sm text-slate-500">
+            {panitia
+              ? "Akun panitia dibuat oleh Administrator desa."
+              : "Masukkan Username dan Password anda."}
           </p>
+
+          <div className="mb-5 mt-4 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 text-sm">
+            {[
+              ["desa", "Perangkat Desa"],
+              ["panitia", "Panitia Pilkades"],
+            ].map(([kunci, label]) => (
+              <button
+                key={kunci}
+                type="button"
+                onClick={() => setPintu(kunci)}
+                className={`rounded-md py-1.5 font-medium transition ${
+                  pintu === kunci
+                    ? "bg-white text-navy shadow-sm"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
           <form action={formAction} className="space-y-4">
             <div>

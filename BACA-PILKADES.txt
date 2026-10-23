@@ -1,0 +1,24 @@
+Fitur Pilkades tahap 1 - cara pasang
+1. Jalankan supabase/migrations/0051_pilkades_dasar.sql di Supabase SQL Editor
+   (menambah role panitia_pilkades, tabel pilkades_periode/tps/pemilih, RLS,
+   dan 2 fungsi baca/ambil data pemilih dengan kolom terbatas).
+2. Timpa/tambahkan file (path sama) dari paket ini:
+   - supabase/migrations/0051_pilkades_dasar.sql
+   - lib/roles.js, lib/akses.js, lib/menuDashboard.js, lib/pilkades.js
+   - lib/supabase/middleware.js
+   - app/login/actions.js, components/LoginModal.jsx
+   - app/dashboard/layout.js, app/dashboard/page.js
+   - app/dashboard/pilkades/**  (beranda, periode, pemilih, tps, cetak)
+   - app/cetak/pilkades/**      (halaman cetak F4 lanskap)
+3. npm run dev. Login sebagai admin -> menu "Pilkades" muncul di sidebar.
+4. Alur uji:
+   a. Admin: Pilkades > Periode > buat periode (isi tanggal pemungutan), Jadikan aktif.
+   b. Admin: Akun Staf > buat akun role "Panitia Pilkades".
+   c. Logout, buka popup login > tab "Panitia Pilkades" > masuk dengan akun panitia.
+      Panitia hanya melihat menu Pilkades.
+   d. TPS: tambah TPS. Daftar Pemilih: klik "Ambil calon pemilih dari data warga",
+      lalu tandai status + TPS per orang.
+   e. Cetak Daftar: pilih TPS/status > pratinjau > Cetak (F4, lanskap, margin minimum).
+Catatan: panitia TIDAK punya akses ke tabel warga/keluarga; hanya lewat fungsi
+pilkades_daftar_pemilih() (NIK disamarkan, tanpa no_hp). Cetakan masih bertanda
+air DRAF karena arsip DPS/DPT belum dibuat.
