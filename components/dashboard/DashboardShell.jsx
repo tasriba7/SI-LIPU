@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { IconMenu, IconClose, IconHome, IconLogout } from "@/components/icons";
-import { ROLE_BADGE_CLASS, bisaMenulis, labelJabatan } from "@/lib/roles";
+import { ROLE_BADGE_CLASS, bisaMenulis, isPanitiaPilkades, labelJabatan } from "@/lib/roles";
 import { grupUntukRole, cariHrefAktif } from "@/lib/menuDashboard";
 
 function sapaanWaktu(jam) {
@@ -121,7 +121,9 @@ export default function DashboardShell({
   }
 
   const tanpaProfil = !profile?.role;
-  const hanyaLihat = !tanpaProfil && !bisaMenulis(profile?.role);
+  // Panitia Pilkades bukan "hanya lihat": hak tulisnya ada di modul Pilkades.
+  const hanyaLihat =
+    !tanpaProfil && !bisaMenulis(profile?.role) && !isPanitiaPilkades(profile?.role);
 
   return (
     <div className="min-h-screen bg-slate-50 md:flex">
