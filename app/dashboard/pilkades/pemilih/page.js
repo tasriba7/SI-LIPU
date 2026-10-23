@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import {
-  ambilPeriode, hitungUmur, STATUS_VERIFIKASI, STATUS_BADGE_CLASS,
+  ambilPeriode, ambilDaftarPemilih, hitungUmur, STATUS_VERIFIKASI, STATUS_BADGE_CLASS,
 } from "@/lib/pilkades";
 import { ambilCalonPemilih, simpanPemilih } from "../actions";
 
@@ -15,7 +15,7 @@ export default async function PemilihPage({ searchParams }) {
   if (!periode) return <p className="text-sm text-slate-500">Belum ada periode Pilkades.</p>;
 
   const [{ data: semua, error }, { data: tps }] = await Promise.all([
-    supabase.rpc("pilkades_daftar_pemilih", { p_periode: periode.id }),
+    ambilDaftarPemilih(supabase, periode.id),
     supabase.from("pilkades_tps").select("id, nama").eq("periode_id", periode.id).order("nama"),
   ]);
 

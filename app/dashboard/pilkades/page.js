@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { ambilPeriode, formatTanggal, STATUS_VERIFIKASI } from "@/lib/pilkades";
+import { ambilPeriode, formatTanggal, STATUS_VERIFIKASI, JENIS_DAFTAR_LABEL } from "@/lib/pilkades";
 
 export const metadata = { title: "Pilkades" };
 
@@ -43,6 +43,13 @@ export default async function BerandaPilkades() {
     .eq("status_verifikasi", "memenuhi_syarat")
     .is("tps_id", null);
 
+  const { data: arsip } = await supabase
+    .from("pilkades_daftar_tetap")
+    .select("id, jenis, versi, tanggal_penetapan, jumlah")
+    .eq("periode_id", periode.id)
+    .order("created_at", { ascending: false });
+  const terakhir = ["DPS", "DPT"].map((j) => (arsip ?? []).find((a) => a.jenis === j) ?? { jenis: j });
+
   const kartu = [
     ["Calon pemilih", total, "text-slate-800"],
     ...Object.entries(STATUS_VERIFIKASI).map(([k, label], i) => [label, perStatus[i], "text-slate-800"]),
@@ -68,6 +75,25 @@ export default async function BerandaPilkades() {
           lalu klik &ldquo;Ambil calon pemilih dari data warga&rdquo;.
         </div>
       )}
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        {terakhir.map((a) => (
+          <Link
+            key={a.jenis}
+            href={a.id ? `/dashboard/pilkades/daftar/${a.id}` : "/dashboard/pilkades/daftar"}
+            className="rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-slate-300"
+          >
+            <p className="text-xs text-slate-500">{JENIS_DAFTAR_LABEL[a.jenis]}</p>
+            {a.id ? (
+              <p className="mt-1 text-sm text-slate-800">
+                <b>Versi {a.versi}</b> · {a.jumlah} pemilih · {formatTanggal(a.tanggal_penetapan)}
+              </p>
+            ) : (
+              <p className="mt-1 text-sm text-slate-400">Belum ditetapkan</p>
+            )}
+          </Link>
+        ))}
+      </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         {kartu.map(([label, angka, warna]) => (

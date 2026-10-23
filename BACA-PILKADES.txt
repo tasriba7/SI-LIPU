@@ -22,3 +22,20 @@ Fitur Pilkades tahap 1 - cara pasang
 Catatan: panitia TIDAK punya akses ke tabel warga/keluarga; hanya lewat fungsi
 pilkades_daftar_pemilih() (NIK disamarkan, tanpa no_hp). Cetakan masih bertanda
 air DRAF karena arsip DPS/DPT belum dibuat.
+
+=== TAHAP 2: DPS/DPT berarsip + Riwayat ===
+1. Jalankan supabase/migrations/0052_pilkades_dps_dpt_arsip.sql di Supabase SQL Editor
+   (SETELAH 0051).
+2. Timpa/tambahkan file:
+   - supabase/migrations/0052_pilkades_dps_dpt_arsip.sql
+   - lib/pilkades.js, lib/menuDashboard.js
+   - app/dashboard/pilkades/actions.js, page.js
+   - app/dashboard/pilkades/daftar/**   (DPS & DPT, detail arsip)
+   - app/dashboard/pilkades/riwayat/**
+   - app/dashboard/pilkades/pemilih/page.js, cetak/page.js
+   - app/cetak/pilkades/page.js
+3. Alur uji: tandai beberapa pemilih "Memenuhi syarat" + TPS > DPS & DPT >
+   Tetapkan DPS > ubah status satu pemilih > buka arsip DPS (isinya TIDAK berubah) >
+   Cetak daftar > sumber "DPS versi 1" (tanpa tanda air DRAF) > cek Riwayat Aktivitas.
+Catatan: arsip dan riwayat hanya bisa dibaca lewat API (tidak ada ubah/hapus).
+Koreksi = tetapkan versi baru. Daftar >1000 orang kini tidak terpotong.

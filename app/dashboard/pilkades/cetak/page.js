@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { ambilPeriode, STATUS_VERIFIKASI } from "@/lib/pilkades";
+import { ambilPeriode, ambilDaftarPemilih, formatTanggal, STATUS_VERIFIKASI, JENIS_DAFTAR_LABEL } from "@/lib/pilkades";
 
 export const metadata = { title: "Cetak Daftar Pemilih" };
 
@@ -8,9 +8,14 @@ export default async function PilihanCetak() {
   const periode = await ambilPeriode(supabase);
   if (!periode) return <p className="text-sm text-slate-500">Belum ada periode Pilkades.</p>;
 
-  const [{ data: tps }, { data: pemilih }] = await Promise.all([
+  const [{ data: tps }, { data: pemilih }, { data: arsip }] = await Promise.all([
     supabase.from("pilkades_tps").select("id, nama").eq("periode_id", periode.id).order("nama"),
-    supabase.rpc("pilkades_daftar_pemilih", { p_periode: periode.id }),
+    ambilDaftarPemilih(supabase, periode.id),
+    supabase
+      .from("pilkades_daftar_tetap")
+      .select("id, jenis, versi, tanggal_penetapan")
+      .eq("periode_id", periode.id)
+      .order("created_at", { ascending: false }),
   ]);
   const dusunList = [...new Set((pemilih ?? []).map((r) => r.dusun).filter(Boolean))].sort();
   const input = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy";
@@ -20,12 +25,23 @@ export default async function PilihanCetak() {
       <div>
         <h1 className="text-lg font-bold text-slate-800">Cetak Daftar Pemilih</h1>
         <p className="text-sm text-slate-500">
-          Kertas F4 lanskap (330 x 215 mm), dua kolom berdampingan, margin 6 mm. Selama arsip DPS/DPT
-          belum dibuat, semua cetakan diberi tanda air &ldquo;DRAF&rdquo;.
+          Kertas F4 lanskap (330 x 215 mm), dua kolom berdampingan, margin 6 mm. Cetakan dari
+          &ldquo;Draf terkini&rdquo; bertanda air DRAF; cetakan dari arsip DPS/DPT adalah daftar resmi.
         </p>
       </div>
 
       <form action="/cetak/pilkades" target="_blank" className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <label className="block text-sm text-slate-600">
+          Sumber daftar
+          <select name="daftar" className={input} defaultValue="">
+            <option value="">Draf terkini (data verifikasi saat ini)</option>
+            {(arsip ?? []).map((a) => (
+              <option key={a.id} value={a.id}>
+                {JENIS_DAFTAR_LABEL[a.jenis]} versi {a.versi} (ditetapkan {formatTanggal(a.tanggal_penetapan)})
+              </option>
+            ))}
+          </select>
+        </label>
         <label className="block text-sm text-slate-600">
           TPS
           <select name="tps" className={input} defaultValue="">
@@ -42,7 +58,7 @@ export default async function PilihanCetak() {
           </select>
         </label>
         <label className="block text-sm text-slate-600">
-          Status
+          Status (hanya berlaku untuk draf; arsip selalu berisi yang memenuhi syarat)
           <select name="status" className={input} defaultValue="memenuhi_syarat">
             {Object.entries(STATUS_VERIFIKASI).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             <option value="semua">Semua status</option>

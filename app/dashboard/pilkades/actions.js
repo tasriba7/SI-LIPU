@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { pastikanAdmin, pastikanKelolaPilkades } from "@/lib/akses";
 import { adalahUuid } from "@/lib/validasiPengajuan";
@@ -87,4 +88,44 @@ export async function hapusTps(formData) {
   if (!adalahUuid(id)) return;
   await supabase.from("pilkades_tps").delete().eq("id", id);
   revalidatePath("/dashboard/pilkades", "layout");
+}
+
+/**
+ * Tetapkan DPS/DPT: salin pemilih berstatus "memenuhi syarat" menjadi arsip
+ * yang tidak bisa diubah. Dipakai lewat useActionState (mengembalikan {error}).
+ */
+export async function tetapkanDaftar(prevState, formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return { error: cek.error };
+
+  const periodeId = String(formData.get("periode_id") ?? "");
+  const jenis = String(formData.get("jenis") ?? "");
+  const tanggal = String(formData.get("tanggal_penetapan") ?? "");
+  const nomor = String(formData.get("nomor_berita_acara") ?? "").trim().slice(0, 100);
+  const catatan = String(formData.get("catatan") ?? "").trim().slice(0, 300);
+
+  if (!adalahUuid(periodeId)) return { error: "Periode tidak valid." };
+  if (jenis !== "DPS" && jenis !== "DPT") return { error: "Jenis daftar tidak valid." };
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)) return { error: "Tanggal penetapan wajib diisi." };
+  if (formData.get("konfirmasi") !== "ya") {
+    return { error: "Centang pernyataan bahwa daftar tidak bisa diubah setelah ditetapkan." };
+  }
+
+  const { data, error } = await supabase.rpc("pilkades_tetapkan_daftar", {
+    p_periode: periodeId,
+    p_jenis: jenis,
+    p_tanggal: tanggal,
+    p_nomor: nomor,
+    p_catatan: catatan,
+  });
+
+  if (error || !data) {
+    // Pesan dari fungsi database (P0001) sudah berbahasa Indonesia dan aman ditampilkan.
+    const aman = error?.code === "P0001" ? error.message : null;
+    return { error: aman ?? "Gagal menetapkan daftar. Pastikan migrasi 0052 sudah dijalankan." };
+  }
+
+  revalidatePath("/dashboard/pilkades", "layout");
+  redirect(`/dashboard/pilkades/daftar/${data}`);
 }

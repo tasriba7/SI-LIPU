@@ -2,7 +2,11 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { jagaHalamanPilkades } from "@/lib/akses";
 import { getConfigDesa } from "@/lib/configDesa";
-import { ambilPeriode, hitungUmur, formatTanggal, STATUS_VERIFIKASI } from "@/lib/pilkades";
+import { adalahUuid } from "@/lib/validasiPengajuan";
+import {
+  ambilPeriode, ambilDaftarPemilih, ambilIsiArsip, hitungUmur, formatTanggal,
+  STATUS_VERIFIKASI, JENIS_DAFTAR_LABEL,
+} from "@/lib/pilkades";
 import TombolCetak from "./TombolCetak";
 
 export const metadata = { title: "Cetak Daftar Pemilih" };
@@ -17,35 +21,64 @@ export default async function CetakPilkades({ searchParams }) {
   const periode = await ambilPeriode(supabase);
   if (!periode) redirect("/dashboard/pilkades");
 
-  const [{ data: semua }, { data: tpsList }, desa] = await Promise.all([
-    supabase.rpc("pilkades_daftar_pemilih", { p_periode: periode.id }),
-    supabase.from("pilkades_tps").select("id, nama, lokasi").eq("periode_id", periode.id),
-    getConfigDesa(supabase),
-  ]);
-
+  const { data: tpsList } = await supabase
+    .from("pilkades_tps")
+    .select("id, nama, lokasi")
+    .eq("periode_id", periode.id);
+  const desa = await getConfigDesa(supabase);
   const tpsNama = Object.fromEntries((tpsList ?? []).map((t) => [t.id, t.nama]));
+
   const fTps = sp.tps ?? "";
   const fDusun = sp.dusun ?? "";
-  const fStatus = sp.status ?? "memenuhi_syarat"; // "semua" = tanpa filter status
+  const fStatus = sp.status ?? "memenuhi_syarat"; // hanya untuk draf
   const tampilNik = sp.nik === "1";
 
-  const baris = (semua ?? []).filter(
+  // Sumber data: ARSIP (daftar resmi, salinan tetap) atau DRAF (data terkini).
+  const arsipId = adalahUuid(sp.daftar) ? sp.daftar : null;
+  let arsip = null;
+  let sumber = [];
+  if (arsipId) {
+    const { data: head } = await supabase
+      .from("pilkades_daftar_tetap")
+      .select("id, jenis, versi, tanggal_penetapan, nomor_berita_acara")
+      .eq("id", arsipId)
+      .maybeSingle();
+    if (!head) redirect("/dashboard/pilkades/daftar");
+    arsip = head;
+    const { data } = await ambilIsiArsip(supabase, arsipId);
+    sumber = (data ?? []).map((r) => ({ ...r, tps: r.tps_nama }));
+  } else {
+    const { data } = await ambilDaftarPemilih(supabase, periode.id);
+    sumber = (data ?? []).map((r) => ({ ...r, tps: tpsNama[r.tps_id] ?? null }));
+  }
+
+  const namaTpsDipilih = fTps && fTps !== "none" ? tpsNama[fTps] : null;
+  const baris = sumber.filter(
     (r) =>
-      (!fTps || (fTps === "none" ? !r.tps_id : r.tps_id === fTps)) &&
+      (!fTps || (fTps === "none" ? !r.tps : r.tps === namaTpsDipilih)) &&
       (!fDusun || r.dusun === fDusun) &&
-      (fStatus === "semua" || r.status_verifikasi === fStatus)
+      (arsip || fStatus === "semua" || r.status_verifikasi === fStatus)
   );
+
+  // Catat pencetakan di Riwayat Aktivitas.
+  const sasaran = [namaTpsDipilih ?? (fTps === "none" ? "Belum punya TPS" : null), fDusun && `Dusun ${fDusun}`]
+    .filter(Boolean).join(" · ") || "Seluruh desa";
+  await supabase.rpc("pilkades_catat", {
+    p_periode: periode.id,
+    p_aksi: arsip ? "cetak_arsip" : "cetak_draf",
+    p_detail: `${arsip ? `${arsip.jenis} versi ${arsip.versi}` : "Draf"} · ${sasaran} · ${baris.length} pemilih`,
+  });
 
   const acuan = periode.tanggal_pemungutan ? new Date(periode.tanggal_pemungutan) : new Date();
   const per = BARIS_PER_KOLOM * KOLOM_PER_HALAMAN;
   const jumlahHal = Math.max(1, Math.ceil(baris.length / per));
   const halaman = Array.from({ length: jumlahHal }, (_, i) => baris.slice(i * per, (i + 1) * per));
 
-  const judulTps =
-    fTps && fTps !== "none" ? tpsList?.find((t) => t.id === fTps) : null;
-  const sasaran = [judulTps?.nama, fDusun && `Dusun ${fDusun}`].filter(Boolean).join(" · ") || "Seluruh desa";
-  const cetakPada = new Date().toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short" });
+  const cetakPada = new Date().toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short", timeZone: "Asia/Makassar" });
   const namaDesa = `${desa.jenis_wilayah ?? "Desa"} ${desa.nama_desa ?? ""}`.trim();
+  const judul = arsip
+    ? `${JENIS_DAFTAR_LABEL[arsip.jenis].toUpperCase()}`
+    : `DAFTAR PEMILIH${fStatus !== "memenuhi_syarat" && STATUS_VERIFIKASI[fStatus] ? ` (${STATUS_VERIFIKASI[fStatus].toUpperCase()})` : ""} — DRAF`;
 
   const Tabel = ({ rows, mulai }) => (
     <table className="tbl">
@@ -69,7 +102,7 @@ export default async function CetakPilkades({ searchParams }) {
             <td>{r.jenis_kelamin?.toString().trim().toUpperCase().startsWith("P") ? "P" : "L"}</td>
             <td>{hitungUmur(r.tanggal_lahir, acuan) ?? "-"}</td>
             <td>{[r.dusun, r.rt || r.rw ? `${r.rt ?? "-"}/${r.rw ?? "-"}` : null].filter(Boolean).join(", ")}</td>
-            <td>{tpsNama[r.tps_id] ?? "-"}</td>
+            <td>{r.tps ?? "-"}</td>
           </tr>
         ))}
       </tbody>
@@ -103,9 +136,9 @@ export default async function CetakPilkades({ searchParams }) {
 
       {halaman.map((isi, h) => (
         <section className="hal" key={h}>
-          <div className="tanda-air">DRAF</div>
+          {!arsip && <div className="tanda-air">DRAF</div>}
           <div className="kop">
-            <h1>DAFTAR PEMILIH {STATUS_VERIFIKASI[fStatus] && fStatus !== "memenuhi_syarat" ? `(${STATUS_VERIFIKASI[fStatus].toUpperCase()}) ` : ""}— DRAF</h1>
+            <h1>{judul}</h1>
             <p>{periode.nama.toUpperCase()} · {namaDesa.toUpperCase()}</p>
             <p>{sasaran} · Pemungutan suara: {formatTanggal(periode.tanggal_pemungutan)}</p>
           </div>
@@ -118,7 +151,9 @@ export default async function CetakPilkades({ searchParams }) {
           <div className="kaki">
             <div>
               Halaman {h + 1} dari {jumlahHal} · Jumlah dalam daftar ini: {baris.length} orang<br />
-              Dicetak: {cetakPada} · Belum ditetapkan sebagai DPS/DPT
+              {arsip
+                ? `${arsip.jenis} versi ${arsip.versi} · Ditetapkan ${formatTanggal(arsip.tanggal_penetapan)}${arsip.nomor_berita_acara ? ` · BA ${arsip.nomor_berita_acara}` : ""} · Dicetak ${cetakPada}`
+                : `Dicetak: ${cetakPada} · Draf, belum ditetapkan sebagai DPS/DPT`}
             </div>
             {h === jumlahHal - 1 && (
               <div className="ttd">
