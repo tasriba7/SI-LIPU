@@ -1,0 +1,6 @@
+TAHAP 3: Pengetatan hak tabel (hasil audit)
+1. Jalankan supabase/migrations/0053_cabut_hak_tabel_berlebih.sql di Supabase SQL Editor (setelah 0052).
+2. Jalankan supabase/verifikasi_0053.sql. Bagian 1 harus kosong, bagian 2 harus ada angka.
+3. Uji cepat: login admin, buka Data Warga & Pilkades; buka beranda publik tanpa login. Semuanya harus normal.
+4. Kirim hasil bagian 3 (tabel yang masih bisa ditulis anon) untuk tahap 4.
+Tidak ada perubahan kode aplikasi di tahap ini.
