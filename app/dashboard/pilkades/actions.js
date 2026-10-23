@@ -59,6 +59,7 @@ export async function simpanPemilih(formData) {
     .from("pilkades_pemilih")
     .update({
       status_verifikasi: status,
+      status_otomatis: false, // keputusan manual tidak ditimpa filter usia
       tps_id,
       catatan,
       diverifikasi_oleh: cek.user.id,
@@ -128,4 +129,31 @@ export async function tetapkanDaftar(prevState, formData) {
 
   revalidatePath("/dashboard/pilkades", "layout");
   redirect(`/dashboard/pilkades/daftar/${data}`);
+}
+
+/**
+ * Terapkan usia minimum ke calon pemilih. Hanya baris "belum diperiksa" atau
+ * yang sebelumnya diisi otomatis yang berubah; keputusan manual tidak ditimpa.
+ */
+export async function terapkanFilterUsia(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const periodeId = String(formData.get("periode_id") ?? "");
+  const usia = parseInt(String(formData.get("usia") ?? ""), 10);
+  const kawin = formData.get("kawin") === "1";
+  const tandai = formData.get("tandai") === "1";
+  if (!adalahUuid(periodeId) || !Number.isInteger(usia) || usia < 0 || usia > 120) return;
+  const { data, error } = await supabase.rpc("pilkades_terapkan_usia", {
+    p_periode: periodeId,
+    p_usia: usia,
+    p_kawin: kawin,
+    p_tandai_memenuhi: tandai,
+  });
+  revalidatePath("/dashboard/pilkades", "layout");
+  const h = Array.isArray(data) ? data[0] : data;
+  if (error || !h) redirect("/dashboard/pilkades/pemilih?filter=gagal");
+  redirect(
+    `/dashboard/pilkades/pemilih?filter=ok&m=${h.memenuhi}&t=${h.tidak_memenuhi}&b=${h.belum}`
+  );
 }

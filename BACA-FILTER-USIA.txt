@@ -1,0 +1,9 @@
+Pilkades: filter usia otomatis
+1. Jalankan supabase/migrations/0056_pilkades_filter_usia.sql (setelah 0055). WAJIB sebelum menimpa file,
+   karena tombol Simpan pemilih kini ikut menulis kolom baru.
+2. Timpa: lib/pilkades.js, app/dashboard/pilkades/actions.js, app/dashboard/pilkades/pemilih/page.js
+3. Uji (akun PANITIA): Daftar Pemilih > "Ambil calon pemilih" > panel "Saring otomatis berdasarkan usia"
+   > isi usia > "Lihat jumlah" (belum mengubah apa pun) > "Terapkan filter usia".
+   Akun ADMIN hanya melihat jumlah, tanpa tombol terapkan.
+Catatan: "sudah/pernah kawin" dibaca dari kolom status_kawin (terisi dan tidak diawali "belum"/"tidak").
+Cek dulu isi kolom itu di data Anda: select status_kawin, count(*) from warga group by 1;
