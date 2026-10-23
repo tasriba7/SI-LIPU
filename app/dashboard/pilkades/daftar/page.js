@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { ambilRole } from "@/lib/akses";
+import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode, formatTanggal, JENIS_DAFTAR_LABEL } from "@/lib/pilkades";
 import FormTetapkan from "./FormTetapkan";
 
@@ -8,6 +10,8 @@ export const metadata = { title: "DPS & DPT" };
 export default async function DaftarPage() {
   const supabase = await createClient();
   const periode = await ambilPeriode(supabase);
+  const { role } = await ambilRole(supabase);
+  const bisaUbah = bisaUbahPilkades(role);
   if (!periode) return <p className="text-sm text-slate-500">Belum ada periode Pilkades.</p>;
 
   const hitung = async (kolom, nilai, extra) => {
@@ -64,6 +68,13 @@ export default async function DaftarPage() {
         </div>
       )}
 
+      {!bisaUbah && (
+        <p className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-600">
+          Penetapan DPS/DPT dilakukan oleh Panitia Pilkades. Akun ini hanya dapat melihat arsip.
+        </p>
+      )}
+
+      {bisaUbah && (
       <div className="grid gap-4 md:grid-cols-2">
         <FormTetapkan periodeId={periode.id} jenis="DPS" jumlah={memenuhi} nonaktifAlasan={alasanKosong} />
         <FormTetapkan
@@ -73,6 +84,7 @@ export default async function DaftarPage() {
           nonaktifAlasan={alasanKosong ?? (adaDps ? null : "DPT hanya bisa ditetapkan setelah ada DPS.")}
         />
       </div>
+      )}
 
       <div>
         <h2 className="mb-2 text-sm font-semibold text-slate-700">Arsip daftar yang sudah ditetapkan</h2>

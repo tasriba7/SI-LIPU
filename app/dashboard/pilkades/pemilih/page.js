@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { ambilRole } from "@/lib/akses";
+import { bisaUbahPilkades } from "@/lib/roles";
 import {
   ambilPeriode, ambilDaftarPemilih, hitungUmur, STATUS_VERIFIKASI, STATUS_BADGE_CLASS,
 } from "@/lib/pilkades";
@@ -12,6 +14,8 @@ export default async function PemilihPage({ searchParams }) {
   const sp = await searchParams;
   const supabase = await createClient();
   const periode = await ambilPeriode(supabase);
+  const { role } = await ambilRole(supabase);
+  const bisaUbah = bisaUbahPilkades(role);
   if (!periode) return <p className="text-sm text-slate-500">Belum ada periode Pilkades.</p>;
 
   const [{ data: semua, error }, { data: tps }] = await Promise.all([
@@ -52,12 +56,14 @@ export default async function PemilihPage({ searchParams }) {
             &ldquo;memenuhi syarat&rdquo; mengikuti aturan Pilkades daerah, dilakukan manual oleh panitia.
           </p>
         </div>
+        {bisaUbah && (
         <form action={ambilCalonPemilih}>
           <input type="hidden" name="periode_id" value={periode.id} />
           <button className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-white hover:bg-navy-light">
             Ambil calon pemilih dari data warga
           </button>
         </form>
+        )}
       </div>
 
       {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">Gagal memuat daftar. Pastikan migrasi 0051 sudah dijalankan.</p>}
@@ -104,24 +110,26 @@ export default async function PemilihPage({ searchParams }) {
                     {r.rt || r.rw ? `RT ${r.rt ?? "-"} / RW ${r.rw ?? "-"}` : <span className="text-amber-600">RT/RW kosong</span>}
                   </td>
                   <td className="px-3 py-2">
-                    <select form={formId} name="status_verifikasi" defaultValue={r.status_verifikasi} className={`${input} ${STATUS_BADGE_CLASS[r.status_verifikasi]}`}>
+                    <select disabled={!bisaUbah} form={formId} name="status_verifikasi" defaultValue={r.status_verifikasi} className={`${input} ${STATUS_BADGE_CLASS[r.status_verifikasi]}`}>
                       {Object.entries(STATUS_VERIFIKASI).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
                   </td>
                   <td className="px-3 py-2">
-                    <select form={formId} name="tps_id" defaultValue={r.tps_id ?? ""} className={input}>
+                    <select disabled={!bisaUbah} form={formId} name="tps_id" defaultValue={r.tps_id ?? ""} className={input}>
                       <option value="">-</option>
                       {(tps ?? []).map((t) => <option key={t.id} value={t.id}>{t.nama}</option>)}
                     </select>
                   </td>
                   <td className="px-3 py-2">
-                    <input form={formId} name="catatan" defaultValue={r.catatan ?? ""} maxLength={300} className={`${input} w-40`} />
+                    <input readOnly={!bisaUbah} form={formId} name="catatan" defaultValue={r.catatan ?? ""} maxLength={300} className={`${input} w-40`} />
                   </td>
                   <td className="px-3 py-2">
-                    <form id={formId} action={simpanPemilih}>
-                      <input type="hidden" name="id" value={r.id} />
-                      <button className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-white hover:bg-navy-light">Simpan</button>
-                    </form>
+                    {bisaUbah && (
+                      <form id={formId} action={simpanPemilih}>
+                        <input type="hidden" name="id" value={r.id} />
+                        <button className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-white hover:bg-navy-light">Simpan</button>
+                      </form>
+                    )}
                   </td>
                 </tr>
               );

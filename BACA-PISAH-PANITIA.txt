@@ -1,0 +1,7 @@
+Pilkades: tugas panitia dipisah dari admin
+1. Pastikan 0054 sudah dijalankan, lalu jalankan supabase/migrations/0055_pilkades_pisah_admin_panitia.sql
+2. Timpa file (path sama): lib/roles.js, lib/akses.js,
+   app/dashboard/pilkades/pemilih/page.js, app/dashboard/pilkades/tps/page.js,
+   app/dashboard/pilkades/daftar/page.js
+3. Uji: login ADMIN -> Daftar Pemilih/TPS/DPS&DPT tampil tanpa tombol ubah; Periode tetap bisa dibuat.
+        login PANITIA -> bisa ambil calon pemilih, simpan, tambah TPS, tetapkan DPS/DPT; Periode hanya dibaca.

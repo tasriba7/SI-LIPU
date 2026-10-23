@@ -1,4 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
+import { ambilRole } from "@/lib/akses";
+import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode } from "@/lib/pilkades";
 import { tambahTps, hapusTps } from "../actions";
 
@@ -7,6 +9,8 @@ export const metadata = { title: "TPS Pilkades" };
 export default async function TpsPage() {
   const supabase = await createClient();
   const periode = await ambilPeriode(supabase);
+  const { role } = await ambilRole(supabase);
+  const bisaUbah = bisaUbahPilkades(role);
   if (!periode) return <p className="text-sm text-slate-500">Belum ada periode Pilkades.</p>;
 
   const { data: tps } = await supabase
@@ -33,12 +37,14 @@ export default async function TpsPage() {
         <p className="text-sm text-slate-500">Tempat pemungutan suara dan jumlah pemilih yang ditempatkan.</p>
       </div>
 
+      {bisaUbah && (
       <form action={tambahTps} className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-3">
         <input type="hidden" name="periode_id" value={periode.id} />
         <input name="nama" required placeholder="Nama TPS, mis. TPS 1" className={input} />
         <input name="lokasi" placeholder="Lokasi, mis. Balai Desa" className={input} />
         <button className="rounded-lg bg-navy py-2 text-sm font-medium text-white hover:bg-navy-light">Tambah TPS</button>
       </form>
+      )}
 
       <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white">
         {(tps ?? []).map((t) => (
@@ -49,10 +55,12 @@ export default async function TpsPage() {
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-slate-600">{jumlah[t.id]} pemilih</span>
-              <form action={hapusTps}>
-                <input type="hidden" name="id" value={t.id} />
-                <button className="text-xs text-red-500 hover:underline">Hapus</button>
-              </form>
+              {bisaUbah && (
+                <form action={hapusTps}>
+                  <input type="hidden" name="id" value={t.id} />
+                  <button className="text-xs text-red-500 hover:underline">Hapus</button>
+                </form>
+              )}
             </div>
           </li>
         ))}
