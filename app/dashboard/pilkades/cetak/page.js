@@ -99,6 +99,11 @@ export default async function PilihanCetak() {
         </form>
       </Kartu>
 
+      <Pesan jenis="info" judul="Berikutnya: Surat Undangan Memilih">
+        Setelah daftar ditempel, cetak surat undangan untuk tiap pemilih di DPT.{" "}
+        <Link href="/dashboard/pilkades/undangan" className="font-bold underline">Buka Surat Undangan →</Link>
+      </Pesan>
+
       <p className="text-sm text-slate-600">Info kertas: F4 lanskap (330 × 215 mm), dua kolom berdampingan, margin 6 mm.</p>
     </div>
   );

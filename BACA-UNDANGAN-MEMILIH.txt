@@ -1,0 +1,22 @@
+Pilkades: Surat Undangan Pemungutan Suara (surat panggilan memilih di TPS)
+PRASYARAT: DPT sudah ditetapkan (Langkah 5). Logo panitia (migrasi 0061) bersifat opsional.
+TIDAK ADA MIGRASI BARU.
+
+File: app/dashboard/pilkades/undangan/page.js (BARU), app/cetak/pilkades/undangan/page.js (BARU),
+      lib/pilkades.js, lib/menuDashboard.js, app/dashboard/pilkades/cetak/page.js (timpa).
+
+Letak di alur: menu "Surat Undangan Memilih" tepat setelah "6. Cetak Daftar" (dan ada tautan
+"Berikutnya" di halaman Cetak Daftar). Sebelum DPT ada, halaman mengarahkan ke Langkah 5.
+
+Isi surat (mengikuti contoh): logo panitia, judul, kalimat undangan, hari/tanggal, pukul, TPS,
+kotak "Cara memilih", tanda tangan Ketua, catatan, garis gunting, tanda terima (menyerahkan/menerima).
+Otomatis dari data: nama desa (Pengaturan Desa), logo (Logo Panitia), tanggal pemungutan (Periode),
+nama Ketua (Susunan Panitia), nama + nomor urut + NIK samar + TPS (DPT terbaru).
+Kertas: F4 atau A4 potret, 2 surat per lembar. Pilihan: per TPS, per dusun, jam, dan jumlah surat kosong
+(untuk DPTb/DPK, ditulis tangan).
+
+Uji: 1) buka menu, pilih TPS, "Buka Pratinjau Cetak"; 2) di dialog cetak pilih kertas sesuai pilihan,
+Potret, Margin Tidak ada, Skala 100%, Grafik latar belakang aktif; 3) cetak 1 lembar, cek garis
+gunting tidak terpotong dan 2 surat muat; 4) Riwayat mencatat "Cetak surat undangan memilih".
+Catatan: bagian tanggal surat ("..... November 2026") sengaja dikosongkan harinya untuk diisi tulis tangan.
+Teks "DPT/DPTb/DPK *)" dibiarkan seperti contoh agar bisa dicoret manual.
