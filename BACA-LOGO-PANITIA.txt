@@ -1,0 +1,18 @@
+Pilkades: Logo Panitia (tampil di kop dokumen cetak panitia)
+PRASYARAT: tahap C terpasang (cabang pilkades-hasil-berita-acara), migrasi 0055 sudah dijalankan.
+
+1. Jalankan supabase/migrations/0061_pilkades_logo_panitia.sql di Supabase SQL Editor, lalu
+   supabase/verifikasi_0061.sql. Harus: tabel pilkades_logo (rls true, authenticated hanya SELECT),
+   bucket pilkades-logo public=false, 4 policy storage berisi kata "logo", 1 fungsi.
+2. File: migrasi 0061, verifikasi_0061.sql, app/dashboard/pilkades/logo/page.js (BARU),
+   app/dashboard/pilkades/actions.js, lib/pilkades.js, lib/menuDashboard.js,
+   app/cetak/pilkades/page.js, app/cetak/pilkades/berita-acara/page.js (timpa).
+3. Uji (login PANITIA):
+   a. Menu "Logo Panitia" > unggah PNG kecil > tampil di "Logo saat ini".
+   b. File selain PNG/JPG/WEBP atau di atas 2 MB > ditolak dengan pesan.
+   c. Cetak Daftar Pemilih dan Berita Acara > logo muncul di kiri kop.
+   d. Ganti logo > logo baru tampil, berkas lama terhapus dari bucket. Hapus logo > cetakan tanpa logo.
+   e. Riwayat Aktivitas mencatat "Ubah logo panitia".
+   f. Login ADMIN: logo terlihat, tanpa form unggah; cetakan admin juga memuat logo.
+Catatan: satu logo per periode (periode baru perlu unggah lagi). Logo disimpan di bucket privat,
+jadi hanya admin/panitia yang login yang dapat melihatnya. Belum dijalankan di database mana pun.

@@ -5,7 +5,10 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { pastikanAdmin, pastikanKelolaPilkades } from "@/lib/akses";
 import { adalahUuid } from "@/lib/validasiPengajuan";
-import { STATUS_VERIFIKASI, STATUS_CALON, JABATAN_PANITIA, ambilDaftarPemilih } from "@/lib/pilkades";
+import {
+  STATUS_VERIFIKASI, STATUS_CALON, JABATAN_PANITIA, ambilDaftarPemilih,
+  BUCKET_LOGO_PILKADES, EKSTENSI_LOGO, MAKS_LOGO_MB,
+} from "@/lib/pilkades";
 
 // Semua action di sini memakai sesi login pemanggil (RLS tetap berlaku),
 // bukan kunci service_role. Cek role di server + RLS di database.
@@ -482,4 +485,51 @@ export async function batalkanPenetapan(formData) {
     redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent(pesan)}`);
   }
   redirect(`${ALAMAT_HASIL}?hasil=batal`);
+}
+
+/* =====================================================================
+ * LOGO PANITIA (migrasi 0061) — hanya panitia; admin hanya melihat.
+ * ===================================================================== */
+
+export async function simpanLogoPanitia(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const kembali = "/dashboard/pilkades/logo";
+  const periodeId = String(formData.get("periode_id") ?? "");
+  if (!adalahUuid(periodeId)) redirect(`${kembali}?hasil=gagal`);
+
+  const { data: lama } = await supabase.from("pilkades_logo").select("logo_path").eq("periode_id", periodeId).maybeSingle();
+
+  // Hapus logo
+  if (formData.get("hapus") === "1") {
+    if (!lama) redirect(`${kembali}?hasil=kosong`);
+    const { error } = await supabase.rpc("pilkades_simpan_logo", { p_periode: periodeId, p_path: null });
+    if (error) redirect(`${kembali}?hasil=gagal`);
+    await supabase.storage.from(BUCKET_LOGO_PILKADES).remove([lama.logo_path]);
+    revalidatePath("/dashboard/pilkades", "layout");
+    redirect(`${kembali}?hasil=hapus`);
+  }
+
+  // Unggah / ganti logo
+  const file = formData.get("logo");
+  if (!file || typeof file !== "object" || !file.size) redirect(`${kembali}?hasil=kosong`);
+  const ekstensi = (file.name?.split(".").pop() || "").toLowerCase();
+  if (!EKSTENSI_LOGO.includes(ekstensi)) redirect(`${kembali}?hasil=format`);
+  if (file.size > MAKS_LOGO_MB * 1024 * 1024) redirect(`${kembali}?hasil=besar`);
+
+  const path = `${periodeId}/logo-${Date.now()}.${ekstensi}`;
+  const { error: errUnggah } = await supabase.storage
+    .from(BUCKET_LOGO_PILKADES)
+    .upload(path, file, { contentType: file.type || undefined });
+  if (errUnggah) redirect(`${kembali}?hasil=gagal`);
+
+  const { error } = await supabase.rpc("pilkades_simpan_logo", { p_periode: periodeId, p_path: path });
+  if (error) {
+    await supabase.storage.from(BUCKET_LOGO_PILKADES).remove([path]); // jangan tinggalkan berkas yatim
+    redirect(`${kembali}?hasil=gagal`);
+  }
+  if (lama?.logo_path) await supabase.storage.from(BUCKET_LOGO_PILKADES).remove([lama.logo_path]);
+  revalidatePath("/dashboard/pilkades", "layout");
+  redirect(`${kembali}?hasil=ok`);
 }

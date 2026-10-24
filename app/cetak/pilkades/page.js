@@ -5,7 +5,7 @@ import { getConfigDesa } from "@/lib/configDesa";
 import { adalahUuid } from "@/lib/validasiPengajuan";
 import {
   ambilPeriode, ambilDaftarPemilih, ambilIsiArsip, hitungUmur, formatTanggal, terlaluMuda,
-  ambilSusunanPanitia, susunPenandatangan,
+  ambilSusunanPanitia, susunPenandatangan, ambilLogoPanitia,
   STATUS_VERIFIKASI, JENIS_DAFTAR_LABEL,
 } from "@/lib/pilkades";
 import BlokTtd from "@/components/pilkades/BlokTtd";
@@ -82,6 +82,7 @@ export default async function CetakPilkades({ searchParams }) {
 
   // Penandatangan dari Susunan Panitia (Ketua + Sekretaris untuk daftar pemilih).
   const susunan = await ambilSusunanPanitia(supabase, periode.id);
+  const logo = await ambilLogoPanitia(supabase, periode.id);
   const penandatangan = susunPenandatangan("daftar_pemilih", susunan);
   const tempatTanggal = arsip
     ? `${desa.nama_desa ?? ""}${desa.nama_desa ? ", " : ""}${formatTanggal(arsip.tanggal_penetapan)}`
@@ -127,7 +128,8 @@ export default async function CetakPilkades({ searchParams }) {
         html, body { background: #fff; }
         .hal { position: relative; page-break-after: always; break-after: page; font-family: Arial, sans-serif; color: #000; padding: 4mm 6mm; }
         .hal:last-child { page-break-after: auto; break-after: auto; }
-        .kop { text-align: center; line-height: 1.25; margin-bottom: 3mm; }
+        .kop { position: relative; text-align: center; line-height: 1.25; margin-bottom: 3mm; }
+        .kop .logo-kop { position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 15mm; max-width: 22mm; object-fit: contain; }
         .kop h1 { font-size: 14pt; margin: 0; font-weight: 700; }
         .kop p { font-size: 9.5pt; margin: 0; }
         .kolom { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
@@ -154,6 +156,8 @@ export default async function CetakPilkades({ searchParams }) {
         <section className="hal" key={h}>
           {!arsip && <div className="tanda-air">DRAF</div>}
           <div className="kop">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {logo && <img src={logo.url} alt="" className="logo-kop" />}
             <h1>{judul}</h1>
             <p>{periode.nama.toUpperCase()} · {namaDesa.toUpperCase()}</p>
             <p>{sasaran} · Pemungutan suara: {formatTanggal(periode.tanggal_pemungutan)}</p>

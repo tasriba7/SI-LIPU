@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { jagaHalamanPilkades } from "@/lib/akses";
 import { getConfigDesa } from "@/lib/configDesa";
 import {
-  ambilPeriode, ambilRekapSuara, ambilSusunanPanitia, susunPenandatangan, formatTanggal,
+  ambilPeriode, ambilRekapSuara, ambilSusunanPanitia, susunPenandatangan, formatTanggal, ambilLogoPanitia,
 } from "@/lib/pilkades";
 import BlokTtd from "@/components/pilkades/BlokTtd";
 import TombolCetak from "../TombolCetak";
@@ -20,10 +20,11 @@ export default async function CetakBeritaAcara() {
   const periode = await ambilPeriode(supabase);
   if (!periode) redirect("/dashboard/pilkades");
 
-  const [rekap, desa, susunan] = await Promise.all([
+  const [rekap, desa, susunan, logo] = await Promise.all([
     ambilRekapSuara(supabase, periode.id),
     getConfigDesa(supabase),
     ambilSusunanPanitia(supabase, periode.id),
+    ambilLogoPanitia(supabase, periode.id),
   ]);
   if (rekap.error || !rekap.calon.length) redirect("/dashboard/pilkades/hasil");
   const { calon, tps, total, hasil } = rekap;
@@ -49,6 +50,8 @@ export default async function CetakBeritaAcara() {
         @page { size: A4 portrait; margin: 15mm; }
         html, body { background: #fff; }
         .ba { position: relative; font-family: "Times New Roman", serif; color: #000; font-size: 11.5pt; line-height: 1.45; padding: 6mm 8mm; }
+        .kop { position: relative; min-height: 18mm; }
+        .kop .logo-kop { position: absolute; left: 0; top: 0; height: 18mm; max-width: 26mm; object-fit: contain; }
         .ba h1 { font-size: 13pt; text-align: center; margin: 0; font-weight: 700; }
         .ba .sub { text-align: center; margin: 0 0 4mm; }
         .ba p { margin: 0 0 2.5mm; text-align: justify; }
@@ -77,11 +80,15 @@ export default async function CetakBeritaAcara() {
 
       <section className="ba">
         {!resmi && <div className="tanda-air">DRAF</div>}
-        <h1>BERITA ACARA PENGHITUNGAN SUARA DAN PENETAPAN CALON KEPALA {sebutan.toUpperCase()} TERPILIH</h1>
-        <p className="sub">
-          {periode.nama.toUpperCase()} · {namaDesa.toUpperCase()}
-          {hasil?.nomor_berita_acara && <><br />Nomor: {hasil.nomor_berita_acara}</>}
-        </p>
+        <div className="kop">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          {logo && <img src={logo.url} alt="" className="logo-kop" />}
+          <h1 style={{ padding: logo ? "0 28mm" : 0 }}>BERITA ACARA PENGHITUNGAN SUARA DAN PENETAPAN CALON KEPALA {sebutan.toUpperCase()} TERPILIH</h1>
+          <p className="sub" style={{ padding: logo ? "0 28mm" : 0 }}>
+            {periode.nama.toUpperCase()} · {namaDesa.toUpperCase()}
+            {hasil?.nomor_berita_acara && <><br />Nomor: {hasil.nomor_berita_acara}</>}
+          </p>
+        </div>
 
         <p>
           Pada hari ini, {hariTanggal(tanggalAcuan)}, Panitia Pemilihan Kepala {sebutan} {desa.nama_desa ?? ""}
