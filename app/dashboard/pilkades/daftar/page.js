@@ -54,17 +54,17 @@ export default async function DaftarPage() {
       />
 
       <Kartu>
-        <h2 className="text-lg font-bold text-sky-950">Periksa dulu sebelum menetapkan</h2>
+        <h2 className="text-base font-bold text-sky-950">Periksa dulu sebelum menetapkan</h2>
         <ul className="mt-2 space-y-2">
           {syarat.map(([ok, teks, href]) => (
-            <li key={teks} className="flex flex-wrap items-center gap-3 text-base">
+            <li key={teks} className="flex flex-wrap items-center gap-3 text-sm">
               <span className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold text-white ${ok ? "bg-emerald-500" : "bg-amber-500"}`}>{ok ? "✓" : "!"}</span>
               <span className="font-medium text-slate-900">{teks}</span>
               {!ok && <Link href={href} className="font-bold text-sky-800 underline">Perbaiki →</Link>}
             </li>
           ))}
           {(s.belum > 0 || s.perluCek > 0) && (
-            <li className="flex flex-wrap items-center gap-3 text-base">
+            <li className="flex flex-wrap items-center gap-3 text-sm">
               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-white">!</span>
               <span className="font-medium text-slate-900">
                 {s.belum > 0 && `${s.belum} orang masih “Belum diperiksa”`}
@@ -94,18 +94,18 @@ export default async function DaftarPage() {
       )}
 
       <section>
-        <h2 className="mb-2 text-xl font-bold text-sky-950">Daftar yang sudah ditetapkan</h2>
-        <ul className="divide-y divide-sky-100 overflow-hidden rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
+        <h2 className="mb-2 text-lg font-bold text-sky-950">Daftar yang sudah ditetapkan</h2>
+        <ul className="divide-y divide-sky-100 overflow-hidden rounded-xl border border-sky-100 bg-white shadow-sm">
           {arsip.map((a) => (
             <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
               <div>
-                <p className="text-lg font-bold text-slate-900">
+                <p className="text-base font-bold text-slate-900">
                   {JENIS_DAFTAR_LABEL[a.jenis]} — versi {a.versi}
                   {berlaku[a.jenis] === a.id && (
                     <span className="ml-2 rounded-full bg-emerald-100 px-2.5 py-0.5 text-sm font-semibold text-emerald-800">✓ berlaku</span>
                   )}
                 </p>
-                <p className="text-base text-slate-600">
+                <p className="text-sm text-slate-600">
                   Ditetapkan {formatTanggal(a.tanggal_penetapan)} · {a.jumlah} pemilih
                   {a.nomor_berita_acara && ` · BA ${a.nomor_berita_acara}`}
                   {a.ditetapkan_oleh_nama && ` · oleh ${a.ditetapkan_oleh_nama}`}
@@ -114,7 +114,7 @@ export default async function DaftarPage() {
               <Link href={`/dashboard/pilkades/daftar/${a.id}`} className={tombol.sekunder}>Lihat & cetak</Link>
             </li>
           ))}
-          {!arsip.length && <li className="px-5 py-8 text-center text-base text-slate-500">Belum ada daftar yang ditetapkan.</li>}
+          {!arsip.length && <li className="px-5 py-8 text-center text-sm text-slate-500">Belum ada daftar yang ditetapkan.</li>}
         </ul>
       </section>
 

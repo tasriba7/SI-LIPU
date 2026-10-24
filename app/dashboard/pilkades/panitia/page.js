@@ -29,7 +29,7 @@ export default async function SusunanPanitiaPage({ searchParams }) {
   const dokumenDipakai = PENANDATANGAN_DOKUMEN.daftar_pemilih.map((j) => JABATAN_PANITIA[j]).join(" dan ");
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-5">
       <JudulHalaman
         judul={`Susunan Panitia — ${periode.nama}`}
         penjelasan="Isi nama Ketua, Sekretaris, dan Bendahara. Anda tetap masuk dengan satu akun panitia; nama-nama ini otomatis dipakai pada kolom tanda tangan dokumen yang dicetak."
@@ -66,7 +66,7 @@ export default async function SusunanPanitiaPage({ searchParams }) {
             <Kartu key={j}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-bold text-sky-950">{JABATAN_PANITIA[j]}</h2>
+                  <h2 className="text-base font-bold text-sky-950">{JABATAN_PANITIA[j]}</h2>
                   <p className="text-sm text-slate-600">{KETERANGAN[j]}</p>
                 </div>
                 {orang ? (
@@ -95,7 +95,7 @@ export default async function SusunanPanitiaPage({ searchParams }) {
                   <button className={orang ? tombol.sekunder : tombol.utama}>{orang ? "Ganti nama" : "Simpan"}</button>
                 </form>
               ) : (
-                <p className="mt-3 text-base font-semibold text-slate-900">{orang?.nama ?? <span className="font-normal text-slate-500">Belum diisi</span>}</p>
+                <p className="mt-3 text-sm font-semibold text-slate-900">{orang?.nama ?? <span className="font-normal text-slate-500">Belum diisi</span>}</p>
               )}
 
               {bisaUbah && orang && (
@@ -115,19 +115,19 @@ export default async function SusunanPanitiaPage({ searchParams }) {
       </section>
 
       <Kartu>
-        <h2 className="text-lg font-bold text-sky-950">Anggota</h2>
+        <h2 className="text-base font-bold text-sky-950">Anggota</h2>
         <p className="text-sm text-slate-600">Boleh lebih dari satu. Dicatat untuk kelengkapan susunan panitia.</p>
 
         <ul className="mt-3 divide-y divide-sky-100">
           {susunan.anggota.map((a) => (
             <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-2.5">
-              <span className="text-base font-medium text-slate-900">{a.nama}</span>
+              <span className="text-sm font-medium text-slate-900">{a.nama}</span>
               {bisaUbah && (
                 <form action={hapusPanitia}>
                   <input type="hidden" name="id" value={a.id} />
                   <TombolKonfirmasi
                     pesan={`Hapus ${a.nama} dari susunan panitia?`}
-                    className="rounded-lg border-2 border-red-200 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50"
+                    className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50"
                   >
                     Hapus
                   </TombolKonfirmasi>
@@ -135,7 +135,7 @@ export default async function SusunanPanitiaPage({ searchParams }) {
               )}
             </li>
           ))}
-          {!susunan.anggota.length && <li className="py-3 text-base text-slate-500">Belum ada anggota yang dicatat.</li>}
+          {!susunan.anggota.length && <li className="py-3 text-sm text-slate-500">Belum ada anggota yang dicatat.</li>}
         </ul>
 
         {bisaUbah && (
@@ -152,8 +152,8 @@ export default async function SusunanPanitiaPage({ searchParams }) {
       </Kartu>
 
       <Kartu className="bg-sky-50">
-        <p className="text-lg font-bold text-sky-950">Siapa yang tanda tangan di dokumen?</p>
-        <ul className="mt-2 space-y-1 text-base text-slate-800">
+        <p className="text-base font-bold text-sky-950">Siapa yang tanda tangan di dokumen?</p>
+        <ul className="mt-2 space-y-1 text-sm text-slate-800">
           <li><b>Daftar pemilih (DPS/DPT)</b> — {dokumenDipakai}.</li>
           <li className="text-slate-600">Dokumen lain (berita acara, laporan keuangan) akan memakai susunan ini juga saat modulnya ditambahkan.</li>
         </ul>

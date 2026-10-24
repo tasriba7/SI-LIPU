@@ -17,7 +17,7 @@ export default async function PeriodePage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-5">
       <JudulHalaman
         judul="Periode Pilkades"
         penjelasan={`Setiap pemilihan punya periode sendiri, misalnya “Pilkades 2026”. Hanya satu periode yang aktif.${admin ? "" : " Periode dibuat oleh Administrator."}`}
@@ -25,7 +25,7 @@ export default async function PeriodePage() {
 
       {admin && (
         <Kartu>
-          <h2 className="text-lg font-bold text-sky-950">Buat periode baru</h2>
+          <h2 className="text-base font-bold text-sky-950">Buat periode baru</h2>
           <form action={buatPeriode} className="mt-3 grid gap-4 sm:grid-cols-2">
             <label className={labelKolom}>
               Nama periode
@@ -40,15 +40,15 @@ export default async function PeriodePage() {
         </Kartu>
       )}
 
-      <ul className="divide-y divide-sky-100 overflow-hidden rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
+      <ul className="divide-y divide-sky-100 overflow-hidden rounded-xl border border-sky-100 bg-white shadow-sm">
         {(daftar ?? []).map((p) => (
           <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
             <div>
-              <p className="text-lg font-bold text-slate-900">{p.nama}</p>
-              <p className="text-base text-slate-600">Pemungutan suara: {formatTanggal(p.tanggal_pemungutan)}</p>
+              <p className="text-base font-bold text-slate-900">{p.nama}</p>
+              <p className="text-sm text-slate-600">Pemungutan suara: {formatTanggal(p.tanggal_pemungutan)}</p>
             </div>
             {p.aktif ? (
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-base font-bold text-emerald-800">✓ Aktif</span>
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-bold text-emerald-800">✓ Aktif</span>
             ) : (
               admin && (
                 <form action={aktifkanPeriode}>
@@ -59,7 +59,7 @@ export default async function PeriodePage() {
             )}
           </li>
         ))}
-        {!daftar?.length && <li className="px-5 py-8 text-center text-base text-slate-500">Belum ada periode.</li>}
+        {!daftar?.length && <li className="px-5 py-8 text-center text-sm text-slate-500">Belum ada periode.</li>}
       </ul>
     </div>
   );

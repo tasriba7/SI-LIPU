@@ -1,0 +1,11 @@
+Pilkades: perapian tampilan akun panitia (hanya tampilan, tanpa migrasi, tanpa perubahan fungsi)
+
+Yang diubah (semua halaman /dashboard/pilkades/* dan komponen components/pilkades/*):
+ - Ukuran teks diturunkan satu tingkat: isi 16px -> 14px, judul halaman 20-24px, angka ringkasan 24px (sebelumnya 36px).
+ - Tombol, kolom isian, dan kartu lebih ringkas (padding, sudut, garis 1px menggantikan 2px).
+ - Lebar semua halaman diseragamkan (max-w-5xl, rata tengah) agar tidak berganti-ganti antar menu.
+ - Menu samping mode Pilkades memakai ukuran teks/ikon yang sama dengan menu lain (components/dashboard/DashboardShell.jsx).
+Dokumen cetak (daftar pemilih, berita acara, surat undangan) TIDAK diubah.
+
+Uji: buka tiap menu Pilkades dengan akun panitia (dan admin), cek tidak ada teks terpotong atau tombol bertumpuk,
+terutama di HP: Periksa Pemilih, Tempatkan ke TPS, Daftar Hadir, Hasil Suara.

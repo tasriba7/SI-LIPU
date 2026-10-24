@@ -30,7 +30,7 @@ const LABEL = {
 
 function Bulat({ no, status }) {
   return (
-    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-bold ${BULAT[status]}`}>
+    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold ${BULAT[status]}`}>
       {status === "selesai" ? <IconCheck className="h-5 w-5" /> : status === "terkunci" ? <IconKunci className="h-4 w-4" /> : no}
     </span>
   );
@@ -46,21 +46,21 @@ export function DaftarLangkah({ langkah, aktif, varian = "ringkas" }) {
           return (
             <li
               key={l.kunci}
-              className={`flex flex-wrap items-center gap-4 rounded-2xl border-2 bg-white p-4 ${
+              className={`flex flex-wrap items-center gap-4 rounded-xl border bg-white p-4 ${
                 kunci ? "border-slate-200" : l.status === "selesai" ? "border-emerald-200" : "border-sky-200"
               }`}
             >
-              <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-lg font-extrabold ${WARNA_LANGKAH[i]}`}>
+              <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-base font-extrabold ${WARNA_LANGKAH[i]}`}>
                 {l.no}
               </span>
               <div className="min-w-0 flex-1 basis-60">
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-lg font-bold text-slate-900">{l.judul}</p>
+                  <p className="text-base font-bold text-slate-900">{l.judul}</p>
                   <span className={`rounded-full px-2.5 py-0.5 text-sm font-semibold ${LABEL[l.status][1]}`}>
                     {l.status === "terkunci" ? "🔒 Belum bisa" : LABEL[l.status][0]}
                   </span>
                 </div>
-                <p className="mt-0.5 text-base text-slate-700">{l.penjelasan}</p>
+                <p className="mt-0.5 text-sm text-slate-700">{l.penjelasan}</p>
                 <p className="mt-0.5 text-sm font-medium text-slate-500">{l.ket}</p>
               </div>
               {kunci ? null : (
@@ -83,22 +83,22 @@ export function DaftarLangkah({ langkah, aktif, varian = "ringkas" }) {
             <>
               <Bulat no={l.no} status={l.status} />
               <span className="min-w-0">
-                <span className="block truncate text-base font-bold text-slate-900">{l.pendek}</span>
+                <span className="block truncate text-sm font-bold text-slate-900">{l.pendek}</span>
                 <span className="block text-sm text-slate-600">
                   {l.status === "terkunci" ? "Belum bisa" : LABEL[l.status][0].replace("● ", "")}
                 </span>
               </span>
             </>
           );
-          const ring = aktif === l.kunci ? "border-sky-500 ring-4 ring-sky-100" : "border-sky-100";
+          const ring = aktif === l.kunci ? "border-sky-500 ring-2 ring-sky-100" : "border-sky-100";
           return (
             <li key={l.kunci}>
               {l.status === "terkunci" ? (
-                <div title={l.ket} className={`flex items-center gap-2 rounded-xl border-2 bg-slate-50 p-2.5 opacity-80 ${ring}`}>
+                <div title={l.ket} className={`flex items-center gap-2 rounded-xl border bg-slate-50 p-2.5 opacity-80 ${ring}`}>
                   {isi}
                 </div>
               ) : (
-                <Link href={l.href} className={`flex items-center gap-2 rounded-xl border-2 bg-white p-2.5 transition hover:border-sky-400 ${ring}`}>
+                <Link href={l.href} className={`flex items-center gap-2 rounded-xl border bg-white p-2.5 transition hover:border-sky-400 ${ring}`}>
                   {isi}
                 </Link>
               )}

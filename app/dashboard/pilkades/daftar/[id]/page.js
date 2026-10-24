@@ -34,7 +34,7 @@ export default async function DetailArsip({ params, searchParams }) {
         </Link>
         <div className="mt-1 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-lg font-bold text-slate-800">
+            <h1 className="text-base font-bold text-slate-800">
               {JENIS_DAFTAR_LABEL[d.jenis]} &mdash; versi {d.versi}
             </h1>
             <p className="text-sm text-slate-500">

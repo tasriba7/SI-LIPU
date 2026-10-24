@@ -30,7 +30,7 @@ export default async function LogoPanitiaPage({ searchParams }) {
   const pesan = PESAN_HASIL[sp.hasil];
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-5">
       <JudulHalaman
         judul={`Logo Panitia — ${periode.nama}`}
         penjelasan="Logo ini otomatis tampil di sebelah kiri kop dokumen cetak panitia: Daftar Pemilih (DPS/DPT) dan Berita Acara Hasil Pemilihan. Satu logo untuk satu periode."
@@ -39,28 +39,28 @@ export default async function LogoPanitiaPage({ searchParams }) {
       {!bisaUbah && <Pesan jenis="info">Logo diunggah oleh Panitia Pilkades. Akun ini hanya dapat melihat.</Pesan>}
 
       <Kartu>
-        <h2 className="text-lg font-bold text-sky-950">Logo saat ini</h2>
+        <h2 className="text-base font-bold text-sky-950">Logo saat ini</h2>
         {logo ? (
           <div className="mt-3 flex flex-wrap items-center gap-5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logo.url} alt="Logo panitia" className="h-28 w-28 rounded-xl border-2 border-slate-200 bg-white object-contain p-2" />
+            <img src={logo.url} alt="Logo panitia" className="h-28 w-28 rounded-xl border border-slate-200 bg-white object-contain p-2" />
             <p className="text-sm text-slate-600">
               Terakhir diubah {formatTanggal(logo.diubahPada)}{logo.diubahOleh ? ` oleh ${logo.diubahOleh}` : ""}.
             </p>
           </div>
         ) : (
-          <p className="mt-2 text-base text-slate-700">Belum ada logo. Dokumen dicetak tanpa logo.</p>
+          <p className="mt-2 text-sm text-slate-700">Belum ada logo. Dokumen dicetak tanpa logo.</p>
         )}
       </Kartu>
 
       {bisaUbah && (
         <Kartu>
-          <h2 className="text-lg font-bold text-sky-950">{logo ? "Ganti logo" : "Unggah logo"}</h2>
+          <h2 className="text-base font-bold text-sky-950">{logo ? "Ganti logo" : "Unggah logo"}</h2>
           <form action={simpanLogoPanitia} className="mt-3 space-y-4">
             <input type="hidden" name="periode_id" value={periode.id} />
             <input
               type="file" name="logo" required accept="image/png,image/jpeg,image/webp"
-              className="block w-full text-base text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-sky-100 file:px-4 file:py-2 file:text-base file:font-semibold file:text-sky-900"
+              className="block w-full text-sm text-slate-700 file:mr-3 file:rounded-lg file:border-0 file:bg-sky-100 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-sky-900"
             />
             <p className="text-sm text-slate-600">
               Format {EKSTENSI_LOGO.map((e) => e.toUpperCase()).join(", ")}, maksimal {MAKS_LOGO_MB} MB. Paling bagus berbentuk persegi dan berlatar transparan (PNG).
@@ -71,7 +71,7 @@ export default async function LogoPanitiaPage({ searchParams }) {
             <form action={simpanLogoPanitia} className="mt-4 border-t border-slate-100 pt-4">
               <input type="hidden" name="periode_id" value={periode.id} />
               <input type="hidden" name="hapus" value="1" />
-              <TombolKonfirmasi pesan="Hapus logo panitia? Dokumen cetak berikutnya tanpa logo." className="rounded-lg border-2 border-red-200 px-4 py-2 text-base font-semibold text-red-700 hover:bg-red-50">
+              <TombolKonfirmasi pesan="Hapus logo panitia? Dokumen cetak berikutnya tanpa logo." className="rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50">
                 Hapus logo
               </TombolKonfirmasi>
             </form>

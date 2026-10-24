@@ -68,7 +68,7 @@ export default async function CalonPage({ searchParams }) {
   const pesan = PESAN_HASIL[sp.hasil];
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-5">
       <JudulHalaman
         judul={`Calon Kepala Desa — ${periode.nama}`}
         penjelasan="Catat calon yang mendaftar, hasil verifikasi berkas, dan nomor urutnya. Alurnya: Mendaftar → Lolos verifikasi berkas → Ditetapkan sebagai calon (dengan nomor urut)."
@@ -86,9 +86,9 @@ export default async function CalonPage({ searchParams }) {
           ["Ditetapkan", ditetapkan, "border-emerald-200 bg-emerald-50 text-emerald-800"],
           ["Tidak lolos", calon.filter((c) => c.status === "tidak_lolos").length, "border-slate-200 bg-slate-50 text-slate-700"],
         ].map(([label, n, gaya]) => (
-          <div key={label} className={`rounded-2xl border-2 p-4 ${gaya}`}>
-            <p className="text-base font-semibold text-slate-800">{label}</p>
-            <p className="mt-1 text-4xl font-extrabold">{n}</p>
+          <div key={label} className={`rounded-xl border p-4 ${gaya}`}>
+            <p className="text-sm font-semibold text-slate-800">{label}</p>
+            <p className="mt-1 text-2xl font-extrabold">{n}</p>
           </div>
         ))}
       </div>
@@ -98,11 +98,11 @@ export default async function CalonPage({ searchParams }) {
           <Kartu key={c.id}>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="flex items-center gap-4">
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-sky-100 text-3xl font-extrabold text-sky-900">
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-2xl font-extrabold text-sky-900">
                   {c.nomor_urut ?? "–"}
                 </span>
                 <div>
-                  <p className="text-xl font-bold text-slate-900">{c.nama}</p>
+                  <p className="text-lg font-bold text-slate-900">{c.nama}</p>
                   <span className={`mt-1 inline-block rounded-full px-3 py-0.5 text-sm font-semibold ${STATUS_CALON_BADGE[c.status]}`}>
                     {STATUS_CALON[c.status]}
                   </span>
@@ -113,23 +113,23 @@ export default async function CalonPage({ searchParams }) {
                   <input type="hidden" name="id" value={c.id} />
                   <TombolKonfirmasi
                     pesan={`Hapus calon ${c.nama}? Tindakan ini tercatat di Riwayat.`}
-                    className="rounded-lg border-2 border-red-200 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50"
+                    className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50"
                   >
                     Hapus
                   </TombolKonfirmasi>
                 </form>
               )}
             </div>
-            {c.alasan && <p className="mt-3 text-base text-slate-700"><b>Alasan:</b> {c.alasan}</p>}
+            {c.alasan && <p className="mt-3 text-sm text-slate-700"><b>Alasan:</b> {c.alasan}</p>}
             {c.visi_misi && (
               <details className="mt-3">
-                <summary className="cursor-pointer text-base font-semibold text-sky-800">Lihat visi dan misi</summary>
-                <p className="mt-2 whitespace-pre-line text-base text-slate-800">{c.visi_misi}</p>
+                <summary className="cursor-pointer text-sm font-semibold text-sky-800">Lihat visi dan misi</summary>
+                <p className="mt-2 whitespace-pre-line text-sm text-slate-800">{c.visi_misi}</p>
               </details>
             )}
             {bisaUbah && (
-              <details className="mt-4 rounded-xl border-2 border-sky-100 p-4">
-                <summary className="cursor-pointer text-base font-bold text-sky-900">Ubah data calon ini</summary>
+              <details className="mt-4 rounded-xl border border-sky-100 p-4">
+                <summary className="cursor-pointer text-sm font-bold text-sky-900">Ubah data calon ini</summary>
                 <div className="mt-4"><FormCalon periodeId={periode.id} calon={c} /></div>
               </details>
             )}
@@ -142,7 +142,7 @@ export default async function CalonPage({ searchParams }) {
 
       {bisaUbah && (
         <Kartu>
-          <h2 className="mb-3 text-lg font-bold text-sky-950">{calon.length ? "Tambah calon lagi" : "Tambah calon pertama"}</h2>
+          <h2 className="mb-3 text-base font-bold text-sky-950">{calon.length ? "Tambah calon lagi" : "Tambah calon pertama"}</h2>
           <FormCalon periodeId={periode.id} calon={null} />
         </Kartu>
       )}

@@ -26,7 +26,7 @@ export default async function PemilihPage({ searchParams }) {
   const { data: semua, error } = await ambilDaftarPemilih(supabase, periode.id);
   if (!error && !(semua ?? []).length) {
     return (
-      <div className="mx-auto max-w-3xl space-y-5">
+      <div className="mx-auto max-w-5xl space-y-5">
         <PanduanLangkah aktif="periksa" />
         <KosongPandu
           judul="Belum ada calon pemilih"
@@ -73,7 +73,7 @@ export default async function PemilihPage({ searchParams }) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-5">
       <PanduanLangkah aktif="periksa" />
       <JudulHalaman
         langkah={2}
@@ -94,26 +94,26 @@ export default async function PemilihPage({ searchParams }) {
       {error && <Pesan jenis="bahaya">Daftar gagal dimuat. Pastikan migrasi 0051 sudah dijalankan.</Pesan>}
 
       {/* Cara cepat: saring usia */}
-      <details open={!!pratinjau} className="group rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
+      <details open={!!pratinjau} className="group rounded-xl border border-sky-100 bg-white shadow-sm">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5">
           <span>
-            <span className="block text-lg font-bold text-sky-950">⚡ Cara cepat: saring otomatis berdasarkan usia</span>
-            <span className="block text-base text-slate-700">Tandai yang belum cukup umur sekaligus, tidak perlu satu per satu.</span>
+            <span className="block text-base font-bold text-sky-950">⚡ Cara cepat: saring otomatis berdasarkan usia</span>
+            <span className="block text-sm text-slate-700">Tandai yang belum cukup umur sekaligus, tidak perlu satu per satu.</span>
           </span>
           <span className="text-sm font-bold text-sky-700 group-open:hidden">Buka</span>
           <span className="hidden text-sm font-bold text-sky-700 group-open:inline">Tutup</span>
         </summary>
         <div className="space-y-4 border-t-2 border-sky-100 p-5">
-          <p className="text-base text-slate-700">
+          <p className="text-sm text-slate-700">
             Usia dihitung pada hari pemungutan suara{periode.tanggal_pemungutan ? ` (${formatTanggal(periode.tanggal_pemungutan)})` : " (tanggal belum diisi, memakai hari ini)"}.
             {!bisaUbah && ` Aturan saat ini: minimal ${periode.usia_minimum ?? 17} tahun${periode.termasuk_pernah_kawin === false ? "" : " atau sudah/pernah kawin"}.`}
           </p>
           <form className="flex flex-wrap items-end gap-4">
-            <label className="text-base font-semibold text-slate-800">
+            <label className="text-sm font-semibold text-slate-800">
               Usia minimal (tahun)
               <input type="number" name="usia" min="0" max="120" defaultValue={usiaForm} className={`${kolomKecil} mt-1 block w-28`} />
             </label>
-            <label className="flex items-center gap-2 pb-2 text-base text-slate-800">
+            <label className="flex items-center gap-2 pb-2 text-sm text-slate-800">
               <input type="checkbox" name="kawin" value="1" defaultChecked={kawinForm} className="h-5 w-5" />
               Yang sudah/pernah menikah tetap boleh
             </label>
@@ -132,20 +132,20 @@ export default async function PemilihPage({ searchParams }) {
                 ].map(([label, n, warna]) => (
                   <div key={label} className="rounded-xl bg-sky-50 px-3 py-2">
                     <p className="text-sm text-slate-700">{label}</p>
-                    <p className={`text-2xl font-extrabold ${warna}`}>{n}</p>
+                    <p className={`text-xl font-extrabold ${warna}`}>{n}</p>
                   </div>
                 ))}
               </div>
               <p className="text-sm text-slate-600">“Sudah diatur manual” = sudah Anda tentukan sendiri, tidak akan diubah. Tanggal acuan: {formatTanggal(pratinjau.tanggal_acuan)}.</p>
               {bisaUbah && (
-                <form action={terapkanFilterUsia} className="space-y-3 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
+                <form action={terapkanFilterUsia} className="space-y-3 rounded-xl border border-amber-300 bg-amber-50 p-4">
                   <input type="hidden" name="periode_id" value={periode.id} />
                   <input type="hidden" name="usia" value={usiaForm} />
                   <input type="hidden" name="kawin" value={kawinForm ? "1" : "0"} />
-                  <p className="text-base font-semibold text-amber-950">
+                  <p className="text-sm font-semibold text-amber-950">
                     {pratinjau.di_bawah_usia} orang akan ditandai “Tidak memenuhi syarat”. Ini masih bisa diubah lagi per orang.
                   </p>
-                  <label className="flex items-start gap-2 text-base text-amber-950">
+                  <label className="flex items-start gap-2 text-sm text-amber-950">
                     <input type="checkbox" name="tandai" value="1" className="mt-1 h-5 w-5" />
                     <span>
                       Tandai juga {pratinjau.layak} orang yang cukup usia sebagai “Memenuhi syarat”.
@@ -168,18 +168,18 @@ export default async function PemilihPage({ searchParams }) {
       {/* Cari & tampilkan */}
       <Kartu>
         <form className="flex flex-wrap items-end gap-3">
-          <label className="flex-1 basis-48 text-base font-semibold text-slate-800">
+          <label className="flex-1 basis-48 text-sm font-semibold text-slate-800">
             Cari nama
             <input name="cari" defaultValue={sp.cari ?? ""} placeholder="Ketik nama…" className={`${kolomKecil} mt-1 block w-full`} />
           </label>
-          <label className="text-base font-semibold text-slate-800">
+          <label className="text-sm font-semibold text-slate-800">
             Dusun
             <select name="dusun" defaultValue={fDusun} className={`${kolomKecil} mt-1 block`}>
               <option value="">Semua dusun</option>
               {dusunList.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
           </label>
-          <label className="text-base font-semibold text-slate-800">
+          <label className="text-sm font-semibold text-slate-800">
             Tampilkan
             <select name="status" defaultValue={fStatus} className={`${kolomKecil} mt-1 block`}>
               <option value="">Semua, kecuali yang tidak memenuhi syarat</option>
@@ -189,15 +189,15 @@ export default async function PemilihPage({ searchParams }) {
           </label>
           <button className={tombol.sekunder}>Tampilkan</button>
         </form>
-        <p className="mt-3 text-base text-slate-700">
+        <p className="mt-3 text-sm text-slate-700">
           Menampilkan <b>{hasil.length}</b> orang
           {jumlahDisembunyikan > 0 && ` (${jumlahDisembunyikan} orang yang belum cukup umur atau tidak memenuhi syarat disembunyikan)`}.
         </p>
       </Kartu>
 
       {/* Tabel */}
-      <div className="overflow-x-auto rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
-        <table className="w-full text-left text-base">
+      <div className="overflow-x-auto rounded-xl border border-sky-100 bg-white shadow-sm">
+        <table className="w-full text-left text-sm">
           <thead className="bg-sky-50 text-sm font-bold text-sky-900">
             <tr>
               <th className="px-4 py-3">Nama</th>
@@ -246,12 +246,12 @@ export default async function PemilihPage({ searchParams }) {
                 </tr>
               );
             })}
-            {!tampil.length && <tr><td colSpan={6} className="px-4 py-10 text-center text-base text-slate-500">Tidak ada nama yang cocok.</td></tr>}
+            {!tampil.length && <tr><td colSpan={6} className="px-4 py-10 text-center text-sm text-slate-500">Tidak ada nama yang cocok.</td></tr>}
           </tbody>
         </table>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 text-base text-slate-700">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-700">
         <span>Halaman {halaman} dari {totalHal}</span>
         <span className="flex gap-3">
           {halaman > 1 && <Link href={qs({ hal: halaman - 1 })} className={tombol.sekunder}>← Sebelumnya</Link>}

@@ -22,7 +22,7 @@ function Tombol({ jenis, siap }) {
   return (
     <button
       disabled={pending || !siap}
-      className={`inline-flex items-center justify-center rounded-xl px-5 py-3 text-base font-bold text-white shadow-sm transition focus:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-40 ${WARNA[jenis].tombol}`}
+      className={`inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-bold text-white shadow-sm transition focus:outline-none focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-40 ${WARNA[jenis].tombol}`}
     >
       {pending ? "Sedang menetapkan…" : `Ya, Tetapkan ${jenis} Sekarang`}
     </button>
@@ -36,14 +36,14 @@ export default function FormTetapkan({ periodeId, jenis, jumlah, nonaktifAlasan,
 
   if (nonaktifAlasan) {
     return (
-      <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-5">
-        <p className="flex items-center gap-2 text-lg font-bold text-slate-700">
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+        <p className="flex items-center gap-2 text-base font-bold text-slate-700">
           <IconKunci className="h-5 w-5" /> Tetapkan {jenis} — belum bisa
         </p>
-        <p className="mt-1 text-base text-slate-600">{ARTI[jenis]}</p>
-        <p className="mt-3 rounded-xl bg-white p-3 text-base font-semibold text-slate-800">{nonaktifAlasan}</p>
+        <p className="mt-1 text-sm text-slate-600">{ARTI[jenis]}</p>
+        <p className="mt-3 rounded-xl bg-white p-3 text-sm font-semibold text-slate-800">{nonaktifAlasan}</p>
         {tautan && (
-          <Link href={tautan.href} className="mt-3 inline-block text-base font-bold text-sky-800 underline">
+          <Link href={tautan.href} className="mt-3 inline-block text-sm font-bold text-sky-800 underline">
             {tautan.label} →
           </Link>
         )}
@@ -52,17 +52,17 @@ export default function FormTetapkan({ periodeId, jenis, jumlah, nonaktifAlasan,
   }
 
   return (
-    <form action={formAction} className={`space-y-4 rounded-2xl border-2 bg-white p-5 shadow-sm ${w.kotak}`}>
+    <form action={formAction} className={`space-y-4 rounded-xl border bg-white p-5 shadow-sm ${w.kotak}`}>
       <input type="hidden" name="periode_id" value={periodeId} />
       <input type="hidden" name="jenis" value={jenis} />
       <div className={`-m-5 mb-0 rounded-t-2xl p-5 ${w.kepala}`}>
-        <p className="text-xl font-extrabold">Tetapkan {jenis}</p>
-        <p className="text-base">{NAMA[jenis]}</p>
+        <p className="text-lg font-extrabold">Tetapkan {jenis}</p>
+        <p className="text-sm">{NAMA[jenis]}</p>
       </div>
-      <p className="text-base text-slate-700">{ARTI[jenis]}</p>
+      <p className="text-sm text-slate-700">{ARTI[jenis]}</p>
 
-      <div className="rounded-xl bg-slate-50 p-4 text-base text-slate-900">
-        <p>Yang akan masuk daftar: <b className="text-2xl">{jumlah}</b> pemilih berstatus “Memenuhi syarat”.</p>
+      <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-900">
+        <p>Yang akan masuk daftar: <b className="text-xl">{jumlah}</b> pemilih berstatus “Memenuhi syarat”.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
@@ -80,12 +80,12 @@ export default function FormTetapkan({ periodeId, jenis, jumlah, nonaktifAlasan,
         <input name="catatan" maxLength={300} className={`${kolom} mt-1 font-normal`} />
       </label>
 
-      <div className="rounded-xl border-2 border-red-200 bg-red-50 p-4">
-        <p className="text-base font-bold text-red-900">⚠ Perhatian: tidak bisa dibatalkan</p>
-        <p className="mt-1 text-base text-red-950">
+      <div className="rounded-xl border border-red-200 bg-red-50 p-4">
+        <p className="text-sm font-bold text-red-900">⚠ Perhatian: tidak bisa dibatalkan</p>
+        <p className="mt-1 text-sm text-red-950">
           Setelah ditetapkan, daftar ini disimpan tetap dan <b>tidak bisa diubah</b>. Bila ada kesalahan, panitia harus menetapkan versi baru.
         </p>
-        <label className="mt-3 flex items-start gap-3 text-base font-semibold text-red-950">
+        <label className="mt-3 flex items-start gap-3 text-sm font-semibold text-red-950">
           <input
             type="checkbox"
             name="konfirmasi"
@@ -99,7 +99,7 @@ export default function FormTetapkan({ periodeId, jenis, jumlah, nonaktifAlasan,
       </div>
 
       {state?.error && (
-        <p role="alert" className="rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 text-base font-semibold text-red-800">{state.error}</p>
+        <p role="alert" className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">{state.error}</p>
       )}
       <Tombol jenis={jenis} siap={paham} />
     </form>

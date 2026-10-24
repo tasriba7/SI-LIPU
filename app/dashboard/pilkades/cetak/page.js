@@ -31,7 +31,7 @@ export default async function PilihanCetak() {
   const ttdKosong = susunPenandatangan("daftar_pemilih", susunan).filter((p) => !p.nama);
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-5">
       <PanduanLangkah aktif="cetak" />
       <JudulHalaman
         langkah={6}
@@ -88,14 +88,14 @@ export default async function PilihanCetak() {
               <option value="semua">Semua status</option>
             </select>
           </label>
-          <label className="flex items-start gap-3 rounded-xl bg-sky-50 p-4 text-base text-slate-900">
+          <label className="flex items-start gap-3 rounded-xl bg-sky-50 p-4 text-sm text-slate-900">
             <input type="checkbox" name="nik" value="1" className="mt-1 h-5 w-5" />
             <span>
               <b>Sertakan kolom NIK</b> (sebagian angka disamarkan)
               <span className="block text-sm text-slate-600">Untuk papan pengumuman umum, biarkan tidak dicentang agar data warga aman.</span>
             </span>
           </label>
-          <button className={`${tombol.utama} text-lg`}>Buka Pratinjau Cetak</button>
+          <button className={`${tombol.utama} text-base`}>Buka Pratinjau Cetak</button>
         </form>
       </Kartu>
 

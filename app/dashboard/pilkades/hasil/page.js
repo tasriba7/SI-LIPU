@@ -26,7 +26,7 @@ export default async function HasilPage({ searchParams }) {
 
   if (!rekap.error && !calon.length) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-5xl">
         <KosongPandu
           judul="Belum ada calon yang ditetapkan"
           teks="Suara hanya bisa dicatat untuk calon berstatus “Ditetapkan sebagai calon”. Lengkapi data calon dulu."
@@ -64,15 +64,15 @@ export default async function HasilPage({ searchParams }) {
           ["Suara sah", total.sah, "border-emerald-200 bg-emerald-50 text-emerald-800"],
           ["Suara tidak sah", total.tidakSah, "border-amber-200 bg-amber-50 text-amber-800"],
         ].map(([label, n, gaya]) => (
-          <div key={label} className={`rounded-2xl border-2 p-4 ${gaya}`}>
-            <p className="text-base font-semibold text-slate-800">{label}</p>
-            <p className="mt-1 text-3xl font-extrabold">{n}</p>
+          <div key={label} className={`rounded-xl border p-4 ${gaya}`}>
+            <p className="text-sm font-semibold text-slate-800">{label}</p>
+            <p className="mt-1 text-2xl font-extrabold">{n}</p>
           </div>
         ))}
       </div>
 
       <Kartu>
-        <h2 className="text-lg font-bold text-sky-950">Perolehan suara per calon</h2>
+        <h2 className="text-base font-bold text-sky-950">Perolehan suara per calon</h2>
         {!lengkap && <p className="mt-1 text-sm text-slate-600">Sementara: baru {total.tpsDiisi} dari {tps.length} TPS yang diisi.</p>}
         <div className="mt-3 space-y-3">
           {urutHasil.map((c) => {
@@ -80,7 +80,7 @@ export default async function HasilPage({ searchParams }) {
             const p = persenDari(n, total.sah);
             return (
               <div key={c.id}>
-                <div className="flex items-baseline justify-between gap-3 text-base">
+                <div className="flex items-baseline justify-between gap-3 text-sm">
                   <p className="font-semibold text-slate-900">No. {c.nomor_urut} — {c.nama}{calonTerpilih?.id === c.id && <span className="ml-2 rounded-full bg-emerald-100 px-3 py-0.5 text-sm font-bold text-emerald-800">Terpilih</span>}</p>
                   <p className="shrink-0 font-extrabold text-sky-950">{n} <span className="text-sm font-semibold text-slate-600">({p}%)</span></p>
                 </div>
@@ -94,9 +94,9 @@ export default async function HasilPage({ searchParams }) {
       </Kartu>
 
       <Kartu>
-        <h2 className="text-lg font-bold text-sky-950">Rekap per TPS</h2>
+        <h2 className="text-base font-bold text-sky-950">Rekap per TPS</h2>
         <div className="mt-2 overflow-x-auto">
-          <table className="w-full text-left text-base">
+          <table className="w-full text-left text-sm">
             <thead className="text-sm font-bold text-sky-900">
               <tr>
                 <th className="py-2 pr-4">TPS</th>
@@ -128,10 +128,10 @@ export default async function HasilPage({ searchParams }) {
 
       {bisaUbah && !hasil && tps.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-bold text-sky-950">Isi atau ubah hasil per TPS</h2>
+          <h2 className="text-base font-bold text-sky-950">Isi atau ubah hasil per TPS</h2>
           {tps.map((t) => (
-            <details key={t.id} open={tpsDibuka === t.id} className="rounded-2xl border-2 border-sky-100 bg-white p-4 shadow-sm">
-              <summary className="cursor-pointer text-base font-bold text-sky-900">
+            <details key={t.id} open={tpsDibuka === t.id} className="rounded-xl border border-sky-100 bg-white p-4 shadow-sm">
+              <summary className="cursor-pointer text-sm font-bold text-sky-900">
                 {t.nama} <span className="font-normal text-slate-600">— {t.hadir} pemilih tercatat hadir{t.diisi ? " · sudah diisi" : ""}</span>
               </summary>
               <form action={simpanSuaraTps} className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -162,7 +162,7 @@ export default async function HasilPage({ searchParams }) {
       )}
 
       <Kartu>
-        <h2 className="text-lg font-bold text-sky-950">Penetapan calon terpilih</h2>
+        <h2 className="text-base font-bold text-sky-950">Penetapan calon terpilih</h2>
         {hasil ? (
           <div className="mt-3 space-y-3">
             <Pesan jenis="sukses" judul={`Terpilih: No. ${calonTerpilih?.nomor_urut ?? "-"} ${calonTerpilih?.nama ?? ""}`}>
@@ -172,8 +172,8 @@ export default async function HasilPage({ searchParams }) {
             <div className="flex flex-wrap items-start gap-3">
               <Link href="/cetak/pilkades/berita-acara" target="_blank" className={tombol.utama}>Cetak Berita Acara</Link>
               {bisaUbah && (
-                <details className="rounded-xl border-2 border-red-100 p-3">
-                  <summary className="cursor-pointer text-base font-semibold text-red-700">Batalkan penetapan</summary>
+                <details className="rounded-xl border border-red-100 p-3">
+                  <summary className="cursor-pointer text-sm font-semibold text-red-700">Batalkan penetapan</summary>
                   <form action={batalkanPenetapan} className="mt-3 space-y-3">
                     <input type="hidden" name="periode_id" value={periode.id} />
                     <label className={labelKolom}>
@@ -211,7 +211,7 @@ export default async function HasilPage({ searchParams }) {
                   Catatan <span className="font-normal text-slate-600">(boleh kosong)</span>
                   <input name="catatan" maxLength={300} className={`${kolom} mt-1 font-normal`} />
                 </label>
-                <label className="flex items-start gap-3 rounded-xl bg-sky-50 p-4 text-base text-slate-900 sm:col-span-2">
+                <label className="flex items-start gap-3 rounded-xl bg-sky-50 p-4 text-sm text-slate-900 sm:col-span-2">
                   <input type="checkbox" name="konfirmasi" value="ya" required className="mt-1 h-5 w-5" />
                   <span>Saya menyatakan angka rekap tiap TPS sudah dicocokkan dengan berita acara TPS. Suara terkunci setelah penetapan (bisa dibatalkan dengan alasan).</span>
                 </label>

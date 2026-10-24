@@ -18,8 +18,8 @@ export default async function RiwayatPage() {
         judul="Riwayat Aktivitas"
         penjelasan="Catatan siapa melakukan apa dan kapan. Menampilkan 200 catatan terbaru: pengambilan data, penetapan DPS/DPT, dan pencetakan."
       />
-      <div className="overflow-x-auto rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
-        <table className="w-full text-left text-base">
+      <div className="overflow-x-auto rounded-xl border border-sky-100 bg-white shadow-sm">
+        <table className="w-full text-left text-sm">
           <thead className="bg-sky-50 text-sm font-bold text-sky-900">
             <tr>
               <th className="px-4 py-3">Waktu</th>

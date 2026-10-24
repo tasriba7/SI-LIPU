@@ -21,7 +21,7 @@ export default async function BerandaPilkades() {
 
   if (!periode) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-5xl">
         <KosongPandu
           judul="Belum ada periode Pilkades"
           teks="Administrator perlu membuat periode pemilihan lebih dulu, misalnya “Pilkades 2026”."
@@ -56,17 +56,17 @@ export default async function BerandaPilkades() {
       />
 
       {/* Langkah berikutnya */}
-      <div className="rounded-3xl bg-gradient-to-r from-sky-600 to-teal-500 p-6 text-white shadow-md">
+      <div className="rounded-2xl bg-gradient-to-r from-sky-600 to-teal-500 p-6 text-white shadow-md">
         {s.berikutnya ? (
           <>
             <p className="text-sm font-bold uppercase tracking-wide text-sky-100">Langkah berikutnya</p>
-            <p className="mt-1 text-2xl font-extrabold md:text-3xl">
+            <p className="mt-1 text-xl font-bold md:text-2xl">
               {s.berikutnya.no}. {s.berikutnya.judul}
             </p>
-            <p className="mt-2 max-w-2xl text-base text-sky-50">{s.berikutnya.penjelasan}</p>
+            <p className="mt-2 max-w-2xl text-sm text-sky-50">{s.berikutnya.penjelasan}</p>
             <Link
               href={s.berikutnya.href}
-              className="mt-5 inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-lg font-bold text-sky-800 shadow hover:bg-sky-50 focus:outline-none focus-visible:ring-4 focus-visible:ring-white/60"
+              className="mt-5 inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-bold text-sky-800 shadow hover:bg-sky-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
             >
               Mulai: {s.berikutnya.tombol}
               <IconArrowRight className="h-5 w-5" />
@@ -74,9 +74,9 @@ export default async function BerandaPilkades() {
           </>
         ) : (
           <>
-            <p className="text-2xl font-extrabold">🎉 Semua langkah sudah selesai</p>
-            <p className="mt-2 text-base text-sky-50">Daftar pemilih sudah ditetapkan. Anda masih bisa mencetaknya kapan saja.</p>
-            <Link href="/dashboard/pilkades/cetak" className="mt-5 inline-flex rounded-xl bg-white px-6 py-3.5 text-lg font-bold text-sky-800 hover:bg-sky-50">
+            <p className="text-xl font-extrabold">🎉 Semua langkah sudah selesai</p>
+            <p className="mt-2 text-sm text-sky-50">Daftar pemilih sudah ditetapkan. Anda masih bisa mencetaknya kapan saja.</p>
+            <Link href="/dashboard/pilkades/cetak" className="mt-5 inline-flex rounded-lg bg-white px-5 py-2.5 text-sm font-bold text-sky-800 hover:bg-sky-50">
               Cetak Daftar
             </Link>
           </>
@@ -85,27 +85,27 @@ export default async function BerandaPilkades() {
 
       {/* 6 langkah */}
       <section>
-        <h2 className="mb-3 text-xl font-bold text-sky-950">Urutan kerja panitia</h2>
+        <h2 className="mb-3 text-lg font-bold text-sky-950">Urutan kerja panitia</h2>
         <DaftarLangkah langkah={s.langkah} varian="lengkap" />
       </section>
 
       {/* Angka ringkas */}
       <section>
-        <h2 className="mb-3 text-xl font-bold text-sky-950">Keadaan saat ini</h2>
+        <h2 className="mb-3 text-lg font-bold text-sky-950">Keadaan saat ini</h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
           {angka.map(([label, n, ket, kotak, warna, href]) => {
             const isi = (
               <>
-                <p className="text-base font-semibold text-slate-800">{label}</p>
-                <p className={`mt-1 text-4xl font-extrabold ${warna}`}>{n}</p>
+                <p className="text-sm font-semibold text-slate-800">{label}</p>
+                <p className={`mt-1 text-2xl font-extrabold ${warna}`}>{n}</p>
                 <p className="mt-1 text-sm text-slate-600">{ket}</p>
                 {href && <p className="mt-2 text-sm font-bold text-sky-800 underline">Kerjakan →</p>}
               </>
             );
             return href ? (
-              <Link key={label} href={href} className={`rounded-2xl border-2 p-4 transition hover:shadow ${kotak}`}>{isi}</Link>
+              <Link key={label} href={href} className={`rounded-xl border p-4 transition hover:shadow ${kotak}`}>{isi}</Link>
             ) : (
-              <div key={label} className={`rounded-2xl border-2 p-4 ${kotak}`}>{isi}</div>
+              <div key={label} className={`rounded-xl border p-4 ${kotak}`}>{isi}</div>
             );
           })}
         </div>
@@ -120,25 +120,25 @@ export default async function BerandaPilkades() {
           <Link
             key={kode}
             href={a ? `/dashboard/pilkades/daftar/${a.id}` : "/dashboard/pilkades/daftar"}
-            className="rounded-2xl border-2 border-sky-100 bg-white p-5 transition hover:border-sky-300 hover:shadow"
+            className="rounded-xl border border-sky-100 bg-white p-5 transition hover:border-sky-300 hover:shadow"
           >
-            <p className="text-base font-bold text-sky-900">{kode} — {nama}</p>
+            <p className="text-sm font-bold text-sky-900">{kode} — {nama}</p>
             <p className="text-sm text-slate-600">{arti}</p>
             {a ? (
-              <p className="mt-2 text-base text-slate-900">
+              <p className="mt-2 text-sm text-slate-900">
                 <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-sm font-semibold text-emerald-800">✓ Sudah ditetapkan</span>{" "}
                 Versi {a.versi} · {a.jumlah} pemilih · {formatTanggal(a.tanggal_penetapan)}
               </p>
             ) : (
-              <p className="mt-2 text-base font-medium text-slate-500">Belum ditetapkan</p>
+              <p className="mt-2 text-sm font-medium text-slate-500">Belum ditetapkan</p>
             )}
           </Link>
         ))}
       </section>
 
       <Kartu className="bg-sky-50">
-        <p className="text-lg font-bold text-sky-950">Arti singkatan</p>
-        <ul className="mt-2 space-y-1 text-base text-slate-800">
+        <p className="text-base font-bold text-sky-950">Arti singkatan</p>
+        <ul className="mt-2 space-y-1 text-sm text-slate-800">
           <li><b>TPS</b> — Tempat Pemungutan Suara, tempat warga mencoblos.</li>
           <li><b>DPS</b> — Daftar Pemilih Sementara, diumumkan lebih dulu agar warga bisa memeriksa namanya.</li>
           <li><b>DPT</b> — Daftar Pemilih Tetap, daftar final setelah tanggapan warga diperiksa.</li>

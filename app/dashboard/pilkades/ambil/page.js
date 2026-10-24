@@ -25,7 +25,7 @@ export default async function AmbilPage({ searchParams }) {
   const total = count ?? 0;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-5">
       <PanduanLangkah aktif="ambil" />
       <JudulHalaman
         langkah={1}
@@ -47,14 +47,14 @@ export default async function AmbilPage({ searchParams }) {
           {bisaUbah && (
             <form action={ambilCalonPemilih} className="mt-5">
               <input type="hidden" name="periode_id" value={periode.id} />
-              <button className={`${tombol.utama} text-lg`}>Ambil Data Warga Sekarang</button>
+              <button className={`${tombol.utama} text-base`}>Ambil Data Warga Sekarang</button>
             </form>
           )}
         </KosongPandu>
       ) : (
         <Kartu className="space-y-4">
-          <p className="text-xl font-bold text-emerald-800">✓ Sudah ada {total} calon pemilih</p>
-          <p className="text-base text-slate-700">
+          <p className="text-lg font-bold text-emerald-800">✓ Sudah ada {total} calon pemilih</p>
+          <p className="text-sm text-slate-700">
             Ada warga baru yang belum masuk? Klik “Tambah warga baru”. Nama yang sudah ada tidak akan dobel.
           </p>
           <div className="flex flex-wrap gap-3">

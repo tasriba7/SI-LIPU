@@ -26,7 +26,7 @@ export default async function HadirPage({ searchParams }) {
   const dpt = await ambilDptTerbaru(supabase, periode.id);
   if (!dpt.head) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-5xl">
         <KosongPandu
           judul="DPT belum ditetapkan"
           teks="Daftar hadir mengacu ke DPT resmi, bukan ke data yang masih bisa berubah. Tetapkan DPS dan DPT dulu."
@@ -106,17 +106,17 @@ export default async function HadirPage({ searchParams }) {
           ["Belum hadir", totalDpt - totalHadir, "border-amber-200 bg-amber-50 text-amber-800"],
           ["Tingkat kehadiran", `${persen}%`, "border-slate-200 bg-slate-50 text-slate-800"],
         ].map(([label, n, gaya]) => (
-          <div key={label} className={`rounded-2xl border-2 p-4 ${gaya}`}>
-            <p className="text-base font-semibold text-slate-800">{label}</p>
-            <p className="mt-1 text-4xl font-extrabold">{n}</p>
+          <div key={label} className={`rounded-xl border p-4 ${gaya}`}>
+            <p className="text-sm font-semibold text-slate-800">{label}</p>
+            <p className="mt-1 text-2xl font-extrabold">{n}</p>
           </div>
         ))}
       </div>
 
       <Kartu>
-        <h2 className="text-lg font-bold text-sky-950">Rekap per TPS</h2>
+        <h2 className="text-base font-bold text-sky-950">Rekap per TPS</h2>
         <div className="mt-2 overflow-x-auto">
-          <table className="w-full text-left text-base">
+          <table className="w-full text-left text-sm">
             <thead className="text-sm font-bold text-sky-900">
               <tr>
                 <th className="py-2 pr-4">TPS</th>
@@ -145,18 +145,18 @@ export default async function HadirPage({ searchParams }) {
 
       <Kartu>
         <form className="flex flex-wrap items-end gap-3">
-          <label className="flex-1 basis-56 text-base font-semibold text-slate-800">
+          <label className="flex-1 basis-56 text-sm font-semibold text-slate-800">
             Cari nama pemilih
             <input name="cari" defaultValue={sp.cari ?? ""} placeholder="Ketik nama…" autoFocus className={`${kolomKecil} mt-1 block w-full`} />
           </label>
-          <label className="text-base font-semibold text-slate-800">
+          <label className="text-sm font-semibold text-slate-800">
             TPS
             <select name="tps" defaultValue={fTps} className={`${kolomKecil} mt-1 block`}>
               <option value="">Semua TPS</option>
               {rekapList.map((e) => <option key={e.tps} value={e.tps}>{e.tps}</option>)}
             </select>
           </label>
-          <label className="text-base font-semibold text-slate-800">
+          <label className="text-sm font-semibold text-slate-800">
             Tampilkan
             <select name="tampil" defaultValue={tampilPilihan} className={`${kolomKecil} mt-1 block`}>
               <option value="belum">Yang belum hadir</option>
@@ -166,11 +166,11 @@ export default async function HadirPage({ searchParams }) {
           </label>
           <button className={tombol.sekunder}>Cari</button>
         </form>
-        <p className="mt-3 text-base text-slate-700">Menampilkan <b>{hasil.length}</b> pemilih.</p>
+        <p className="mt-3 text-sm text-slate-700">Menampilkan <b>{hasil.length}</b> pemilih.</p>
       </Kartu>
 
-      <div className="overflow-x-auto rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
-        <table className="w-full text-left text-base">
+      <div className="overflow-x-auto rounded-xl border border-sky-100 bg-white shadow-sm">
+        <table className="w-full text-left text-sm">
           <thead className="bg-sky-50 text-sm font-bold text-sky-900">
             <tr>
               <th className="px-4 py-3">Nama</th>
@@ -204,7 +204,7 @@ export default async function HadirPage({ searchParams }) {
                         {bisaUbah && (
                           <details>
                             <summary className="cursor-pointer text-sm font-semibold text-red-700">Batalkan</summary>
-                            <form action={batalHadir} className="mt-2 space-y-2 rounded-xl border-2 border-red-200 bg-red-50 p-3">
+                            <form action={batalHadir} className="mt-2 space-y-2 rounded-xl border border-red-200 bg-red-50 p-3">
                               <input type="hidden" name="periode_id" value={periode.id} />
                               <input type="hidden" name="warga_id" value={r.warga_id} />
                               <Penjaga />
@@ -238,13 +238,13 @@ export default async function HadirPage({ searchParams }) {
               );
             })}
             {!tampil.length && (
-              <tr><td colSpan={4} className="px-4 py-10 text-center text-base text-slate-500">Tidak ada pemilih yang cocok.</td></tr>
+              <tr><td colSpan={4} className="px-4 py-10 text-center text-sm text-slate-500">Tidak ada pemilih yang cocok.</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 text-base text-slate-700">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-700">
         <span>Halaman {halaman} dari {totalHal}</span>
         <span className="flex gap-3">
           {halaman > 1 && <Link href={qs({ hal: halaman - 1 })} className={tombol.sekunder}>← Sebelumnya</Link>}

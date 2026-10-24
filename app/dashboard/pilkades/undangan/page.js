@@ -14,7 +14,7 @@ export default async function UndanganPage() {
   const dpt = await ambilDptTerbaru(supabase, periode.id);
   if (!dpt.head) {
     return (
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-5xl">
         <KosongPandu
           judul="DPT belum ditetapkan"
           teks="Surat undangan dicetak dari DPT resmi, supaya nama dan nomor urutnya sama dengan daftar yang ditempel. Tetapkan DPS dan DPT dulu."
@@ -33,7 +33,7 @@ export default async function UndanganPage() {
   const dusunList = [...new Set(dpt.isi.map((r) => r.dusun).filter(Boolean))].sort();
 
   return (
-    <div className="mx-auto max-w-2xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-5">
       <JudulHalaman
         judul="Surat Undangan Memilih"
         penjelasan={`Surat pemberitahuan kepada pemilih untuk datang ke TPS. Isinya diambil dari DPT versi ${dpt.head.versi} (${dpt.head.jumlah ?? dpt.isi.length} pemilih): nama, nomor urut, dan TPS-nya. Dicetak 2 surat per lembar kertas, dengan bagian tanda terima yang digunting.`}
@@ -88,7 +88,7 @@ export default async function UndanganPage() {
           <p className="text-sm text-slate-600">
             Tanggal pemungutan: <b>{formatTanggal(periode.tanggal_pemungutan)}</b> (dari data periode). NIK dicetak sebagian disamarkan.
           </p>
-          <button className={`${tombol.utama} text-lg`}>Buka Pratinjau Cetak</button>
+          <button className={`${tombol.utama} text-base`}>Buka Pratinjau Cetak</button>
         </form>
       </Kartu>
     </div>

@@ -39,7 +39,7 @@ export default async function TpsPage({ searchParams }) {
   const ada = (tps ?? []).length > 0;
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-5">
       <PanduanLangkah aktif="tps" />
       <JudulHalaman
         langkah={3}
@@ -53,7 +53,7 @@ export default async function TpsPage({ searchParams }) {
 
       {bisaUbah && (
         <Kartu>
-          <h2 className="text-lg font-bold text-sky-950">{ada ? "Tambah TPS lagi" : "Tambah TPS pertama Anda"}</h2>
+          <h2 className="text-base font-bold text-sky-950">{ada ? "Tambah TPS lagi" : "Tambah TPS pertama Anda"}</h2>
           <form action={tambahTps} className="mt-3 grid gap-4 sm:grid-cols-2">
             <input type="hidden" name="periode_id" value={periode.id} />
             <label className={labelKolom}>
@@ -72,21 +72,21 @@ export default async function TpsPage({ searchParams }) {
       )}
 
       {ada ? (
-        <ul className="divide-y divide-sky-100 overflow-hidden rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
+        <ul className="divide-y divide-sky-100 overflow-hidden rounded-xl border border-sky-100 bg-white shadow-sm">
           {tps.map((t) => (
             <li key={t.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
               <div>
-                <p className="text-lg font-bold text-slate-900">{t.nama}</p>
-                <p className="text-base text-slate-600">{t.lokasi || "Lokasi belum diisi"}</p>
+                <p className="text-base font-bold text-slate-900">{t.nama}</p>
+                <p className="text-sm text-slate-600">{t.lokasi || "Lokasi belum diisi"}</p>
               </div>
               <div className="flex items-center gap-4">
-                <span className="rounded-full bg-sky-100 px-3 py-1 text-base font-bold text-sky-900">{jumlah[t.id]} pemilih</span>
+                <span className="rounded-full bg-sky-100 px-3 py-1 text-sm font-bold text-sky-900">{jumlah[t.id]} pemilih</span>
                 {bisaUbah && (
                   <form action={hapusTps}>
                     <input type="hidden" name="id" value={t.id} />
                     <TombolKonfirmasi
                       pesan={`Hapus ${t.nama}? ${jumlah[t.id]} pemilih di TPS ini akan kembali menjadi “belum punya TPS”.`}
-                      className="rounded-lg border-2 border-red-200 px-3 py-1.5 text-base font-semibold text-red-700 hover:bg-red-50"
+                      className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50"
                     >
                       Hapus
                     </TombolKonfirmasi>

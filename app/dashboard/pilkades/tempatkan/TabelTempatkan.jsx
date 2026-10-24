@@ -26,8 +26,8 @@ export default function TabelTempatkan({ baris, tpsList, periodeId, bisaUbah }) 
       <input type="hidden" name="mode" value="terpilih" />
       {[...dipilih].map((id) => <input key={id} type="hidden" name="ids" value={id} />)}
 
-      <div className="overflow-x-auto rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
-        <table className="w-full text-left text-base">
+      <div className="overflow-x-auto rounded-xl border border-sky-100 bg-white shadow-sm">
+        <table className="w-full text-left text-sm">
           <thead className="bg-sky-50 text-sm font-bold text-sky-900">
             <tr>
               {bisaUbah && (
@@ -70,8 +70,8 @@ export default function TabelTempatkan({ baris, tpsList, periodeId, bisaUbah }) 
       </div>
 
       {bisaUbah && (
-        <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-2xl border-2 border-sky-300 bg-white p-4 shadow-lg">
-          <p className="text-base font-bold text-sky-950">
+        <div className="sticky bottom-3 z-10 flex flex-wrap items-center gap-3 rounded-xl border border-sky-300 bg-white p-4 shadow-lg">
+          <p className="text-sm font-bold text-sky-950">
             {dipilih.size > 0 ? `${dipilih.size} orang dipilih` : "Centang nama di atas, lalu pilih TPS"}
           </p>
           <select name="tps_id" required defaultValue="" className={`${kolomKecil} min-w-[10rem]`} aria-label="TPS tujuan">
@@ -80,7 +80,7 @@ export default function TabelTempatkan({ baris, tpsList, periodeId, bisaUbah }) 
           </select>
           <button disabled={dipilih.size === 0} className={tombol.hijau}>Masukkan ke TPS ini</button>
           {dipilih.size > 0 && (
-            <button type="button" onClick={() => setDipilih(new Set())} className="text-base font-semibold text-slate-600 underline">
+            <button type="button" onClick={() => setDipilih(new Set())} className="text-sm font-semibold text-slate-600 underline">
               Batalkan pilihan
             </button>
           )}

@@ -227,7 +227,7 @@ export default function DashboardShell({
                           <Link
                             href={href}
                             aria-current={aktif ? "page" : undefined}
-                            className={`flex items-center gap-3 rounded-lg px-3 ${modePilkades ? "py-2.5 text-base" : "py-2 text-sm"} transition ${
+                            className={`flex items-center gap-3 rounded-lg px-3 ${modePilkades ? "py-2 text-sm" : "py-2 text-sm"} transition ${
                               aktif
                                 ? modePilkades
                                   ? "bg-sky-500 font-semibold text-white shadow"
@@ -237,7 +237,7 @@ export default function DashboardShell({
                                   : "text-white/70 hover:bg-white/10 hover:text-white"
                             }`}
                           >
-                            <Icon className={modePilkades ? "h-5 w-5" : "h-4 w-4"} />
+                            <Icon className={"h-4 w-4"} />
                             <span className="flex-1">{nama}</span>
                             {badge && (
                               <span

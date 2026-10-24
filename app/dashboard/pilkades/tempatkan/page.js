@@ -29,7 +29,7 @@ export default async function TempatkanPage({ searchParams }) {
 
   if (!(tps ?? []).length) {
     return (
-      <div className="mx-auto max-w-3xl space-y-5">
+      <div className="mx-auto max-w-5xl space-y-5">
         <PanduanLangkah aktif="tempatkan" />
         <KosongPandu
           judul="Belum ada TPS"
@@ -44,7 +44,7 @@ export default async function TempatkanPage({ searchParams }) {
   const layak = (semua ?? []).filter((r) => r.status_verifikasi === "memenuhi_syarat");
   if (!layak.length) {
     return (
-      <div className="mx-auto max-w-3xl space-y-5">
+      <div className="mx-auto max-w-5xl space-y-5">
         <PanduanLangkah aktif="tempatkan" />
         <KosongPandu
           judul="Belum ada pemilih yang memenuhi syarat"
@@ -90,7 +90,7 @@ export default async function TempatkanPage({ searchParams }) {
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-5">
+    <div className="mx-auto max-w-5xl space-y-5">
       <PanduanLangkah aktif="tempatkan" />
       <JudulHalaman
         langkah={4}
@@ -106,15 +106,15 @@ export default async function TempatkanPage({ searchParams }) {
       {/* Ringkasan per TPS */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {perTps.map((t) => (
-          <div key={t.id} className="rounded-2xl border-2 border-sky-100 bg-white p-4">
-            <p className="text-base font-semibold text-slate-800">{t.nama}</p>
-            <p className="text-3xl font-extrabold text-sky-700">{t.n}</p>
+          <div key={t.id} className="rounded-xl border border-sky-100 bg-white p-4">
+            <p className="text-sm font-semibold text-slate-800">{t.nama}</p>
+            <p className="text-2xl font-extrabold text-sky-700">{t.n}</p>
             <p className="text-sm text-slate-600">pemilih</p>
           </div>
         ))}
-        <div className={`rounded-2xl border-2 p-4 ${belumTps.length ? "border-amber-300 bg-amber-50" : "border-emerald-300 bg-emerald-50"}`}>
-          <p className="text-base font-semibold text-slate-800">Belum punya TPS</p>
-          <p className={`text-3xl font-extrabold ${belumTps.length ? "text-amber-700" : "text-emerald-700"}`}>{belumTps.length}</p>
+        <div className={`rounded-xl border p-4 ${belumTps.length ? "border-amber-300 bg-amber-50" : "border-emerald-300 bg-emerald-50"}`}>
+          <p className="text-sm font-semibold text-slate-800">Belum punya TPS</p>
+          <p className={`text-2xl font-extrabold ${belumTps.length ? "text-amber-700" : "text-emerald-700"}`}>{belumTps.length}</p>
           <p className="text-sm text-slate-600">{belumTps.length ? "perlu ditempatkan" : "semua beres ✓"}</p>
         </div>
       </div>
@@ -122,14 +122,14 @@ export default async function TempatkanPage({ searchParams }) {
       {/* Jalan pintas */}
       {bisaUbah && belumTps.length > 0 && (
         <Kartu className="border-sky-300 bg-sky-50">
-          <h2 className="text-lg font-bold text-sky-950">⚡ Cara tercepat: masukkan sekaligus</h2>
-          <p className="mt-1 text-base text-slate-700">
+          <h2 className="text-base font-bold text-sky-950">⚡ Cara tercepat: masukkan sekaligus</h2>
+          <p className="mt-1 text-sm text-slate-700">
             Pilih TPS (dan dusun bila perlu), lalu semua pemilih yang <b>belum punya TPS</b> langsung dimasukkan. Anda bisa memindahkannya lagi nanti.
           </p>
           <form action={masukkanKeTps} className="mt-3 flex flex-wrap items-end gap-3">
             <input type="hidden" name="periode_id" value={periode.id} />
             <input type="hidden" name="mode" value="semua" />
-            <label className="text-base font-semibold text-slate-800">
+            <label className="text-sm font-semibold text-slate-800">
               Dusun
               <select name="dusun" defaultValue="" className={`${kolomKecil} mt-1 block`}>
                 <option value="">Semua dusun ({belumTps.length} orang)</option>
@@ -138,7 +138,7 @@ export default async function TempatkanPage({ searchParams }) {
                 ))}
               </select>
             </label>
-            <label className="text-base font-semibold text-slate-800">
+            <label className="text-sm font-semibold text-slate-800">
               Masukkan ke
               <select name="tps_id" required defaultValue="" className={`${kolomKecil} mt-1 block`}>
                 <option value="" disabled>Pilih TPS…</option>
@@ -154,20 +154,20 @@ export default async function TempatkanPage({ searchParams }) {
 
       {/* Pilih manual */}
       <Kartu>
-        <h2 className="text-lg font-bold text-sky-950">Atau pilih nama satu per satu</h2>
+        <h2 className="text-base font-bold text-sky-950">Atau pilih nama satu per satu</h2>
         <form className="mt-3 flex flex-wrap items-end gap-3">
-          <label className="flex-1 basis-48 text-base font-semibold text-slate-800">
+          <label className="flex-1 basis-48 text-sm font-semibold text-slate-800">
             Cari nama
             <input name="cari" defaultValue={sp.cari ?? ""} placeholder="Ketik nama…" className={`${kolomKecil} mt-1 block w-full`} />
           </label>
-          <label className="text-base font-semibold text-slate-800">
+          <label className="text-sm font-semibold text-slate-800">
             Dusun
             <select name="dusun" defaultValue={fDusun} className={`${kolomKecil} mt-1 block`}>
               <option value="">Semua dusun</option>
               {dusunList.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
           </label>
-          <label className="text-base font-semibold text-slate-800">
+          <label className="text-sm font-semibold text-slate-800">
             Tampilkan
             <select name="tampil" defaultValue={fTampil} className={`${kolomKecil} mt-1 block`}>
               <option value="belum">Yang belum punya TPS</option>
@@ -176,12 +176,12 @@ export default async function TempatkanPage({ searchParams }) {
           </label>
           <button className={tombol.sekunder}>Tampilkan</button>
         </form>
-        <p className="mt-3 text-base text-slate-700">Menampilkan <b>{hasil.length}</b> orang.</p>
+        <p className="mt-3 text-sm text-slate-700">Menampilkan <b>{hasil.length}</b> orang.</p>
       </Kartu>
 
       <TabelTempatkan key={`${halaman}-${fDusun}-${fTampil}-${cari}-${belumTps.length}`} baris={baris} tpsList={tps} periodeId={periode.id} bisaUbah={bisaUbah} />
 
-      <div className="flex flex-wrap items-center justify-between gap-3 text-base text-slate-700">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-700">
         <span>Halaman {halaman} dari {totalHal}</span>
         <span className="flex gap-3">
           {halaman > 1 && <Link href={qs({ hal: halaman - 1 })} className={tombol.sekunder}>← Sebelumnya</Link>}
