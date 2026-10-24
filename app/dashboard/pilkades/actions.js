@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { pastikanAdmin, pastikanKelolaPilkades } from "@/lib/akses";
 import { adalahUuid } from "@/lib/validasiPengajuan";
-import { STATUS_VERIFIKASI, ambilDaftarPemilih } from "@/lib/pilkades";
+import { STATUS_VERIFIKASI, JABATAN_PANITIA, ambilDaftarPemilih } from "@/lib/pilkades";
 
 // Semua action di sini memakai sesi login pemanggil (RLS tetap berlaku),
 // bukan kunci service_role. Cek role di server + RLS di database.
@@ -215,4 +215,44 @@ export async function masukkanKeTps(formData) {
   revalidatePath("/dashboard/pilkades", "layout");
   if (gagal) redirect(`${kembali}?hasil=gagal`);
   redirect(`${kembali}?hasil=ok&n=${jumlah}&tps=${encodeURIComponent(tps.nama)}`);
+}
+
+/**
+ * Susunan panitia: ketua/sekretaris/bendahara (diganti bila sudah ada) dan anggota (ditambah).
+ * Penulisan hanya lewat fungsi database (tercatat di Riwayat).
+ */
+export async function simpanPanitia(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const kembali = "/dashboard/pilkades/panitia";
+  const periodeId = String(formData.get("periode_id") ?? "");
+  const jabatan = String(formData.get("jabatan") ?? "");
+  const nama = String(formData.get("nama") ?? "").trim().replace(/\s+/g, " ").slice(0, 100);
+  if (!adalahUuid(periodeId) || !(jabatan in JABATAN_PANITIA)) redirect(`${kembali}?hasil=gagal`);
+  if (nama.length < 3) redirect(`${kembali}?hasil=pendek&jabatan=${jabatan}`);
+
+  const { error } = await supabase.rpc("pilkades_simpan_panitia", {
+    p_periode: periodeId,
+    p_jabatan: jabatan,
+    p_nama: nama,
+  });
+  revalidatePath("/dashboard/pilkades", "layout");
+  if (error) {
+    // Pesan fungsi database (P0001) sudah berbahasa Indonesia dan aman ditampilkan.
+    const pesan = error.code === "P0001" ? `&pesan=${encodeURIComponent(error.message)}` : "";
+    redirect(`${kembali}?hasil=gagal${pesan}`);
+  }
+  redirect(`${kembali}?hasil=ok&jabatan=${jabatan}&nama=${encodeURIComponent(nama)}`);
+}
+
+export async function hapusPanitia(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const id = String(formData.get("id") ?? "");
+  if (!adalahUuid(id)) return;
+  const { error } = await supabase.rpc("pilkades_hapus_panitia", { p_id: id });
+  revalidatePath("/dashboard/pilkades", "layout");
+  redirect(`/dashboard/pilkades/panitia?hasil=${error ? "gagal" : "hapus"}`);
 }

@@ -1,0 +1,26 @@
+Pilkades tahap A: Susunan Panitia + tanda tangan otomatis di cetakan
+1. Jalankan supabase/migrations/0059_pilkades_susunan_panitia.sql di Supabase SQL Editor
+   (setelah 0055). Lalu jalankan supabase/verifikasi_0059.sql:
+   bagian 1 rls_aktif = true; bagian 2 authenticated hanya SELECT; bagian 3 ada 2 fungsi; bagian 4 ada 1 indeks.
+2. Timpa/tambahkan file (path sama), SEMUANYA file lengkap:
+   - supabase/migrations/0059_pilkades_susunan_panitia.sql
+   - supabase/verifikasi_0059.sql
+   - lib/pilkades.js, lib/menuDashboard.js
+   - app/dashboard/pilkades/actions.js
+   - app/dashboard/pilkades/panitia/page.js        (BARU)
+   - app/dashboard/pilkades/cetak/page.js
+   - app/cetak/pilkades/page.js
+   - components/pilkades/BlokTtd.jsx               (BARU)
+3. Uji:
+   a. Login PANITIA > menu "Susunan Panitia" > isi Ketua, Sekretaris, Bendahara, tambah beberapa Anggota.
+      Ganti nama Ketua: namanya tergantikan (tidak dobel). Cek Riwayat Aktivitas: tercatat "Ubah susunan panitia".
+   b. Cetak Daftar: kalau nama belum lengkap, muncul peringatan kuning. Buka pratinjau cetak:
+      di akhir daftar ada kolom tanda tangan Ketua dan Sekretaris dengan nama bergaris bawah.
+      Daftar resmi (DPS/DPT) juga memuat "Nama Desa, tanggal penetapan".
+   c. Login ADMIN > Susunan Panitia tampil tanpa tombol ubah (hanya baca).
+Catatan:
+ - Login tetap SATU akun panitia. Ketua/Sekretaris/Bendahara hanyalah data per periode.
+ - Siapa yang tanda tangan di tiap dokumen diatur di satu tempat: PENANDATANGAN_DOKUMEN di lib/pilkades.js
+   (daftar pemilih = Ketua + Sekretaris). Berita acara dan laporan keuangan nanti tinggal menambah satu baris.
+ - Ketua/Sekretaris/Bendahara maksimal satu orang per periode (dijaga indeks unik di database); anggota boleh banyak.
+ - Penulisan hanya lewat fungsi database, jadi selalu tercatat di Riwayat. Bagian cetak tidak butuh migrasi tambahan.

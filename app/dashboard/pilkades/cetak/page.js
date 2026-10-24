@@ -1,5 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
-import { ambilPeriode, ambilDaftarPemilih, formatTanggal, STATUS_VERIFIKASI, JENIS_DAFTAR_LABEL } from "@/lib/pilkades";
+import Link from "next/link";
+import {
+  ambilPeriode, ambilDaftarPemilih, ambilSusunanPanitia, susunPenandatangan,
+  formatTanggal, STATUS_VERIFIKASI, JENIS_DAFTAR_LABEL,
+} from "@/lib/pilkades";
 import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
 import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
 
@@ -23,6 +27,8 @@ export default async function PilihanCetak() {
   ]);
   const dusunList = [...new Set((pemilih ?? []).map((r) => r.dusun).filter(Boolean))].sort();
   const adaArsip = (arsip ?? []).length > 0;
+  const susunan = await ambilSusunanPanitia(supabase, periode.id);
+  const ttdKosong = susunPenandatangan("daftar_pemilih", susunan).filter((p) => !p.nama);
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
@@ -37,6 +43,13 @@ export default async function PilihanCetak() {
         Cetakan dari <b>“Draf terkini”</b> diberi tanda air DRAF. Cetakan dari <b>DPS atau DPT</b> yang sudah ditetapkan adalah daftar resmi.
         {!adaArsip && " Saat ini belum ada DPS/DPT yang ditetapkan, jadi hanya draf yang bisa dicetak."}
       </Pesan>
+
+      {ttdKosong.length > 0 && (
+        <Pesan jenis="perhatian" judul="Kolom tanda tangan belum berisi nama">
+          Nama {ttdKosong.map((p) => p.label).join(" dan ")} belum diisi, jadi kolomnya dicetak kosong.{" "}
+          <Link href="/dashboard/pilkades/panitia" className="font-bold underline">Isi Susunan Panitia →</Link>
+        </Pesan>
+      )}
 
       <Kartu>
         <form action="/cetak/pilkades" target="_blank" className="space-y-5">

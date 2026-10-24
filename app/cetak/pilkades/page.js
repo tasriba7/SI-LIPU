@@ -5,8 +5,10 @@ import { getConfigDesa } from "@/lib/configDesa";
 import { adalahUuid } from "@/lib/validasiPengajuan";
 import {
   ambilPeriode, ambilDaftarPemilih, ambilIsiArsip, hitungUmur, formatTanggal, terlaluMuda,
+  ambilSusunanPanitia, susunPenandatangan,
   STATUS_VERIFIKASI, JENIS_DAFTAR_LABEL,
 } from "@/lib/pilkades";
+import BlokTtd from "@/components/pilkades/BlokTtd";
 import TombolCetak from "./TombolCetak";
 
 export const metadata = { title: "Cetak Daftar Pemilih" };
@@ -77,6 +79,14 @@ export default async function CetakPilkades({ searchParams }) {
 
   const cetakPada = new Date().toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short", timeZone: "Asia/Makassar" });
   const namaDesa = `${desa.jenis_wilayah ?? "Desa"} ${desa.nama_desa ?? ""}`.trim();
+
+  // Penandatangan dari Susunan Panitia (Ketua + Sekretaris untuk daftar pemilih).
+  const susunan = await ambilSusunanPanitia(supabase, periode.id);
+  const penandatangan = susunPenandatangan("daftar_pemilih", susunan);
+  const tempatTanggal = arsip
+    ? `${desa.nama_desa ?? ""}${desa.nama_desa ? ", " : ""}${formatTanggal(arsip.tanggal_penetapan)}`
+    : null;
+
   const judul = arsip
     ? `${JENIS_DAFTAR_LABEL[arsip.jenis].toUpperCase()}`
     : `DAFTAR PEMILIH${fStatus !== "memenuhi_syarat" && STATUS_VERIFIKASI[fStatus] ? ` (${STATUS_VERIFIKASI[fStatus].toUpperCase()})` : ""} — DRAF`;
@@ -125,8 +135,13 @@ export default async function CetakPilkades({ searchParams }) {
         .tbl th, .tbl td { border: 0.4mm solid #000; padding: 0.4mm 1.2mm; height: 4.6mm; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
         .tbl th { background: #e5e7eb; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         .kaki { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 3mm; font-size: 8.5pt; }
-        .ttd { text-align: center; min-width: 70mm; }
+        .ttd-grup { text-align: center; }
+        .ttd-tempat { margin-bottom: 0.5mm; }
+        .ttd-judul { font-weight: 700; margin-bottom: 0.5mm; }
+        .ttd-baris { display: flex; gap: 12mm; justify-content: center; }
+        .ttd { text-align: center; min-width: 62mm; }
         .ttd .ruang { height: 12mm; }
+        .ttd-nama { font-weight: 700; }
         .tanda-air { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;
           font-size: 110pt; font-weight: 800; color: rgba(0,0,0,0.07); transform: rotate(-20deg); letter-spacing: 8mm; }
         @media print { .no-print, button { display: none !important; } }
@@ -157,11 +172,11 @@ export default async function CetakPilkades({ searchParams }) {
                 : `Dicetak: ${cetakPada} · Draf, belum ditetapkan sebagai DPS/DPT`}
             </div>
             {h === jumlahHal - 1 && (
-              <div className="ttd">
-                <div>Panitia Pemilihan Kepala {desa.jenis_wilayah ?? "Desa"}</div>
-                <div className="ruang" />
-                <div>(............................................)</div>
-              </div>
+              <BlokTtd
+                judulPanitia={`Panitia Pemilihan Kepala ${desa.jenis_wilayah ?? "Desa"}`}
+                tempatTanggal={tempatTanggal}
+                penandatangan={penandatangan}
+              />
             )}
           </div>
         </section>
