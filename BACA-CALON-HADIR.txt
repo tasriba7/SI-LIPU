@@ -1,0 +1,34 @@
+Pilkades tahap B: Calon Kepala Desa + Daftar Hadir (hari pemungutan suara)
+PRASYARAT: tahap A (Susunan Panitia) sudah dipasang, dan migrasi 0054 + 0055 sudah dijalankan.
+Tahap B TIDAK memerlukan migrasi baru; tabel dan fungsinya sudah ada sejak 0054/0055.
+Sebelum mulai, jalankan supabase/verifikasi_0054.sql: harus ada 2 tabel (rowsecurity true),
+hanya authenticated SELECT di pilkades_hadir, dan 2 fungsi.
+
+1. Timpa/tambahkan file (path sama), SEMUANYA file lengkap:
+   - lib/pilkades.js, lib/menuDashboard.js          (sudah memuat perubahan tahap A)
+   - app/dashboard/pilkades/actions.js              (sudah memuat perubahan tahap A)
+   - app/dashboard/pilkades/calon/page.js           (BARU)
+   - app/dashboard/pilkades/hadir/page.js           (BARU)
+2. Uji CALON (login PANITIA):
+   a. Menu "Calon Kepala Desa" > tambah 3 calon (status "Mendaftar").
+   b. Ubah satu calon: status "Ditetapkan" TANPA nomor urut > ditolak. Isi nomor urut 1 > berhasil.
+   c. Beri dua calon nomor urut sama > ditolak ("Nomor urut sudah dipakai").
+   d. Status "Tidak lolos" tanpa alasan > ditolak.
+   e. Hapus calon berstatus Ditetapkan > tidak ada tombol hapus (dikunci). Hapus calon lain > berhasil.
+   f. Riwayat Aktivitas mencatat "Ubah data calon" dan "Hapus calon".
+   g. Login ADMIN: semua tampil tanpa tombol ubah.
+3. Uji DAFTAR HADIR (login PANITIA):
+   a. Sebelum DPT ditetapkan: halaman menampilkan "DPT belum ditetapkan" dengan tombol ke Langkah 5.
+   b. Setelah DPT ada: kartu angka + rekap per TPS tampil. Cari nama > "Catat hadir".
+      Setelah dicatat, nama hilang dari tampilan "Yang belum hadir" dan angka bertambah.
+   c. Pilih tampilan "Yang sudah hadir" > klik "Batalkan", isi alasan (min. 5 huruf) > tercatat di Riwayat.
+   d. Pembatalan tanpa alasan ditolak.
+   e. Login ADMIN: hanya melihat, tanpa tombol catat/batalkan.
+Catatan:
+ - Daftar hadir mengacu ke DPT resmi TERBARU. Bila nanti DPT ditetapkan ulang (versi baru),
+   rekap mengikuti versi terbaru; catatan hadir yang sudah ada tetap tersimpan.
+ - Pilihan pemilih TIDAK direkam (suara tetap rahasia); yang dicatat hanya siapa yang hadir.
+ - Mencatat hadir belum masuk Riwayat (hanya pembatalan yang tercatat, sesuai desain 0054).
+   Pencatatan lengkap direncanakan di tahap D (jejak audit).
+ - Setiap klik memuat ulang daftar DPT. Untuk desa dengan ribuan pemilih tetap lancar,
+   tetapi bila terasa lambat di hari-H, beri tahu saya supaya dibuatkan pencarian per halaman di database.

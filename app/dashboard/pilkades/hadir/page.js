@@ -1,0 +1,260 @@
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { ambilRole } from "@/lib/akses";
+import { bisaUbahPilkades } from "@/lib/roles";
+import { ambilPeriode, ambilDptTerbaru, ambilHadir, formatTanggal } from "@/lib/pilkades";
+import { catatHadir, batalHadir } from "../actions";
+import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
+import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolomKecil } from "@/components/pilkades/UI";
+
+export const metadata = { title: "Daftar Hadir — Pilkades" };
+const PER_HALAMAN = 30;
+
+const jam = (t) =>
+  new Date(t).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Makassar" });
+
+export default async function HadirPage({ searchParams }) {
+  const sp = await searchParams;
+  const supabase = await createClient();
+  const periode = await ambilPeriode(supabase);
+  const { role } = await ambilRole(supabase);
+  const bisaUbah = bisaUbahPilkades(role);
+  if (!periode) {
+    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/periode" label="Buka Periode Pilkades" />;
+  }
+
+  const dpt = await ambilDptTerbaru(supabase, periode.id);
+  if (!dpt.head) {
+    return (
+      <div className="mx-auto max-w-3xl">
+        <KosongPandu
+          judul="DPT belum ditetapkan"
+          teks="Daftar hadir mengacu ke DPT resmi, bukan ke data yang masih bisa berubah. Tetapkan DPS dan DPT dulu."
+          href="/dashboard/pilkades/daftar"
+          label="Ke Langkah 5: Tetapkan DPS & DPT"
+        />
+      </div>
+    );
+  }
+
+  const { data: hadirList, error: errHadir } = await ambilHadir(supabase, periode.id);
+  const hadirMap = new Map((hadirList ?? []).map((h) => [h.warga_id, h]));
+  const isi = dpt.isi;
+
+  // Rekap per TPS (berdasarkan isi DPT; hadir dihitung dari pemilih yang memang ada di DPT ini).
+  const rekap = new Map();
+  for (const r of isi) {
+    const k = r.tps_nama ?? "Tanpa TPS";
+    const e = rekap.get(k) ?? { tps: k, dpt: 0, hadir: 0 };
+    e.dpt += 1;
+    if (hadirMap.has(r.warga_id)) e.hadir += 1;
+    rekap.set(k, e);
+  }
+  const rekapList = [...rekap.values()].sort((a, b) => a.tps.localeCompare(b.tps, "id"));
+  const totalDpt = isi.length;
+  const totalHadir = rekapList.reduce((n, e) => n + e.hadir, 0);
+  const persen = totalDpt ? Math.round((totalHadir / totalDpt) * 1000) / 10 : 0;
+
+  // Saringan & halaman.
+  const cari = (sp.cari ?? "").toString().trim().toLowerCase();
+  const fTps = sp.tps ?? "";
+  const tampilPilihan = ["belum", "sudah", "semua"].includes(sp.tampil) ? sp.tampil : "belum";
+  const hasil = isi.filter((r) => {
+    const sudah = hadirMap.has(r.warga_id);
+    return (
+      (!cari || r.nama_lengkap.toLowerCase().includes(cari)) &&
+      (!fTps || (r.tps_nama ?? "Tanpa TPS") === fTps) &&
+      (tampilPilihan === "semua" || (tampilPilihan === "sudah" ? sudah : !sudah))
+    );
+  });
+  const halaman = Math.max(1, parseInt(sp.hal ?? "1", 10) || 1);
+  const totalHal = Math.max(1, Math.ceil(hasil.length / PER_HALAMAN));
+  const tampil = hasil.slice((halaman - 1) * PER_HALAMAN, halaman * PER_HALAMAN);
+  const qs = (o) => {
+    const p = new URLSearchParams({ cari: sp.cari ?? "", tps: fTps, tampil: tampilPilihan, ...o });
+    for (const [k, v] of [...p]) if (!v) p.delete(k);
+    return `?${p.toString()}`;
+  };
+
+  // Field tersembunyi agar setelah mencatat, halaman kembali ke saringan yang sama.
+  const Penjaga = () => (
+    <>
+      <input type="hidden" name="cari" value={sp.cari ?? ""} />
+      <input type="hidden" name="tps" value={fTps} />
+      <input type="hidden" name="tampil" value={tampilPilihan} />
+      <input type="hidden" name="hal" value={halaman} />
+    </>
+  );
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-5">
+      <JudulHalaman
+        judul={`Daftar Hadir — ${periode.nama}`}
+        penjelasan={`Dipakai pada hari pemungutan suara (${formatTanggal(periode.tanggal_pemungutan)}). Cari nama pemilih, lalu klik “Catat hadir”. Acuannya DPT versi ${dpt.head.versi} (ditetapkan ${formatTanggal(dpt.head.tanggal_penetapan)}). Satu pemilih hanya bisa dicatat sekali.`}
+      />
+
+      {sp.hasil === "ok" && <Pesan jenis="sukses" judul="Hadir tercatat">{sp.nama ? `${sp.nama} sudah dicatat hadir.` : "Kehadiran dicatat."}</Pesan>}
+      {sp.hasil === "batal" && <Pesan jenis="sukses" judul="Catatan hadir dibatalkan">Pembatalan tercatat di Riwayat Aktivitas beserta alasannya.</Pesan>}
+      {sp.hasil === "gagal" && <Pesan jenis="bahaya" judul="Tidak berhasil">{sp.pesan || "Silakan coba lagi."}</Pesan>}
+      {(dpt.error || errHadir) && <Pesan jenis="bahaya" judul="Data gagal dimuat">Pastikan migrasi 0054 dan 0055 sudah dijalankan.</Pesan>}
+      {!bisaUbah && <Pesan jenis="info">Kehadiran dicatat oleh Panitia Pilkades. Akun ini hanya dapat melihat.</Pesan>}
+
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {[
+          ["Pemilih di DPT", totalDpt, "border-sky-200 bg-sky-50 text-sky-800"],
+          ["Sudah hadir", totalHadir, "border-emerald-200 bg-emerald-50 text-emerald-800"],
+          ["Belum hadir", totalDpt - totalHadir, "border-amber-200 bg-amber-50 text-amber-800"],
+          ["Tingkat kehadiran", `${persen}%`, "border-slate-200 bg-slate-50 text-slate-800"],
+        ].map(([label, n, gaya]) => (
+          <div key={label} className={`rounded-2xl border-2 p-4 ${gaya}`}>
+            <p className="text-base font-semibold text-slate-800">{label}</p>
+            <p className="mt-1 text-4xl font-extrabold">{n}</p>
+          </div>
+        ))}
+      </div>
+
+      <Kartu>
+        <h2 className="text-lg font-bold text-sky-950">Rekap per TPS</h2>
+        <div className="mt-2 overflow-x-auto">
+          <table className="w-full text-left text-base">
+            <thead className="text-sm font-bold text-sky-900">
+              <tr>
+                <th className="py-2 pr-4">TPS</th>
+                <th className="py-2 pr-4">Pemilih di DPT</th>
+                <th className="py-2 pr-4">Hadir</th>
+                <th className="py-2 pr-4">Belum hadir</th>
+                <th className="py-2"><span className="sr-only">Lihat</span></th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {rekapList.map((e) => (
+                <tr key={e.tps}>
+                  <td className="py-2 pr-4 font-semibold text-slate-900">{e.tps}</td>
+                  <td className="py-2 pr-4">{e.dpt}</td>
+                  <td className="py-2 pr-4 font-semibold text-emerald-700">{e.hadir}</td>
+                  <td className="py-2 pr-4 text-amber-700">{e.dpt - e.hadir}</td>
+                  <td className="py-2 text-right">
+                    <Link href={`?tps=${encodeURIComponent(e.tps)}`} className="text-sm font-bold text-sky-800 underline">Buka</Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Kartu>
+
+      <Kartu>
+        <form className="flex flex-wrap items-end gap-3">
+          <label className="flex-1 basis-56 text-base font-semibold text-slate-800">
+            Cari nama pemilih
+            <input name="cari" defaultValue={sp.cari ?? ""} placeholder="Ketik nama…" autoFocus className={`${kolomKecil} mt-1 block w-full`} />
+          </label>
+          <label className="text-base font-semibold text-slate-800">
+            TPS
+            <select name="tps" defaultValue={fTps} className={`${kolomKecil} mt-1 block`}>
+              <option value="">Semua TPS</option>
+              {rekapList.map((e) => <option key={e.tps} value={e.tps}>{e.tps}</option>)}
+            </select>
+          </label>
+          <label className="text-base font-semibold text-slate-800">
+            Tampilkan
+            <select name="tampil" defaultValue={tampilPilihan} className={`${kolomKecil} mt-1 block`}>
+              <option value="belum">Yang belum hadir</option>
+              <option value="sudah">Yang sudah hadir</option>
+              <option value="semua">Semuanya</option>
+            </select>
+          </label>
+          <button className={tombol.sekunder}>Cari</button>
+        </form>
+        <p className="mt-3 text-base text-slate-700">Menampilkan <b>{hasil.length}</b> pemilih.</p>
+      </Kartu>
+
+      <div className="overflow-x-auto rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
+        <table className="w-full text-left text-base">
+          <thead className="bg-sky-50 text-sm font-bold text-sky-900">
+            <tr>
+              <th className="px-4 py-3">Nama</th>
+              <th className="px-4 py-3">Dusun, RT/RW</th>
+              <th className="px-4 py-3">TPS</th>
+              <th className="px-4 py-3">Kehadiran</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {tampil.map((r) => {
+              const h = hadirMap.get(r.warga_id);
+              return (
+                <tr key={r.id} className="align-top">
+                  <td className="px-4 py-3">
+                    <p className="font-semibold text-slate-900">{r.nama_lengkap}</p>
+                    <p className="text-sm text-slate-500">NIK {r.nik_samar} · {r.jenis_kelamin === "L" ? "Laki-laki" : r.jenis_kelamin === "P" ? "Perempuan" : "-"}</p>
+                  </td>
+                  <td className="px-4 py-3 text-slate-800">
+                    {r.dusun ?? "-"}
+                    <br />
+                    {r.rt || r.rw ? `RT ${r.rt ?? "-"} / RW ${r.rw ?? "-"}` : "-"}
+                  </td>
+                  <td className="px-4 py-3 text-slate-800">{r.tps_nama ?? "-"}</td>
+                  <td className="px-4 py-3">
+                    {h ? (
+                      <div className="space-y-2">
+                        <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-sm font-semibold text-emerald-800">
+                          ✓ Hadir pukul {jam(h.hadir_pada)}
+                        </span>
+                        {h.dicatat_oleh_nama && <p className="text-sm text-slate-500">dicatat {h.dicatat_oleh_nama}</p>}
+                        {bisaUbah && (
+                          <details>
+                            <summary className="cursor-pointer text-sm font-semibold text-red-700">Batalkan</summary>
+                            <form action={batalHadir} className="mt-2 space-y-2 rounded-xl border-2 border-red-200 bg-red-50 p-3">
+                              <input type="hidden" name="periode_id" value={periode.id} />
+                              <input type="hidden" name="warga_id" value={r.warga_id} />
+                              <Penjaga />
+                              <label className="block text-sm font-semibold text-red-950">
+                                Alasan pembatalan (wajib)
+                                <input name="alasan" required minLength={5} maxLength={300} placeholder="Contoh: salah mencatat nama" className={`${kolomKecil} mt-1 block w-full`} />
+                              </label>
+                              <TombolKonfirmasi
+                                pesan={`Batalkan catatan hadir ${r.nama_lengkap}? Tercatat di Riwayat.`}
+                                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+                              >
+                                Batalkan catatan hadir
+                              </TombolKonfirmasi>
+                            </form>
+                          </details>
+                        )}
+                      </div>
+                    ) : bisaUbah ? (
+                      <form action={catatHadir}>
+                        <input type="hidden" name="periode_id" value={periode.id} />
+                        <input type="hidden" name="warga_id" value={r.warga_id} />
+                        <input type="hidden" name="nama" value={r.nama_lengkap} />
+                        <Penjaga />
+                        <button className={tombol.hijau}>Catat hadir</button>
+                      </form>
+                    ) : (
+                      <span className="text-slate-500">Belum hadir</span>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+            {!tampil.length && (
+              <tr><td colSpan={4} className="px-4 py-10 text-center text-base text-slate-500">Tidak ada pemilih yang cocok.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 text-base text-slate-700">
+        <span>Halaman {halaman} dari {totalHal}</span>
+        <span className="flex gap-3">
+          {halaman > 1 && <Link href={qs({ hal: halaman - 1 })} className={tombol.sekunder}>← Sebelumnya</Link>}
+          {halaman < totalHal && <Link href={qs({ hal: halaman + 1 })} className={tombol.sekunder}>Berikutnya →</Link>}
+        </span>
+      </div>
+
+      <p className="text-sm text-slate-600">
+        Aplikasi ini hanya mencatat siapa yang hadir. Pilihan pemilih tidak direkam sama sekali, sehingga pemungutan suara tetap rahasia.
+      </p>
+    </div>
+  );
+}

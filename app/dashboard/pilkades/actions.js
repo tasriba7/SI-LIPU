@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { pastikanAdmin, pastikanKelolaPilkades } from "@/lib/akses";
 import { adalahUuid } from "@/lib/validasiPengajuan";
-import { STATUS_VERIFIKASI, JABATAN_PANITIA, ambilDaftarPemilih } from "@/lib/pilkades";
+import { STATUS_VERIFIKASI, STATUS_CALON, JABATAN_PANITIA, ambilDaftarPemilih } from "@/lib/pilkades";
 
 // Semua action di sini memakai sesi login pemanggil (RLS tetap berlaku),
 // bukan kunci service_role. Cek role di server + RLS di database.
@@ -255,4 +255,137 @@ export async function hapusPanitia(formData) {
   const { error } = await supabase.rpc("pilkades_hapus_panitia", { p_id: id });
   revalidatePath("/dashboard/pilkades", "layout");
   redirect(`/dashboard/pilkades/panitia?hasil=${error ? "gagal" : "hapus"}`);
+}
+
+/* =====================================================================
+ * CALON KEPALA DESA
+ * Hanya panitia yang mengubah (RLS pilkades_calon_tulis, migrasi 0055).
+ * ===================================================================== */
+
+/** Tambah calon baru (tanpa id) atau ubah calon yang ada (dengan id). */
+export async function simpanCalon(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const kembali = "/dashboard/pilkades/calon";
+
+  const id = String(formData.get("id") ?? "");
+  const periodeId = String(formData.get("periode_id") ?? "");
+  const nama = String(formData.get("nama") ?? "").trim().replace(/\s+/g, " ").slice(0, 100);
+  const status = String(formData.get("status") ?? "mendaftar");
+  const alasan = String(formData.get("alasan") ?? "").trim().slice(0, 300) || null;
+  const visiMisi = String(formData.get("visi_misi") ?? "").trim().slice(0, 2000) || null;
+  const nomorMentah = String(formData.get("nomor_urut") ?? "").trim();
+  const nomor = nomorMentah === "" ? null : parseInt(nomorMentah, 10);
+
+  if (!adalahUuid(periodeId) || !(status in STATUS_CALON) || (id && !adalahUuid(id))) {
+    redirect(`${kembali}?hasil=gagal`);
+  }
+  if (nama.length < 3) redirect(`${kembali}?hasil=nama`);
+  if (nomor !== null && (!Number.isInteger(nomor) || nomor < 1 || nomor > 99)) redirect(`${kembali}?hasil=nomor`);
+  if (status === "ditetapkan" && nomor === null) redirect(`${kembali}?hasil=perlu_nomor`);
+  if (status === "tidak_lolos" && (!alasan || alasan.length < 5)) redirect(`${kembali}?hasil=perlu_alasan`);
+
+  const data = { nama, status, nomor_urut: nomor, alasan, visi_misi: visiMisi };
+  const { error } = id
+    ? await supabase.from("pilkades_calon").update(data).eq("id", id).eq("periode_id", periodeId)
+    : await supabase.from("pilkades_calon").insert({ ...data, periode_id: periodeId, created_by: cek.user.id });
+
+  revalidatePath("/dashboard/pilkades", "layout");
+  if (error) redirect(`${kembali}?hasil=${error.code === "23505" ? "nomor_kembar" : "gagal"}`);
+
+  await supabase.rpc("pilkades_catat", {
+    p_periode: periodeId,
+    p_aksi: "ubah_calon",
+    p_detail: `${id ? "Ubah" : "Tambah"}: ${nama} - ${STATUS_CALON[status]}${nomor !== null ? ` (no. urut ${nomor})` : ""}`,
+  });
+  redirect(`${kembali}?hasil=ok&nama=${encodeURIComponent(nama)}`);
+}
+
+/** Hapus calon. Calon yang sudah "Ditetapkan" dikunci: ubah statusnya dulu bila memang salah. */
+export async function hapusCalon(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const kembali = "/dashboard/pilkades/calon";
+  const id = String(formData.get("id") ?? "");
+  if (!adalahUuid(id)) redirect(`${kembali}?hasil=gagal`);
+
+  const { data: calon } = await supabase
+    .from("pilkades_calon")
+    .select("id, periode_id, nama, status")
+    .eq("id", id)
+    .maybeSingle();
+  if (!calon) redirect(`${kembali}?hasil=gagal`);
+  if (calon.status === "ditetapkan") redirect(`${kembali}?hasil=terkunci`);
+
+  const { error } = await supabase.from("pilkades_calon").delete().eq("id", id);
+  revalidatePath("/dashboard/pilkades", "layout");
+  if (error) redirect(`${kembali}?hasil=gagal`);
+
+  await supabase.rpc("pilkades_catat", {
+    p_periode: calon.periode_id,
+    p_aksi: "hapus_calon",
+    p_detail: `${calon.nama} - ${STATUS_CALON[calon.status] ?? calon.status}`,
+  });
+  redirect(`${kembali}?hasil=hapus`);
+}
+
+/* =====================================================================
+ * DAFTAR HADIR (hari pemungutan suara)
+ * Mengacu ke DPT resmi terbaru; satu pemilih hanya bisa dicatat hadir sekali.
+ * Pembatalan wajib alasan dan tercatat di Riwayat (fungsi database, migrasi 0055).
+ * ===================================================================== */
+
+/** Alamat kembali ke halaman hadir dengan saringan yang sama (hanya kunci yang dikenal). */
+function alamatHadir(formData, tambahan = {}) {
+  const p = new URLSearchParams();
+  for (const k of ["cari", "tps", "tampil", "hal"]) {
+    const v = String(formData.get(k) ?? "").slice(0, 100);
+    if (v) p.set(k, v);
+  }
+  for (const [k, v] of Object.entries(tambahan)) p.set(k, String(v));
+  return `/dashboard/pilkades/hadir?${p.toString()}`;
+}
+
+export async function catatHadir(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const periodeId = String(formData.get("periode_id") ?? "");
+  const wargaId = String(formData.get("warga_id") ?? "");
+  const nama = String(formData.get("nama") ?? "").slice(0, 100);
+  if (!adalahUuid(periodeId) || !adalahUuid(wargaId)) redirect(alamatHadir(formData, { hasil: "gagal" }));
+
+  const { error } = await supabase.rpc("pilkades_catat_hadir", { p_periode: periodeId, p_warga: wargaId });
+  revalidatePath("/dashboard/pilkades", "layout");
+  if (error) {
+    // Pesan fungsi database (P0001) sudah berbahasa Indonesia dan aman ditampilkan.
+    const pesan = error.code === "P0001" ? error.message : "Gagal mencatat. Silakan coba lagi.";
+    redirect(alamatHadir(formData, { hasil: "gagal", pesan }));
+  }
+  redirect(alamatHadir(formData, { hasil: "ok", nama }));
+}
+
+export async function batalHadir(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const periodeId = String(formData.get("periode_id") ?? "");
+  const wargaId = String(formData.get("warga_id") ?? "");
+  const alasan = String(formData.get("alasan") ?? "").trim().slice(0, 300);
+  if (!adalahUuid(periodeId) || !adalahUuid(wargaId)) redirect(alamatHadir(formData, { hasil: "gagal" }));
+  if (alasan.length < 5) redirect(alamatHadir(formData, { hasil: "gagal", pesan: "Alasan pembatalan wajib diisi (minimal 5 huruf)." }));
+
+  const { error } = await supabase.rpc("pilkades_batal_hadir", {
+    p_periode: periodeId,
+    p_warga: wargaId,
+    p_alasan: alasan,
+  });
+  revalidatePath("/dashboard/pilkades", "layout");
+  if (error) {
+    const pesan = error.code === "P0001" ? error.message : "Gagal membatalkan. Silakan coba lagi.";
+    redirect(alamatHadir(formData, { hasil: "gagal", pesan }));
+  }
+  redirect(alamatHadir(formData, { hasil: "batal" }));
 }
