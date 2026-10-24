@@ -15,6 +15,7 @@ const PESAN_HASIL = {
   perlu_alasan: ["perhatian", "Alasan wajib diisi", "Calon yang tidak lolos harus disertai alasan (minimal 5 huruf)."],
   nomor_kembar: ["perhatian", "Nomor urut sudah dipakai", "Setiap calon dalam satu periode harus punya nomor urut berbeda."],
   terkunci: ["perhatian", "Calon yang sudah ditetapkan tidak bisa dihapus", "Ubah statusnya lebih dulu bila memang ada kesalahan, lalu hapus."],
+  terkunci_suara: ["perhatian", "Calon ini sudah punya data suara", "Status dan nomor urut calon yang sudah punya suara tidak bisa diubah, dan calonnya tidak bisa dihapus."],
   gagal: ["bahaya", "Gagal menyimpan", "Silakan coba lagi. Pastikan migrasi 0054 dan 0055 sudah dijalankan."],
 };
 

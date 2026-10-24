@@ -1,0 +1,39 @@
+Pilkades tahap C: Hasil Suara per TPS, Penetapan Calon Terpilih, Berita Acara
+PRASYARAT: tahap A dan B terpasang; migrasi 0054, 0055, 0059 sudah dijalankan.
+
+1. Jalankan supabase/migrations/0060_pilkades_suara_dan_hasil.sql di Supabase SQL Editor,
+   lalu supabase/verifikasi_0060.sql. Harus: 3 tabel (rowsecurity true), authenticated HANYA SELECT
+   (tanpa anon), 4 fungsi, 1 trigger.
+2. File baru/berubah:
+   - supabase/migrations/0060_pilkades_suara_dan_hasil.sql, supabase/verifikasi_0060.sql   (BARU)
+   - app/dashboard/pilkades/hasil/page.js                                                  (BARU)
+   - app/cetak/pilkades/berita-acara/page.js                                               (BARU)
+   - lib/pilkades.js, lib/menuDashboard.js, app/dashboard/pilkades/actions.js              (timpa)
+   - app/dashboard/pilkades/calon/page.js, app/cetak/pilkades/TombolCetak.jsx              (timpa)
+   - docs/AI_HANDOFF.md                                                                    (catatan status)
+3. Uji (login PANITIA). Siapkan: 2 calon berstatus Ditetapkan (no. 1 dan 2), 2 TPS, DPT, dan
+   beberapa pemilih yang sudah dicatat hadir di tiap TPS.
+   a. Menu "Hasil Suara & Berita Acara". Tanpa calon ditetapkan: muncul arahan ke halaman Calon.
+   b. Buka TPS 1, isi suara calon 1, calon 2, tidak sah. Jumlah melebihi pemilih hadir di TPS itu
+      > ditolak dengan pesan angka hadir. Isi wajar > tersimpan, tabel dan batang perolehan ikut berubah.
+   c. Angka kosong/negatif/desimal > ditolak. Isi ulang TPS yang sama > menimpa angka lama.
+   d. Sebelum semua TPS terisi: tombol penetapan tidak muncul, ada pesan "Rekap belum lengkap".
+   e. Isi TPS 2. Suara terbanyak tampil. Isi tanggal, centang pernyataan, "Tetapkan calon terpilih".
+   f. Suara seri > tidak bisa ditetapkan (pesan seri).
+   g. Setelah ditetapkan: form input hilang, suara terkunci. "Cetak Berita Acara" membuka A4 potret
+      dengan tabel per TPS, jumlah, calon terpilih, dan tanda tangan Ketua + Sekretaris
+      (nama dari Susunan Panitia).
+   h. Ubah status/nomor urut calon yang sudah punya suara, atau hapus calonnya > ditolak.
+   i. "Batalkan penetapan" tanpa alasan > ditolak; dengan alasan > suara bisa diubah lagi.
+   j. Riwayat Aktivitas mencatat: Simpan rekap suara TPS, Tetapkan calon terpilih, Batalkan penetapan,
+      Cetak berita acara.
+   k. Login ADMIN: semua tampil, tanpa form dan tombol ubah; boleh membuka pratinjau/cetak berita acara.
+Catatan:
+ - Yang disimpan hanya angka per calon per TPS. Tidak ada data siapa memilih siapa.
+ - Pencocokan "hadir" dengan TPS memakai NAMA TPS pada DPT. Jangan mengganti nama TPS setelah DPT ditetapkan.
+ - Calon terpilih ditentukan berdasarkan SUARA TERBANYAK. Bila aturan daerah Anda berbeda
+   (mis. ambang minimal, atau seri diselesaikan lain), jangan pakai tombol penetapan; beri tahu saya
+   supaya aturannya disesuaikan.
+ - TPS yang sudah punya rekap suara tidak bisa dihapus.
+ - Berita acara memakai kalimat baku umum; sesuaikan redaksinya dengan format resmi kabupaten bila ada.
+ - Migrasi 0060 belum dijalankan di database mana pun; kode sudah lolos cek sintaks tetapi belum dijalankan.

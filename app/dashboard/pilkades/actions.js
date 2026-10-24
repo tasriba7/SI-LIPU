@@ -292,7 +292,10 @@ export async function simpanCalon(formData) {
     : await supabase.from("pilkades_calon").insert({ ...data, periode_id: periodeId, created_by: cek.user.id });
 
   revalidatePath("/dashboard/pilkades", "layout");
-  if (error) redirect(`${kembali}?hasil=${error.code === "23505" ? "nomor_kembar" : "gagal"}`);
+  if (error) {
+    const hasil = error.code === "23505" ? "nomor_kembar" : error.code === "P0001" ? "terkunci_suara" : "gagal";
+    redirect(`${kembali}?hasil=${hasil}`);
+  }
 
   await supabase.rpc("pilkades_catat", {
     p_periode: periodeId,
@@ -321,7 +324,7 @@ export async function hapusCalon(formData) {
 
   const { error } = await supabase.from("pilkades_calon").delete().eq("id", id);
   revalidatePath("/dashboard/pilkades", "layout");
-  if (error) redirect(`${kembali}?hasil=gagal`);
+  if (error) redirect(`${kembali}?hasil=${error.code === "23503" ? "terkunci_suara" : "gagal"}`);
 
   await supabase.rpc("pilkades_catat", {
     p_periode: calon.periode_id,
@@ -388,4 +391,95 @@ export async function batalHadir(formData) {
     redirect(alamatHadir(formData, { hasil: "gagal", pesan }));
   }
   redirect(alamatHadir(formData, { hasil: "batal" }));
+}
+
+/* =====================================================================
+ * HASIL PEMUNGUTAN SUARA (tahap C)
+ * Hanya angka hasil hitung per TPS; pilihan pemilih tidak direkam.
+ * Penulisan hanya lewat fungsi database (migrasi 0060) dan tercatat di Riwayat.
+ * ===================================================================== */
+
+const ALAMAT_HASIL = "/dashboard/pilkades/hasil";
+
+/** Simpan rekap satu TPS: suara tiap calon (field "suara_<id calon>") + suara tidak sah. */
+export async function simpanSuaraTps(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const periodeId = String(formData.get("periode_id") ?? "");
+  const tpsId = String(formData.get("tps_id") ?? "");
+  if (!adalahUuid(periodeId) || !adalahUuid(tpsId)) redirect(`${ALAMAT_HASIL}?hasil=gagal`);
+
+  const angka = (v) => {
+    const t = String(v ?? "").trim();
+    return /^\d{1,6}$/.test(t) ? parseInt(t, 10) : null;
+  };
+  const suara = {};
+  for (const [k, v] of formData.entries()) {
+    if (!k.startsWith("suara_")) continue;
+    const id = k.slice(6);
+    if (!adalahUuid(id)) continue;
+    const n = angka(v);
+    if (n === null) redirect(`${ALAMAT_HASIL}?hasil=gagal&tps=${tpsId}&pesan=${encodeURIComponent("Isi suara dengan angka bulat 0 atau lebih. Isi 0 bila tidak ada.")}`);
+    suara[id] = n;
+  }
+  const tidakSah = angka(formData.get("tidak_sah"));
+  if (tidakSah === null) redirect(`${ALAMAT_HASIL}?hasil=gagal&tps=${tpsId}&pesan=${encodeURIComponent("Isi suara tidak sah dengan angka bulat 0 atau lebih.")}`);
+
+  const { error } = await supabase.rpc("pilkades_simpan_suara", {
+    p_periode: periodeId, p_tps: tpsId, p_suara: suara, p_tidak_sah: tidakSah,
+  });
+  revalidatePath("/dashboard/pilkades", "layout");
+  if (error) {
+    // Pesan fungsi database (P0001) sudah berbahasa Indonesia dan aman ditampilkan.
+    const pesan = error.code === "P0001" ? error.message : "Gagal menyimpan. Pastikan migrasi 0060 sudah dijalankan.";
+    redirect(`${ALAMAT_HASIL}?hasil=gagal&tps=${tpsId}&pesan=${encodeURIComponent(pesan)}`);
+  }
+  redirect(`${ALAMAT_HASIL}?hasil=ok&tps=${tpsId}`);
+}
+
+/** Tetapkan calon terpilih. Calon ditentukan database dari suara terbanyak. */
+export async function tetapkanTerpilih(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const periodeId = String(formData.get("periode_id") ?? "");
+  const tanggal = String(formData.get("tanggal_penetapan") ?? "");
+  const nomor = String(formData.get("nomor_berita_acara") ?? "").trim().slice(0, 100);
+  const catatan = String(formData.get("catatan") ?? "").trim().slice(0, 300);
+  if (!adalahUuid(periodeId)) redirect(`${ALAMAT_HASIL}?hasil=gagal`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)) {
+    redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent("Tanggal penetapan wajib diisi.")}`);
+  }
+  if (formData.get("konfirmasi") !== "ya") {
+    redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent("Centang pernyataan bahwa rekap suara sudah diperiksa.")}`);
+  }
+  const { error } = await supabase.rpc("pilkades_tetapkan_terpilih", {
+    p_periode: periodeId, p_tanggal: tanggal, p_nomor: nomor, p_catatan: catatan,
+  });
+  revalidatePath("/dashboard/pilkades", "layout");
+  if (error) {
+    const pesan = error.code === "P0001" ? error.message : "Gagal menetapkan. Pastikan migrasi 0060 sudah dijalankan.";
+    redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent(pesan)}`);
+  }
+  redirect(`${ALAMAT_HASIL}?hasil=terpilih`);
+}
+
+export async function batalkanPenetapan(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const periodeId = String(formData.get("periode_id") ?? "");
+  const alasan = String(formData.get("alasan") ?? "").trim().slice(0, 300);
+  if (!adalahUuid(periodeId)) redirect(`${ALAMAT_HASIL}?hasil=gagal`);
+  if (alasan.length < 5) {
+    redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent("Alasan pembatalan wajib diisi (minimal 5 huruf).")}`);
+  }
+  const { error } = await supabase.rpc("pilkades_batalkan_penetapan", { p_periode: periodeId, p_alasan: alasan });
+  revalidatePath("/dashboard/pilkades", "layout");
+  if (error) {
+    const pesan = error.code === "P0001" ? error.message : "Gagal membatalkan. Silakan coba lagi.";
+    redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent(pesan)}`);
+  }
+  redirect(`${ALAMAT_HASIL}?hasil=batal`);
 }

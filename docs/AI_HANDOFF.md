@@ -191,6 +191,9 @@ aturan jika sistem ini direplikasi ke desa lain.
       lewat wilayah.id lalu di-cache. Kalau nama di Pengaturan Desa tidak cocok dengan data wilayah.id,
       isi `BMKG_KODE_ADM4` manual. Belum diuji terhadap respons BMKG langsung dari lingkungan pengembangan
       (struktur JSON cuaca dibaca secara toleran) — cek `/cuaca` setelah deploy.
+- [x] **Modul Pilkades tahap C** (migrasi 0060): rekap suara per calon per TPS (`/dashboard/pilkades/hasil`),
+      penetapan calon terpilih (suara terbanyak, seri ditolak), berita acara cetak A4 (`/cetak/pilkades/berita-acara`).
+      Hanya angka hasil hitung yang disimpan, bukan pilihan individu. Panduan uji: `BACA-HASIL-BERITA-ACARA.txt`.
 
 ### PENYIMPANGAN YANG SUDAH DIPERBAIKI (riwayat, untuk konteks)
 Sebelumnya modul Surat pakai tabel khusus (`pengajuan_surat`) dengan jenis surat hardcode,
