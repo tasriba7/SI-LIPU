@@ -5,9 +5,12 @@ import { bisaUbahPilkades } from "@/lib/roles";
 import {
   ambilPeriode, ambilDaftarPemilih, hitungUmur, formatTanggal, terlaluMuda, STATUS_VERIFIKASI, STATUS_BADGE_CLASS,
 } from "@/lib/pilkades";
-import { ambilCalonPemilih, simpanPemilih, terapkanFilterUsia } from "../actions";
+import { simpanPemilih, terapkanFilterUsia } from "../actions";
+import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
+import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
+import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolomKecil } from "@/components/pilkades/UI";
 
-export const metadata = { title: "Daftar Pemilih" };
+export const metadata = { title: "Periksa Pemilih" };
 const PER_HALAMAN = 30;
 
 export default async function PemilihPage({ searchParams }) {
@@ -16,14 +19,26 @@ export default async function PemilihPage({ searchParams }) {
   const periode = await ambilPeriode(supabase);
   const { role } = await ambilRole(supabase);
   const bisaUbah = bisaUbahPilkades(role);
-  if (!periode) return <p className="text-sm text-slate-500">Belum ada periode Pilkades.</p>;
+  if (!periode) {
+    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/periode" label="Buka Periode Pilkades" />;
+  }
 
-  const [{ data: semua, error }, { data: tps }] = await Promise.all([
-    ambilDaftarPemilih(supabase, periode.id),
-    supabase.from("pilkades_tps").select("id, nama").eq("periode_id", periode.id).order("nama"),
-  ]);
+  const { data: semua, error } = await ambilDaftarPemilih(supabase, periode.id);
+  if (!error && !(semua ?? []).length) {
+    return (
+      <div className="mx-auto max-w-3xl space-y-5">
+        <PanduanLangkah aktif="periksa" />
+        <KosongPandu
+          judul="Belum ada calon pemilih"
+          teks="Ambil data warga dulu, baru daftar ini bisa diperiksa."
+          href="/dashboard/pilkades/ambil"
+          label="Ke Langkah 1: Ambil Data Warga"
+        />
+      </div>
+    );
+  }
 
-  // Pratinjau filter usia (hanya menghitung, tidak mengubah data).
+  // Pratinjau saringan usia (hanya menghitung, tidak mengubah data).
   const usiaForm = Number.isInteger(parseInt(sp.usia, 10)) ? parseInt(sp.usia, 10) : (periode.usia_minimum ?? 17);
   const kawinForm = sp.usia === undefined ? periode.termasuk_pernah_kawin !== false : sp.kawin === "1";
   let pratinjau = null;
@@ -39,21 +54,14 @@ export default async function PemilihPage({ searchParams }) {
   const cari = (sp.cari ?? "").toString().toLowerCase();
   const fDusun = sp.dusun ?? "";
   const fStatus = sp.status ?? "";
+  const sembunyi = (r) => r.status_verifikasi === "tidak_memenuhi" || terlaluMuda(r, periode, acuan);
   const hasil = (semua ?? []).filter(
     (r) =>
       (!cari || r.nama_lengkap.toLowerCase().includes(cari)) &&
       (!fDusun || r.dusun === fDusun) &&
-      (fStatus === "semua" ||
-        (fStatus
-          ? r.status_verifikasi === fStatus
-          : r.status_verifikasi !== "tidak_memenuhi" && !terlaluMuda(r, periode, acuan)))
+      (fStatus === "semua" || (fStatus ? r.status_verifikasi === fStatus : !sembunyi(r)))
   );
-  // Secara bawaan nama yang "tidak memenuhi syarat" (mis. belum cukup usia) disembunyikan.
-  const jumlahDisembunyikan = fStatus
-    ? 0
-    : (semua ?? []).filter(
-        (r) => r.status_verifikasi === "tidak_memenuhi" || terlaluMuda(r, periode, acuan)
-      ).length;
+  const jumlahDisembunyikan = fStatus ? 0 : (semua ?? []).filter(sembunyi).length;
   const halaman = Math.max(1, parseInt(sp.hal ?? "1", 10) || 1);
   const totalHal = Math.max(1, Math.ceil(hasil.length / PER_HALAMAN));
   const tampil = hasil.slice((halaman - 1) * PER_HALAMAN, halaman * PER_HALAMAN);
@@ -63,183 +71,196 @@ export default async function PemilihPage({ searchParams }) {
     for (const [k, v] of [...p]) if (!v) p.delete(k);
     return `?${p.toString()}`;
   };
-  const input = "rounded-lg border border-slate-300 px-2 py-1.5 text-sm outline-none focus:border-navy";
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-lg font-bold text-slate-800">Daftar Pemilih &mdash; {periode.nama}</h1>
-          <p className="text-sm text-slate-500">
-            {hasil.length} calon pemilih ditampilkan{jumlahDisembunyikan > 0 ? ` (${jumlahDisembunyikan} belum cukup usia / tidak memenuhi syarat disembunyikan)` : ""}. Umur dihitung pada tanggal pemungutan
-            {periode.tanggal_pemungutan ? "" : " (belum diisi, memakai hari ini)"}. Penentuan
-            &ldquo;memenuhi syarat&rdquo; mengikuti aturan Pilkades daerah, dilakukan manual oleh panitia.
-          </p>
-        </div>
-        {bisaUbah && (
-        <form action={ambilCalonPemilih}>
-          <input type="hidden" name="periode_id" value={periode.id} />
-          <button className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-white hover:bg-navy-light">
-            Ambil calon pemilih dari data warga
-          </button>
-        </form>
-        )}
-      </div>
+    <div className="mx-auto max-w-6xl space-y-5">
+      <PanduanLangkah aktif="periksa" />
+      <JudulHalaman
+        langkah={2}
+        judul="Periksa Pemilih"
+        penjelasan="Tentukan siapa yang berhak memilih. Pilih “Memenuhi syarat” bagi yang berhak. Aturan syarat mengikuti Pilkades daerah dan ditentukan panitia."
+      />
 
       {sp.filter === "ok" && (
-        <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
-          Filter usia diterapkan: {sp.m} ditandai memenuhi syarat, {sp.t} tidak memenuhi syarat (kurang usia), {sp.p ?? 0} perlu dicek (data tidak wajar), {sp.b} masih belum diperiksa.
-        </p>
+        <Pesan jenis="sukses" judul="Saringan usia sudah diterapkan">
+          {sp.m} ditandai memenuhi syarat · {sp.t} tidak memenuhi syarat (kurang usia) · {sp.p ?? 0} perlu dicek · {sp.b} masih belum diperiksa.
+        </Pesan>
       )}
       {sp.filter === "gagal" && (
-        <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
-          Filter usia gagal diterapkan. Pastikan migrasi 0056 sudah dijalankan dan Anda login sebagai panitia.
-        </p>
+        <Pesan jenis="bahaya" judul="Saringan usia gagal diterapkan">
+          Pastikan migrasi 0056 sudah dijalankan dan Anda masuk sebagai panitia.
+        </Pesan>
       )}
+      {error && <Pesan jenis="bahaya">Daftar gagal dimuat. Pastikan migrasi 0051 sudah dijalankan.</Pesan>}
 
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-800">Saring otomatis berdasarkan usia</h2>
-          <p className="text-xs text-slate-500">
-            Usia dihitung pada tanggal pemungutan{periode.tanggal_pemungutan ? ` (${formatTanggal(periode.tanggal_pemungutan)})` : " (belum diisi, memakai hari ini)"}.
+      {/* Cara cepat: saring usia */}
+      <details open={!!pratinjau} className="group rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5">
+          <span>
+            <span className="block text-lg font-bold text-sky-950">⚡ Cara cepat: saring otomatis berdasarkan usia</span>
+            <span className="block text-base text-slate-700">Tandai yang belum cukup umur sekaligus, tidak perlu satu per satu.</span>
+          </span>
+          <span className="text-sm font-bold text-sky-700 group-open:hidden">Buka</span>
+          <span className="hidden text-sm font-bold text-sky-700 group-open:inline">Tutup</span>
+        </summary>
+        <div className="space-y-4 border-t-2 border-sky-100 p-5">
+          <p className="text-base text-slate-700">
+            Usia dihitung pada hari pemungutan suara{periode.tanggal_pemungutan ? ` (${formatTanggal(periode.tanggal_pemungutan)})` : " (tanggal belum diisi, memakai hari ini)"}.
             {!bisaUbah && ` Aturan saat ini: minimal ${periode.usia_minimum ?? 17} tahun${periode.termasuk_pernah_kawin === false ? "" : " atau sudah/pernah kawin"}.`}
           </p>
-        </div>
-        <form className="flex flex-wrap items-end gap-3">
-          <label className="text-xs text-slate-500">
-            Usia minimal (tahun)
-            <input type="number" name="usia" min="0" max="120" defaultValue={usiaForm} className={`${input} mt-1 block w-24`} />
-          </label>
-          <label className="flex items-center gap-2 pb-2 text-sm text-slate-600">
-            <input type="checkbox" name="kawin" value="1" defaultChecked={kawinForm} />
-            Atau sudah/pernah kawin
-          </label>
-          <button className="rounded-lg border border-slate-300 px-3 py-2 text-sm hover:bg-slate-50">Lihat jumlah</button>
-        </form>
+          <form className="flex flex-wrap items-end gap-4">
+            <label className="text-base font-semibold text-slate-800">
+              Usia minimal (tahun)
+              <input type="number" name="usia" min="0" max="120" defaultValue={usiaForm} className={`${kolomKecil} mt-1 block w-28`} />
+            </label>
+            <label className="flex items-center gap-2 pb-2 text-base text-slate-800">
+              <input type="checkbox" name="kawin" value="1" defaultChecked={kawinForm} className="h-5 w-5" />
+              Yang sudah/pernah menikah tetap boleh
+            </label>
+            <button className={tombol.sekunder}>Hitung dulu (belum mengubah data)</button>
+          </form>
 
-        {pratinjau && (
-          <div className="space-y-3">
-            <div className="grid gap-2 sm:grid-cols-5">
-              {[
-                ["Total calon", pratinjau.total, "text-slate-800"],
-                ["Cukup usia", pratinjau.layak, "text-emerald-700"],
-                ["Belum cukup usia", pratinjau.di_bawah_usia, "text-red-600"],
-                ["Perlu dicek (data tidak wajar)", pratinjau.perlu_dicek, "text-amber-600"],
-                ["Dikunci manual", pratinjau.dikunci_manual, "text-slate-500"],
-              ].map(([label, n, warna]) => (
-                <div key={label} className="rounded-lg bg-slate-50 px-3 py-2">
-                  <p className="text-xs text-slate-500">{label}</p>
-                  <p className={`text-xl font-bold ${warna}`}>{n}</p>
-                </div>
-              ))}
+          {pratinjau && (
+            <div className="space-y-3">
+              <div className="grid gap-2 sm:grid-cols-5">
+                {[
+                  ["Total calon", pratinjau.total, "text-slate-900"],
+                  ["Cukup usia", pratinjau.layak, "text-emerald-700"],
+                  ["Belum cukup usia", pratinjau.di_bawah_usia, "text-red-700"],
+                  ["Datanya tidak wajar", pratinjau.perlu_dicek, "text-amber-700"],
+                  ["Sudah diatur manual", pratinjau.dikunci_manual, "text-slate-600"],
+                ].map(([label, n, warna]) => (
+                  <div key={label} className="rounded-xl bg-sky-50 px-3 py-2">
+                    <p className="text-sm text-slate-700">{label}</p>
+                    <p className={`text-2xl font-extrabold ${warna}`}>{n}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="text-sm text-slate-600">“Sudah diatur manual” = sudah Anda tentukan sendiri, tidak akan diubah. Tanggal acuan: {formatTanggal(pratinjau.tanggal_acuan)}.</p>
+              {bisaUbah && (
+                <form action={terapkanFilterUsia} className="space-y-3 rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">
+                  <input type="hidden" name="periode_id" value={periode.id} />
+                  <input type="hidden" name="usia" value={usiaForm} />
+                  <input type="hidden" name="kawin" value={kawinForm ? "1" : "0"} />
+                  <p className="text-base font-semibold text-amber-950">
+                    {pratinjau.di_bawah_usia} orang akan ditandai “Tidak memenuhi syarat”. Ini masih bisa diubah lagi per orang.
+                  </p>
+                  <label className="flex items-start gap-2 text-base text-amber-950">
+                    <input type="checkbox" name="tandai" value="1" className="mt-1 h-5 w-5" />
+                    <span>
+                      Tandai juga {pratinjau.layak} orang yang cukup usia sebagai “Memenuhi syarat”.
+                      <span className="block text-sm">Centang hanya bila syarat lain (misalnya tinggal di desa) pasti terpenuhi.</span>
+                    </span>
+                  </label>
+                  <TombolKonfirmasi
+                    className={tombol.utama}
+                    pesan={`Tandai ${pratinjau.di_bawah_usia} orang sebagai “Tidak memenuhi syarat”?`}
+                  >
+                    Terapkan Saringan Usia
+                  </TombolKonfirmasi>
+                </form>
+              )}
             </div>
-            <p className="text-xs text-slate-400">
-              &ldquo;Dikunci manual&rdquo; = sudah Anda tetapkan sendiri, tidak akan diubah. Tanggal acuan: {formatTanggal(pratinjau.tanggal_acuan)}.
-            </p>
-            {bisaUbah && (
-              <form action={terapkanFilterUsia} className="space-y-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
-                <input type="hidden" name="periode_id" value={periode.id} />
-                <input type="hidden" name="usia" value={usiaForm} />
-                <input type="hidden" name="kawin" value={kawinForm ? "1" : "0"} />
-                <p className="text-sm text-amber-800">
-                  {pratinjau.di_bawah_usia} orang akan ditandai &ldquo;Tidak memenuhi syarat&rdquo; (catatan otomatis). Bisa diubah lagi per orang.
-                </p>
-                <label className="flex items-center gap-2 text-sm text-amber-800">
-                  <input type="checkbox" name="tandai" value="1" />
-                  Tandai juga {pratinjau.layak} yang cukup usia sebagai &ldquo;Memenuhi syarat&rdquo;
-                  (centang hanya bila syarat lain, mis. domisili, sudah pasti terpenuhi)
-                </label>
-                <button className="rounded-lg bg-navy px-3 py-2 text-sm font-medium text-white hover:bg-navy-light">
-                  Terapkan filter usia
-                </button>
-              </form>
-            )}
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </details>
 
-      {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">Gagal memuat daftar. Pastikan migrasi 0051 sudah dijalankan.</p>}
+      {/* Cari & tampilkan */}
+      <Kartu>
+        <form className="flex flex-wrap items-end gap-3">
+          <label className="flex-1 basis-48 text-base font-semibold text-slate-800">
+            Cari nama
+            <input name="cari" defaultValue={sp.cari ?? ""} placeholder="Ketik nama…" className={`${kolomKecil} mt-1 block w-full`} />
+          </label>
+          <label className="text-base font-semibold text-slate-800">
+            Dusun
+            <select name="dusun" defaultValue={fDusun} className={`${kolomKecil} mt-1 block`}>
+              <option value="">Semua dusun</option>
+              {dusunList.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </label>
+          <label className="text-base font-semibold text-slate-800">
+            Tampilkan
+            <select name="status" defaultValue={fStatus} className={`${kolomKecil} mt-1 block`}>
+              <option value="">Semua, kecuali yang tidak memenuhi syarat</option>
+              <option value="semua">Semua, termasuk yang tidak memenuhi syarat</option>
+              {Object.entries(STATUS_VERIFIKASI).map(([k, v]) => <option key={k} value={k}>Hanya: {v}</option>)}
+            </select>
+          </label>
+          <button className={tombol.sekunder}>Tampilkan</button>
+        </form>
+        <p className="mt-3 text-base text-slate-700">
+          Menampilkan <b>{hasil.length}</b> orang
+          {jumlahDisembunyikan > 0 && ` (${jumlahDisembunyikan} orang yang belum cukup umur atau tidak memenuhi syarat disembunyikan)`}.
+        </p>
+      </Kartu>
 
-      <form className="flex flex-wrap gap-2">
-        <input name="cari" defaultValue={sp.cari ?? ""} placeholder="Cari nama" className={input} />
-        <select name="dusun" defaultValue={fDusun} className={input}>
-          <option value="">Semua dusun</option>
-          {dusunList.map((d) => <option key={d} value={d}>{d}</option>)}
-        </select>
-        <select name="status" defaultValue={fStatus} className={input}>
-          <option value="">Tanpa yang tidak memenuhi syarat</option>
-          <option value="semua">Semua (termasuk tidak memenuhi)</option>
-          {Object.entries(STATUS_VERIFIKASI).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-        </select>
-        <button className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm hover:bg-slate-50">Terapkan</button>
-      </form>
-
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-xs text-slate-500">
+      {/* Tabel */}
+      <div className="overflow-x-auto rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
+        <table className="w-full text-left text-base">
+          <thead className="bg-sky-50 text-sm font-bold text-sky-900">
             <tr>
-              <th className="px-3 py-2">Nama</th>
-              <th className="px-3 py-2">Umur</th>
-              <th className="px-3 py-2">Dusun / RT-RW</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2">TPS</th>
-              <th className="px-3 py-2">Catatan</th>
-              <th className="px-3 py-2" />
+              <th className="px-4 py-3">Nama</th>
+              <th className="px-4 py-3">Umur</th>
+              <th className="px-4 py-3">Dusun, RT/RW</th>
+              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Catatan</th>
+              <th className="px-4 py-3"><span className="sr-only">Simpan</span></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {tampil.map((r) => {
               const formId = `f-${r.id}`;
+              const umur = hitungUmur(r.tanggal_lahir, acuan);
               return (
-                <tr key={`${r.id}-${r.status_verifikasi}-${r.tps_id ?? ""}-${r.catatan ?? ""}`} className="align-top">
-                  <td className="px-3 py-2">
-                    <p className="font-medium text-slate-800">{r.nama_lengkap}</p>
-                    <p className="text-xs text-slate-400">{r.nik_samar} · {r.jenis_kelamin ?? "-"}</p>
+                <tr key={`${r.id}-${r.status_verifikasi}-${r.catatan ?? ""}`} className="align-top">
+                  <td className="px-4 py-3">
+                    <p className="font-semibold text-slate-900">{r.nama_lengkap}</p>
+                    <p className="text-sm text-slate-500">NIK {r.nik_samar} · {r.jenis_kelamin === "L" ? "Laki-laki" : r.jenis_kelamin === "P" ? "Perempuan" : "-"}</p>
                   </td>
-                  <td className="px-3 py-2">{hitungUmur(r.tanggal_lahir, acuan) ?? "-"}</td>
-                  <td className="px-3 py-2 text-xs text-slate-600">
+                  <td className="px-4 py-3">
+                    {umur ?? "-"}
+                    {umur === 0 && <span className="block text-sm font-semibold text-amber-700">cek tanggal lahir</span>}
+                  </td>
+                  <td className="px-4 py-3 text-slate-800">
                     {r.dusun ?? "-"}
                     <br />
-                    {r.rt || r.rw ? `RT ${r.rt ?? "-"} / RW ${r.rw ?? "-"}` : <span className="text-amber-600">RT/RW kosong</span>}
+                    {r.rt || r.rw ? `RT ${r.rt ?? "-"} / RW ${r.rw ?? "-"}` : <span className="font-semibold text-amber-700">RT/RW kosong</span>}
                   </td>
-                  <td className="px-3 py-2">
-                    <select disabled={!bisaUbah} form={formId} name="status_verifikasi" defaultValue={r.status_verifikasi} className={`${input} ${STATUS_BADGE_CLASS[r.status_verifikasi]}`}>
+                  <td className="px-4 py-3">
+                    <select disabled={!bisaUbah} form={formId} name="status_verifikasi" defaultValue={r.status_verifikasi} className={`${kolomKecil} font-semibold ${STATUS_BADGE_CLASS[r.status_verifikasi]}`}>
                       {Object.entries(STATUS_VERIFIKASI).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                     </select>
                   </td>
-                  <td className="px-3 py-2">
-                    <select disabled={!bisaUbah} form={formId} name="tps_id" defaultValue={r.tps_id ?? ""} className={input}>
-                      <option value="">-</option>
-                      {(tps ?? []).map((t) => <option key={t.id} value={t.id}>{t.nama}</option>)}
-                    </select>
+                  <td className="px-4 py-3">
+                    <input readOnly={!bisaUbah} form={formId} name="catatan" defaultValue={r.catatan ?? ""} maxLength={300} placeholder="Catatan (boleh kosong)" className={`${kolomKecil} w-48`} />
                   </td>
-                  <td className="px-3 py-2">
-                    <input readOnly={!bisaUbah} form={formId} name="catatan" defaultValue={r.catatan ?? ""} maxLength={300} className={`${input} w-40`} />
-                  </td>
-                  <td className="px-3 py-2">
+                  <td className="px-4 py-3">
                     {bisaUbah && (
                       <form id={formId} action={simpanPemilih}>
                         <input type="hidden" name="id" value={r.id} />
-                        <button className="rounded-lg bg-navy px-3 py-1.5 text-xs font-medium text-white hover:bg-navy-light">Simpan</button>
+                        <button className={tombol.kecil}>Simpan</button>
                       </form>
                     )}
                   </td>
                 </tr>
               );
             })}
-            {!tampil.length && (
-              <tr><td colSpan={7} className="px-3 py-8 text-center text-slate-400">Tidak ada data.</td></tr>
-            )}
+            {!tampil.length && <tr><td colSpan={6} className="px-4 py-10 text-center text-base text-slate-500">Tidak ada nama yang cocok.</td></tr>}
           </tbody>
         </table>
       </div>
 
-      <div className="flex items-center justify-between text-sm text-slate-500">
-        <span>Halaman {halaman} dari {totalHal} · {hasil.length} data</span>
+      <div className="flex flex-wrap items-center justify-between gap-3 text-base text-slate-700">
+        <span>Halaman {halaman} dari {totalHal}</span>
         <span className="flex gap-3">
-          {halaman > 1 && <Link href={qs({ hal: halaman - 1 })} className="text-navy underline">Sebelumnya</Link>}
-          {halaman < totalHal && <Link href={qs({ hal: halaman + 1 })} className="text-navy underline">Berikutnya</Link>}
+          {halaman > 1 && <Link href={qs({ hal: halaman - 1 })} className={tombol.sekunder}>← Sebelumnya</Link>}
+          {halaman < totalHal && <Link href={qs({ hal: halaman + 1 })} className={tombol.sekunder}>Berikutnya →</Link>}
         </span>
+      </div>
+
+      <div className="flex justify-end">
+        <Link href="/dashboard/pilkades/tps" className={tombol.utama}>Lanjut ke Langkah 3: Atur TPS →</Link>
       </div>
     </div>
   );

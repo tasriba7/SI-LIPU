@@ -3,6 +3,7 @@ import { ambilRole } from "@/lib/akses";
 import { isAdminRole } from "@/lib/roles";
 import { formatTanggal } from "@/lib/pilkades";
 import { buatPeriode, aktifkanPeriode } from "../actions";
+import { JudulHalaman, Kartu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
 
 export const metadata = { title: "Periode Pilkades" };
 
@@ -15,50 +16,50 @@ export default async function PeriodePage() {
     .select("id, nama, tanggal_pemungutan, aktif")
     .order("created_at", { ascending: false });
 
-  const input = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy";
-
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <div>
-        <h1 className="text-lg font-bold text-slate-800">Periode Pilkades</h1>
-        <p className="text-sm text-slate-500">
-          Setiap pemilihan punya periode sendiri. Hanya satu periode yang aktif.
-          {!admin && " Periode dibuat oleh Administrator."}
-        </p>
-      </div>
+      <JudulHalaman
+        judul="Periode Pilkades"
+        penjelasan={`Setiap pemilihan punya periode sendiri, misalnya “Pilkades 2026”. Hanya satu periode yang aktif.${admin ? "" : " Periode dibuat oleh Administrator."}`}
+      />
 
       {admin && (
-        <form action={buatPeriode} className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-3">
-          <input name="nama" required placeholder="mis. Pilkades 2026" className={input} />
-          <input name="tanggal_pemungutan" type="date" className={input} />
-          <button className="rounded-lg bg-navy py-2 text-sm font-medium text-white hover:bg-navy-light">
-            Buat periode
-          </button>
-        </form>
+        <Kartu>
+          <h2 className="text-lg font-bold text-sky-950">Buat periode baru</h2>
+          <form action={buatPeriode} className="mt-3 grid gap-4 sm:grid-cols-2">
+            <label className={labelKolom}>
+              Nama periode
+              <input name="nama" required placeholder="Contoh: Pilkades 2026" className={`${kolom} mt-1 font-normal`} />
+            </label>
+            <label className={labelKolom}>
+              Tanggal pemungutan suara
+              <input name="tanggal_pemungutan" type="date" className={`${kolom} mt-1 font-normal`} />
+            </label>
+            <div className="sm:col-span-2"><button className={tombol.utama}>+ Buat periode</button></div>
+          </form>
+        </Kartu>
       )}
 
-      <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white">
+      <ul className="divide-y divide-sky-100 overflow-hidden rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
         {(daftar ?? []).map((p) => (
-          <li key={p.id} className="flex items-center justify-between gap-3 px-4 py-3">
+          <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
             <div>
-              <p className="text-sm font-medium text-slate-800">{p.nama}</p>
-              <p className="text-xs text-slate-400">Pemungutan: {formatTanggal(p.tanggal_pemungutan)}</p>
+              <p className="text-lg font-bold text-slate-900">{p.nama}</p>
+              <p className="text-base text-slate-600">Pemungutan suara: {formatTanggal(p.tanggal_pemungutan)}</p>
             </div>
             {p.aktif ? (
-              <span className="rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">Aktif</span>
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-base font-bold text-emerald-800">✓ Aktif</span>
             ) : (
               admin && (
                 <form action={aktifkanPeriode}>
                   <input type="hidden" name="id" value={p.id} />
-                  <button className="rounded-lg border border-slate-300 px-3 py-1 text-xs hover:bg-slate-50">
-                    Jadikan aktif
-                  </button>
+                  <button className={tombol.sekunder}>Jadikan aktif</button>
                 </form>
               )
             )}
           </li>
         ))}
-        {!daftar?.length && <li className="px-4 py-6 text-center text-sm text-slate-400">Belum ada periode.</li>}
+        {!daftar?.length && <li className="px-5 py-8 text-center text-base text-slate-500">Belum ada periode.</li>}
       </ul>
     </div>
   );

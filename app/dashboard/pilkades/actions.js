@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { pastikanAdmin, pastikanKelolaPilkades } from "@/lib/akses";
 import { adalahUuid } from "@/lib/validasiPengajuan";
-import { STATUS_VERIFIKASI } from "@/lib/pilkades";
+import { STATUS_VERIFIKASI, ambilDaftarPemilih } from "@/lib/pilkades";
 
 // Semua action di sini memakai sesi login pemanggil (RLS tetap berlaku),
 // bukan kunci service_role. Cek role di server + RLS di database.
@@ -41,8 +41,11 @@ export async function ambilCalonPemilih(formData) {
   if (cek.error) return;
   const periodeId = String(formData.get("periode_id") ?? "");
   if (!adalahUuid(periodeId)) return;
-  await supabase.rpc("pilkades_ambil_calon_pemilih", { p_periode: periodeId });
+  const { data, error } = await supabase.rpc("pilkades_ambil_calon_pemilih", { p_periode: periodeId });
   revalidatePath("/dashboard/pilkades", "layout");
+  if (error) redirect("/dashboard/pilkades/ambil?hasil=gagal");
+  const n = typeof data === "number" ? data : null;
+  redirect(`/dashboard/pilkades/ambil?hasil=ok${n !== null ? `&n=${n}` : ""}`);
 }
 
 export async function simpanPemilih(formData) {
@@ -51,21 +54,21 @@ export async function simpanPemilih(formData) {
   if (cek.error) return;
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status_verifikasi") ?? "");
-  const tpsRaw = String(formData.get("tps_id") ?? "");
   const catatan = String(formData.get("catatan") ?? "").trim().slice(0, 300) || null;
   if (!adalahUuid(id) || !(status in STATUS_VERIFIKASI)) return;
-  const tps_id = adalahUuid(tpsRaw) ? tpsRaw : null;
-  await supabase
-    .from("pilkades_pemilih")
-    .update({
-      status_verifikasi: status,
-      status_otomatis: false, // keputusan manual tidak ditimpa filter usia
-      tps_id,
-      catatan,
-      diverifikasi_oleh: cek.user.id,
-      diverifikasi_pada: new Date().toISOString(),
-    })
-    .eq("id", id);
+  const perubahan = {
+    status_verifikasi: status,
+    status_otomatis: false, // keputusan manual tidak ditimpa filter usia
+    catatan,
+    diverifikasi_oleh: cek.user.id,
+    diverifikasi_pada: new Date().toISOString(),
+  };
+  // TPS hanya diubah bila memang dikirim dari formulir (halaman "Periksa Pemilih" tidak mengirimnya).
+  if (formData.has("tps_id")) {
+    const tpsRaw = String(formData.get("tps_id") ?? "");
+    perubahan.tps_id = adalahUuid(tpsRaw) ? tpsRaw : null;
+  }
+  await supabase.from("pilkades_pemilih").update(perubahan).eq("id", id);
   revalidatePath("/dashboard/pilkades", "layout");
 }
 
@@ -77,8 +80,10 @@ export async function tambahTps(formData) {
   const nama = String(formData.get("nama") ?? "").trim();
   const lokasi = String(formData.get("lokasi") ?? "").trim() || null;
   if (!adalahUuid(periodeId) || !nama) return;
-  await supabase.from("pilkades_tps").insert({ periode_id: periodeId, nama, lokasi });
+  const { error } = await supabase.from("pilkades_tps").insert({ periode_id: periodeId, nama, lokasi });
   revalidatePath("/dashboard/pilkades", "layout");
+  if (error) redirect(`/dashboard/pilkades/tps?hasil=${error.code === "23505" ? "kembar" : "gagal"}`);
+  redirect(`/dashboard/pilkades/tps?hasil=ok&nama=${encodeURIComponent(nama)}`);
 }
 
 export async function hapusTps(formData) {
@@ -156,4 +161,58 @@ export async function terapkanFilterUsia(formData) {
   redirect(
     `/dashboard/pilkades/pemilih?filter=ok&m=${h.memenuhi}&t=${h.tidak_memenuhi}&p=${h.perlu_dicek}&b=${h.belum}`
   );
+}
+
+
+/**
+ * Tempatkan banyak pemilih ke satu TPS sekaligus.
+ *  mode "terpilih" : daftar id dari kotak centang
+ *  mode "semua"    : semua yang memenuhi syarat & BELUM punya TPS (boleh dibatasi satu dusun)
+ */
+export async function masukkanKeTps(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const kembali = "/dashboard/pilkades/tempatkan";
+  const periodeId = String(formData.get("periode_id") ?? "");
+  const tpsId = String(formData.get("tps_id") ?? "");
+  const mode = String(formData.get("mode") ?? "terpilih");
+  const dusun = String(formData.get("dusun") ?? "");
+  if (!adalahUuid(periodeId) || !adalahUuid(tpsId)) redirect(`${kembali}?hasil=tps`);
+
+  const { data: tps } = await supabase
+    .from("pilkades_tps")
+    .select("id, nama")
+    .eq("id", tpsId)
+    .eq("periode_id", periodeId)
+    .maybeSingle();
+  if (!tps) redirect(`${kembali}?hasil=tps`);
+
+  let ids = [];
+  if (mode === "semua") {
+    const { data } = await ambilDaftarPemilih(supabase, periodeId);
+    ids = (data ?? [])
+      .filter((r) => r.status_verifikasi === "memenuhi_syarat" && !r.tps_id && (!dusun || r.dusun === dusun))
+      .map((r) => r.id);
+  } else {
+    ids = formData.getAll("ids").map(String).filter(adalahUuid);
+  }
+  if (!ids.length) redirect(`${kembali}?hasil=kosong`);
+
+  let jumlah = 0;
+  let gagal = false;
+  for (let i = 0; i < ids.length; i += 100) {
+    const { data, error } = await supabase
+      .from("pilkades_pemilih")
+      .update({ tps_id: tpsId })
+      .in("id", ids.slice(i, i + 100))
+      .eq("periode_id", periodeId)
+      .eq("status_verifikasi", "memenuhi_syarat")
+      .select("id");
+    if (error) { gagal = true; break; }
+    jumlah += data?.length ?? 0;
+  }
+  revalidatePath("/dashboard/pilkades", "layout");
+  if (gagal) redirect(`${kembali}?hasil=gagal`);
+  redirect(`${kembali}?hasil=ok&n=${jumlah}&tps=${encodeURIComponent(tps.nama)}`);
 }

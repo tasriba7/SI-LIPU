@@ -1,61 +1,107 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { tetapkanDaftar } from "../actions";
+import { IconKunci, kolom, labelKolom } from "@/components/pilkades/UI";
 
-function Tombol({ jenis }) {
+const WARNA = {
+  DPS: { kotak: "border-amber-300", kepala: "bg-amber-100 text-amber-950", tombol: "bg-amber-600 hover:bg-amber-700 focus-visible:ring-amber-300" },
+  DPT: { kotak: "border-red-300", kepala: "bg-red-100 text-red-950", tombol: "bg-red-600 hover:bg-red-700 focus-visible:ring-red-300" },
+};
+const NAMA = { DPS: "Daftar Pemilih Sementara", DPT: "Daftar Pemilih Tetap" };
+const ARTI = {
+  DPS: "Daftar yang diumumkan lebih dulu agar warga bisa memeriksa namanya dan memberi tanggapan.",
+  DPT: "Daftar final yang dipakai saat pemungutan suara. Tetapkan setelah tanggapan warga atas DPS selesai diperiksa.",
+};
+
+function Tombol({ jenis, siap }) {
   const { pending } = useFormStatus();
   return (
     <button
-      disabled={pending}
-      className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-light disabled:opacity-60"
+      disabled={pending || !siap}
+      className={`inline-flex items-center justify-center rounded-xl px-5 py-3 text-base font-bold text-white shadow-sm transition focus:outline-none focus-visible:ring-4 disabled:cursor-not-allowed disabled:opacity-40 ${WARNA[jenis].tombol}`}
     >
-      {pending ? "Menyimpan arsip..." : `Tetapkan ${jenis}`}
+      {pending ? "Sedang menetapkan…" : `Ya, Tetapkan ${jenis} Sekarang`}
     </button>
   );
 }
 
-export default function FormTetapkan({ periodeId, jenis, jumlah, nonaktifAlasan }) {
+export default function FormTetapkan({ periodeId, jenis, jumlah, nonaktifAlasan, tautan }) {
   const [state, formAction] = useActionState(tetapkanDaftar, {});
-  const input = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy";
+  const [paham, setPaham] = useState(false);
+  const w = WARNA[jenis];
 
   if (nonaktifAlasan) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-500">
-        <p className="font-medium text-slate-700">Tetapkan {jenis}</p>
-        <p className="mt-1">{nonaktifAlasan}</p>
+      <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-5">
+        <p className="flex items-center gap-2 text-lg font-bold text-slate-700">
+          <IconKunci className="h-5 w-5" /> Tetapkan {jenis} — belum bisa
+        </p>
+        <p className="mt-1 text-base text-slate-600">{ARTI[jenis]}</p>
+        <p className="mt-3 rounded-xl bg-white p-3 text-base font-semibold text-slate-800">{nonaktifAlasan}</p>
+        {tautan && (
+          <Link href={tautan.href} className="mt-3 inline-block text-base font-bold text-sky-800 underline">
+            {tautan.label} →
+          </Link>
+        )}
       </div>
     );
   }
 
   return (
-    <form action={formAction} className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
+    <form action={formAction} className={`space-y-4 rounded-2xl border-2 bg-white p-5 shadow-sm ${w.kotak}`}>
       <input type="hidden" name="periode_id" value={periodeId} />
       <input type="hidden" name="jenis" value={jenis} />
-      <p className="text-sm font-medium text-slate-800">
-        Tetapkan {jenis} <span className="font-normal text-slate-500">({jumlah} pemilih memenuhi syarat)</span>
-      </p>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <label className="text-xs text-slate-500">
+      <div className={`-m-5 mb-0 rounded-t-2xl p-5 ${w.kepala}`}>
+        <p className="text-xl font-extrabold">Tetapkan {jenis}</p>
+        <p className="text-base">{NAMA[jenis]}</p>
+      </div>
+      <p className="text-base text-slate-700">{ARTI[jenis]}</p>
+
+      <div className="rounded-xl bg-slate-50 p-4 text-base text-slate-900">
+        <p>Yang akan masuk daftar: <b className="text-2xl">{jumlah}</b> pemilih berstatus “Memenuhi syarat”.</p>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className={labelKolom}>
           Tanggal penetapan
-          <input type="date" name="tanggal_penetapan" required className={input} />
+          <input type="date" name="tanggal_penetapan" required className={`${kolom} mt-1 font-normal`} />
         </label>
-        <label className="text-xs text-slate-500">
-          Nomor berita acara (opsional)
-          <input name="nomor_berita_acara" maxLength={100} className={input} />
+        <label className={labelKolom}>
+          Nomor berita acara <span className="font-normal text-slate-600">(boleh kosong)</span>
+          <input name="nomor_berita_acara" maxLength={100} className={`${kolom} mt-1 font-normal`} />
         </label>
       </div>
-      <label className="block text-xs text-slate-500">
-        Catatan (opsional)
-        <input name="catatan" maxLength={300} className={input} />
+      <label className={labelKolom}>
+        Catatan <span className="font-normal text-slate-600">(boleh kosong)</span>
+        <input name="catatan" maxLength={300} className={`${kolom} mt-1 font-normal`} />
       </label>
-      <label className="flex items-start gap-2 text-sm text-slate-600">
-        <input type="checkbox" name="konfirmasi" value="ya" className="mt-1" />
-        Saya mengerti daftar ini disalin sebagai arsip dan tidak bisa diubah. Koreksi dilakukan dengan menetapkan versi baru.
-      </label>
-      {state?.error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{state.error}</p>}
-      <Tombol jenis={jenis} />
+
+      <div className="rounded-xl border-2 border-red-200 bg-red-50 p-4">
+        <p className="text-base font-bold text-red-900">⚠ Perhatian: tidak bisa dibatalkan</p>
+        <p className="mt-1 text-base text-red-950">
+          Setelah ditetapkan, daftar ini disimpan tetap dan <b>tidak bisa diubah</b>. Bila ada kesalahan, panitia harus menetapkan versi baru.
+        </p>
+        <label className="mt-3 flex items-start gap-3 text-base font-semibold text-red-950">
+          <input
+            type="checkbox"
+            name="konfirmasi"
+            value="ya"
+            checked={paham}
+            onChange={(e) => setPaham(e.target.checked)}
+            className="mt-1 h-6 w-6 shrink-0"
+          />
+          Saya sudah memeriksa daftar dan mengerti bahwa daftar ini tidak bisa diubah.
+        </label>
+      </div>
+
+      {state?.error && (
+        <p role="alert" className="rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3 text-base font-semibold text-red-800">{state.error}</p>
+      )}
+      <Tombol jenis={jenis} siap={paham} />
     </form>
   );
 }

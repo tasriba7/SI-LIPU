@@ -120,13 +120,15 @@ export default function DashboardShell({
     return null;
   }
 
+  // Modul Pilkades memakai tampilan terang (biru) agar mudah dibaca semua kalangan.
+  const modePilkades = (pathname || "").startsWith("/dashboard/pilkades");
   const tanpaProfil = !profile?.role;
   // Panitia Pilkades bukan "hanya lihat": hak tulisnya ada di modul Pilkades.
   const hanyaLihat =
     !tanpaProfil && !bisaMenulis(profile?.role) && !isPanitiaPilkades(profile?.role);
 
   return (
-    <div className="min-h-screen bg-slate-50 md:flex">
+    <div className={`min-h-screen md:flex ${modePilkades ? "bg-sky-50" : "bg-slate-50"}`}>
       {/* Overlay khusus mobile saat sidebar terbuka */}
       {sidebarOpen && (
         <button
@@ -138,7 +140,7 @@ export default function DashboardShell({
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-navy-dark transition-transform duration-200 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col ${modePilkades ? "bg-sky-900" : "bg-navy-dark"} transition-transform duration-200 ${
           sidebarHidden ? "md:-translate-x-full" : "md:translate-x-0"
         } ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
@@ -153,7 +155,7 @@ export default function DashboardShell({
             <p className="text-sm font-bold leading-none text-white">
               SI-LIPU
             </p>
-            <p className="mt-1 text-[11px] leading-none text-white/50">
+            <p className={`mt-1 text-[11px] leading-none ${modePilkades ? "text-sky-200" : "text-white/50"}`}>
               Panel Perangkat Desa
             </p>
           </div>
@@ -186,7 +188,7 @@ export default function DashboardShell({
                   type="button"
                   onClick={() => toggleGrup(g)}
                   aria-expanded={terbuka}
-                  className="flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wider text-white/40 transition hover:text-white/70"
+                  className={`flex w-full items-center gap-2 rounded-lg px-3 py-1.5 text-left text-[11px] font-semibold uppercase tracking-wider ${modePilkades ? "text-sky-200 hover:text-white" : "text-white/40 hover:text-white/70"} transition`}
                 >
                   <span className="flex-1">{g.judul}</span>
                   {!terbuka && adaBadge && (
@@ -225,13 +227,17 @@ export default function DashboardShell({
                           <Link
                             href={href}
                             aria-current={aktif ? "page" : undefined}
-                            className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition ${
+                            className={`flex items-center gap-3 rounded-lg px-3 ${modePilkades ? "py-2.5 text-base" : "py-2 text-sm"} transition ${
                               aktif
-                                ? "bg-white/10 font-medium text-white"
-                                : "text-white/70 hover:bg-white/10 hover:text-white"
+                                ? modePilkades
+                                  ? "bg-sky-500 font-semibold text-white shadow"
+                                  : "bg-white/10 font-medium text-white"
+                                : modePilkades
+                                  ? "text-sky-50 hover:bg-white/15 hover:text-white"
+                                  : "text-white/70 hover:bg-white/10 hover:text-white"
                             }`}
                           >
-                            <Icon className="h-4 w-4" />
+                            <Icon className={modePilkades ? "h-5 w-5" : "h-4 w-4"} />
                             <span className="flex-1">{nama}</span>
                             {badge && (
                               <span
@@ -259,7 +265,7 @@ export default function DashboardShell({
               {profile?.nama}
             </p>
             <span
-              className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[11px] font-medium ${badgeClass}`}
+              className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[11px] font-medium ${modePilkades ? "bg-sky-100 text-sky-900" : badgeClass}`}
             >
               {labelJabatan(profile)}
             </span>
@@ -302,7 +308,7 @@ export default function DashboardShell({
             <p className="text-sm font-medium text-slate-800">
               {sapaan}, {profile?.nama?.split(" ")[0]}
             </p>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-500">
               Panel {labelJabatan(profile)} — Desa
             </p>
           </div>

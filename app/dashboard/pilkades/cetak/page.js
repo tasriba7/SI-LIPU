@@ -1,12 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
 import { ambilPeriode, ambilDaftarPemilih, formatTanggal, STATUS_VERIFIKASI, JENIS_DAFTAR_LABEL } from "@/lib/pilkades";
+import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
+import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
 
 export const metadata = { title: "Cetak Daftar Pemilih" };
 
 export default async function PilihanCetak() {
   const supabase = await createClient();
   const periode = await ambilPeriode(supabase);
-  if (!periode) return <p className="text-sm text-slate-500">Belum ada periode Pilkades.</p>;
+  if (!periode) {
+    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/periode" label="Buka Periode Pilkades" />;
+  }
 
   const [{ data: tps }, { data: pemilih }, { data: arsip }] = await Promise.all([
     supabase.from("pilkades_tps").select("id, nama").eq("periode_id", periode.id).order("nama"),
@@ -18,60 +22,71 @@ export default async function PilihanCetak() {
       .order("created_at", { ascending: false }),
   ]);
   const dusunList = [...new Set((pemilih ?? []).map((r) => r.dusun).filter(Boolean))].sort();
-  const input = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy";
+  const adaArsip = (arsip ?? []).length > 0;
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      <div>
-        <h1 className="text-lg font-bold text-slate-800">Cetak Daftar Pemilih</h1>
-        <p className="text-sm text-slate-500">
-          Kertas F4 lanskap (330 x 215 mm), dua kolom berdampingan, margin 6 mm. Cetakan dari
-          &ldquo;Draf terkini&rdquo; bertanda air DRAF; cetakan dari arsip DPS/DPT adalah daftar resmi.
-        </p>
-      </div>
+      <PanduanLangkah aktif="cetak" />
+      <JudulHalaman
+        langkah={6}
+        judul="Cetak Daftar"
+        penjelasan="Pilih daftar yang ingin dicetak, lalu klik tombol di bawah. Layar pratinjau akan terbuka di tab baru sebelum dicetak."
+      />
 
-      <form action="/cetak/pilkades" target="_blank" className="space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-        <label className="block text-sm text-slate-600">
-          Sumber daftar
-          <select name="daftar" className={input} defaultValue="">
-            <option value="">Draf terkini (data verifikasi saat ini)</option>
-            {(arsip ?? []).map((a) => (
-              <option key={a.id} value={a.id}>
-                {JENIS_DAFTAR_LABEL[a.jenis]} versi {a.versi} (ditetapkan {formatTanggal(a.tanggal_penetapan)})
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-sm text-slate-600">
-          TPS
-          <select name="tps" className={input} defaultValue="">
-            <option value="">Semua TPS</option>
-            <option value="none">Belum punya TPS</option>
-            {(tps ?? []).map((t) => <option key={t.id} value={t.id}>{t.nama}</option>)}
-          </select>
-        </label>
-        <label className="block text-sm text-slate-600">
-          Dusun
-          <select name="dusun" className={input} defaultValue="">
-            <option value="">Semua dusun</option>
-            {dusunList.map((d) => <option key={d} value={d}>{d}</option>)}
-          </select>
-        </label>
-        <label className="block text-sm text-slate-600">
-          Status (hanya berlaku untuk draf; arsip selalu berisi yang memenuhi syarat)
-          <select name="status" className={input} defaultValue="memenuhi_syarat">
-            {Object.entries(STATUS_VERIFIKASI).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            <option value="semua">Semua status</option>
-          </select>
-        </label>
-        <label className="flex items-center gap-2 text-sm text-slate-600">
-          <input type="checkbox" name="nik" value="1" />
-          Tampilkan NIK samar (jangan dicentang untuk daftar yang ditempel di tempat umum)
-        </label>
-        <button className="rounded-lg bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-light">
-          Buka pratinjau cetak
-        </button>
-      </form>
+      <Pesan jenis="info" judul="Bedanya draf dan daftar resmi">
+        Cetakan dari <b>“Draf terkini”</b> diberi tanda air DRAF. Cetakan dari <b>DPS atau DPT</b> yang sudah ditetapkan adalah daftar resmi.
+        {!adaArsip && " Saat ini belum ada DPS/DPT yang ditetapkan, jadi hanya draf yang bisa dicetak."}
+      </Pesan>
+
+      <Kartu>
+        <form action="/cetak/pilkades" target="_blank" className="space-y-5">
+          <label className={labelKolom}>
+            Daftar mana yang dicetak?
+            <select name="daftar" className={`${kolom} mt-1 font-normal`} defaultValue={arsip?.[0]?.id ?? ""}>
+              <option value="">Draf terkini (data yang sedang dikerjakan)</option>
+              {(arsip ?? []).map((a) => (
+                <option key={a.id} value={a.id}>
+                  {JENIS_DAFTAR_LABEL[a.jenis]} versi {a.versi} (ditetapkan {formatTanggal(a.tanggal_penetapan)})
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <label className={labelKolom}>
+              Untuk TPS mana?
+              <select name="tps" className={`${kolom} mt-1 font-normal`} defaultValue="">
+                <option value="">Semua TPS</option>
+                <option value="none">Yang belum punya TPS</option>
+                {(tps ?? []).map((t) => <option key={t.id} value={t.id}>{t.nama}</option>)}
+              </select>
+            </label>
+            <label className={labelKolom}>
+              Untuk dusun mana?
+              <select name="dusun" className={`${kolom} mt-1 font-normal`} defaultValue="">
+                <option value="">Semua dusun</option>
+                {dusunList.map((d) => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </label>
+          </div>
+          <label className={labelKolom}>
+            Status pemilih <span className="font-normal text-slate-600">(hanya untuk draf; daftar resmi selalu berisi yang memenuhi syarat)</span>
+            <select name="status" className={`${kolom} mt-1 font-normal`} defaultValue="memenuhi_syarat">
+              {Object.entries(STATUS_VERIFIKASI).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              <option value="semua">Semua status</option>
+            </select>
+          </label>
+          <label className="flex items-start gap-3 rounded-xl bg-sky-50 p-4 text-base text-slate-900">
+            <input type="checkbox" name="nik" value="1" className="mt-1 h-5 w-5" />
+            <span>
+              <b>Sertakan kolom NIK</b> (sebagian angka disamarkan)
+              <span className="block text-sm text-slate-600">Untuk papan pengumuman umum, biarkan tidak dicentang agar data warga aman.</span>
+            </span>
+          </label>
+          <button className={`${tombol.utama} text-lg`}>Buka Pratinjau Cetak</button>
+        </form>
+      </Kartu>
+
+      <p className="text-sm text-slate-600">Info kertas: F4 lanskap (330 × 215 mm), dua kolom berdampingan, margin 6 mm.</p>
     </div>
   );
 }

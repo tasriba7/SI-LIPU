@@ -2,116 +2,127 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
-import { ambilPeriode, formatTanggal, JENIS_DAFTAR_LABEL } from "@/lib/pilkades";
+import { ambilPeriode, ambilLangkah, formatTanggal, JENIS_DAFTAR_LABEL } from "@/lib/pilkades";
 import FormTetapkan from "./FormTetapkan";
+import { DaftarLangkah } from "@/components/pilkades/PanduanLangkah";
+import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
 
-export const metadata = { title: "DPS & DPT" };
+export const metadata = { title: "Tetapkan DPS & DPT" };
 
 export default async function DaftarPage() {
   const supabase = await createClient();
   const periode = await ambilPeriode(supabase);
   const { role } = await ambilRole(supabase);
   const bisaUbah = bisaUbahPilkades(role);
-  if (!periode) return <p className="text-sm text-slate-500">Belum ada periode Pilkades.</p>;
+  if (!periode) {
+    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/periode" label="Buka Periode Pilkades" />;
+  }
 
-  const hitung = async (kolom, nilai, extra) => {
-    let q = supabase.from("pilkades_pemilih").select("id", { count: "exact", head: true }).eq("periode_id", periode.id);
-    q = q.eq(kolom, nilai);
-    if (extra) q = extra(q);
-    const { count } = await q;
-    return count ?? 0;
-  };
-  const [memenuhi, belum, perluCek, tanpaTps, { data: arsip }] = await Promise.all([
-    hitung("status_verifikasi", "memenuhi_syarat"),
-    hitung("status_verifikasi", "belum"),
-    hitung("status_verifikasi", "perlu_dicek"),
-    hitung("status_verifikasi", "memenuhi_syarat", (q) => q.is("tps_id", null)),
-    supabase
-      .from("pilkades_daftar_tetap")
-      .select("id, jenis, versi, tanggal_penetapan, nomor_berita_acara, jumlah, ditetapkan_oleh_nama")
-      .eq("periode_id", periode.id)
-      .order("created_at", { ascending: false }),
-  ]);
-
-  const adaDps = (arsip ?? []).some((a) => a.jenis === "DPS");
+  const s = await ambilLangkah(supabase, periode);
+  const { data: arsipLengkap } = await supabase
+    .from("pilkades_daftar_tetap")
+    .select("id, jenis, versi, tanggal_penetapan, nomor_berita_acara, jumlah, ditetapkan_oleh_nama")
+    .eq("periode_id", periode.id)
+    .order("created_at", { ascending: false });
+  const arsip = arsipLengkap ?? [];
   const berlaku = {};
-  for (const a of arsip ?? []) if (!berlaku[a.jenis]) berlaku[a.jenis] = a.id; // terbaru dulu
+  for (const a of arsip) if (!berlaku[a.jenis]) berlaku[a.jenis] = a.id; // terbaru dulu
 
-  const peringatan = [
-    belum > 0 && `${belum} calon pemilih masih "Belum diperiksa"`,
-    perluCek > 0 && `${perluCek} calon pemilih berstatus "Perlu dicek"`,
-    tanpaTps > 0 && `${tanpaTps} pemilih memenuhi syarat belum punya TPS`,
-  ].filter(Boolean);
+  // DPS terkunci sampai syarat terpenuhi; DPT terkunci sampai ada DPS.
+  // (Ingin melonggarkan? Ubah `s.alasanTetapkan` di bawah menjadi `null` untuk DPS.)
+  const alasanDps = s.alasanTetapkan;
+  const tautanDps = s.memenuhi === 0
+    ? { href: "/dashboard/pilkades/pemilih", label: "Ke Langkah 2: Periksa Pemilih" }
+    : s.jumlahTps === 0
+      ? { href: "/dashboard/pilkades/tps", label: "Ke Langkah 3: Atur TPS" }
+      : { href: "/dashboard/pilkades/tempatkan", label: "Ke Langkah 4: Tempatkan Pemilih" };
+  const alasanDpt = alasanDps ?? (s.adaDps ? null : "DPT hanya bisa ditetapkan setelah DPS ditetapkan. Tetapkan DPS dulu.");
 
-  const alasanKosong = memenuhi === 0 ? 'Belum ada pemilih berstatus "Memenuhi syarat".' : null;
+  const syarat = [
+    [s.memenuhi > 0, `${s.memenuhi} pemilih berstatus “Memenuhi syarat”`, "/dashboard/pilkades/pemilih"],
+    [s.jumlahTps > 0, s.jumlahTps > 0 ? `${s.jumlahTps} TPS sudah dibuat` : "Belum ada TPS", "/dashboard/pilkades/tps"],
+    [s.tanpaTps === 0 && s.memenuhi > 0, s.tanpaTps === 0 ? "Semua pemilih sudah punya TPS" : `${s.tanpaTps} pemilih belum punya TPS`, "/dashboard/pilkades/tempatkan"],
+  ];
 
   return (
-    <div className="mx-auto max-w-4xl space-y-5">
-      <div>
-        <h1 className="text-lg font-bold text-slate-800">DPS &amp; DPT &mdash; {periode.nama}</h1>
-        <p className="text-sm text-slate-500">
-          Menetapkan daftar menyalin pemilih yang <b>memenuhi syarat</b> saat ini menjadi arsip tetap.
-          Perubahan data warga sesudahnya tidak mengubah daftar yang sudah ditetapkan.
-        </p>
-      </div>
+    <div className="mx-auto max-w-5xl space-y-5">
+      <DaftarLangkah langkah={s.langkah} aktif="tetapkan" />
+      <JudulHalaman
+        langkah={5}
+        judul={`Tetapkan DPS lalu DPT — ${periode.nama}`}
+        penjelasan="Menetapkan berarti menyalin pemilih yang “Memenuhi syarat” menjadi daftar resmi yang disimpan tetap. Urutannya: DPS dulu, lalu DPT."
+      />
 
-      {peringatan.length > 0 && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-          <p className="font-medium">Periksa dulu sebelum menetapkan:</p>
-          <ul className="mt-1 list-disc pl-5">
-            {peringatan.map((p) => <li key={p}>{p}</li>)}
-          </ul>
-          <p className="mt-2 text-xs">
-            Yang belum berstatus &ldquo;memenuhi syarat&rdquo; tidak ikut masuk daftar.{" "}
-            <Link href="/dashboard/pilkades/pemilih" className="underline">Buka Daftar Pemilih</Link>
-          </p>
+      <Kartu>
+        <h2 className="text-lg font-bold text-sky-950">Periksa dulu sebelum menetapkan</h2>
+        <ul className="mt-2 space-y-2">
+          {syarat.map(([ok, teks, href]) => (
+            <li key={teks} className="flex flex-wrap items-center gap-3 text-base">
+              <span className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold text-white ${ok ? "bg-emerald-500" : "bg-amber-500"}`}>{ok ? "✓" : "!"}</span>
+              <span className="font-medium text-slate-900">{teks}</span>
+              {!ok && <Link href={href} className="font-bold text-sky-800 underline">Perbaiki →</Link>}
+            </li>
+          ))}
+          {(s.belum > 0 || s.perluCek > 0) && (
+            <li className="flex flex-wrap items-center gap-3 text-base">
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-white">!</span>
+              <span className="font-medium text-slate-900">
+                {s.belum > 0 && `${s.belum} orang masih “Belum diperiksa”`}
+                {s.belum > 0 && s.perluCek > 0 && " dan "}
+                {s.perluCek > 0 && `${s.perluCek} orang “Perlu dicek”`}
+                {" "}(tidak ikut masuk daftar)
+              </span>
+              <Link href="/dashboard/pilkades/pemilih" className="font-bold text-sky-800 underline">Periksa →</Link>
+            </li>
+          )}
+        </ul>
+      </Kartu>
+
+      {!bisaUbah && <Pesan jenis="info">Penetapan DPS/DPT dilakukan oleh Panitia Pilkades. Akun ini hanya dapat melihat arsip.</Pesan>}
+
+      {bisaUbah && (
+        <div className="grid gap-4 md:grid-cols-2">
+          <FormTetapkan periodeId={periode.id} jenis="DPS" jumlah={s.memenuhi} nonaktifAlasan={alasanDps} tautan={tautanDps} />
+          <FormTetapkan
+            periodeId={periode.id}
+            jenis="DPT"
+            jumlah={s.memenuhi}
+            nonaktifAlasan={alasanDpt}
+            tautan={alasanDps ? tautanDps : s.adaDps ? null : { href: "#", label: "Tetapkan DPS di sebelah kiri dulu" }}
+          />
         </div>
       )}
 
-      {!bisaUbah && (
-        <p className="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-600">
-          Penetapan DPS/DPT dilakukan oleh Panitia Pilkades. Akun ini hanya dapat melihat arsip.
-        </p>
-      )}
-
-      {bisaUbah && (
-      <div className="grid gap-4 md:grid-cols-2">
-        <FormTetapkan periodeId={periode.id} jenis="DPS" jumlah={memenuhi} nonaktifAlasan={alasanKosong} />
-        <FormTetapkan
-          periodeId={periode.id}
-          jenis="DPT"
-          jumlah={memenuhi}
-          nonaktifAlasan={alasanKosong ?? (adaDps ? null : "DPT hanya bisa ditetapkan setelah ada DPS.")}
-        />
-      </div>
-      )}
-
-      <div>
-        <h2 className="mb-2 text-sm font-semibold text-slate-700">Arsip daftar yang sudah ditetapkan</h2>
-        <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white">
-          {(arsip ?? []).map((a) => (
-            <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+      <section>
+        <h2 className="mb-2 text-xl font-bold text-sky-950">Daftar yang sudah ditetapkan</h2>
+        <ul className="divide-y divide-sky-100 overflow-hidden rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
+          {arsip.map((a) => (
+            <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
               <div>
-                <p className="text-sm font-medium text-slate-800">
-                  {JENIS_DAFTAR_LABEL[a.jenis]} &mdash; versi {a.versi}
+                <p className="text-lg font-bold text-slate-900">
+                  {JENIS_DAFTAR_LABEL[a.jenis]} — versi {a.versi}
                   {berlaku[a.jenis] === a.id && (
-                    <span className="ml-2 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700">berlaku</span>
+                    <span className="ml-2 rounded-full bg-emerald-100 px-2.5 py-0.5 text-sm font-semibold text-emerald-800">✓ berlaku</span>
                   )}
                 </p>
-                <p className="text-xs text-slate-400">
+                <p className="text-base text-slate-600">
                   Ditetapkan {formatTanggal(a.tanggal_penetapan)} · {a.jumlah} pemilih
                   {a.nomor_berita_acara && ` · BA ${a.nomor_berita_acara}`}
                   {a.ditetapkan_oleh_nama && ` · oleh ${a.ditetapkan_oleh_nama}`}
                 </p>
               </div>
-              <Link href={`/dashboard/pilkades/daftar/${a.id}`} className="rounded-lg border border-slate-300 px-3 py-1 text-xs hover:bg-slate-50">
-                Lihat &amp; cetak
-              </Link>
+              <Link href={`/dashboard/pilkades/daftar/${a.id}`} className={tombol.sekunder}>Lihat & cetak</Link>
             </li>
           ))}
-          {!arsip?.length && <li className="px-4 py-6 text-center text-sm text-slate-400">Belum ada daftar yang ditetapkan.</li>}
+          {!arsip.length && <li className="px-5 py-8 text-center text-base text-slate-500">Belum ada daftar yang ditetapkan.</li>}
         </ul>
-      </div>
+      </section>
+
+      {s.adaDps && (
+        <div className="flex justify-end">
+          <Link href="/dashboard/pilkades/cetak" className={tombol.utama}>Lanjut ke Langkah 6: Cetak Daftar →</Link>
+        </div>
+      )}
     </div>
   );
 }

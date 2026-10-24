@@ -1,17 +1,24 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode } from "@/lib/pilkades";
 import { tambahTps, hapusTps } from "../actions";
+import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
+import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
+import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
 
-export const metadata = { title: "TPS Pilkades" };
+export const metadata = { title: "Atur TPS" };
 
-export default async function TpsPage() {
+export default async function TpsPage({ searchParams }) {
+  const sp = await searchParams;
   const supabase = await createClient();
   const periode = await ambilPeriode(supabase);
   const { role } = await ambilRole(supabase);
   const bisaUbah = bisaUbahPilkades(role);
-  if (!periode) return <p className="text-sm text-slate-500">Belum ada periode Pilkades.</p>;
+  if (!periode) {
+    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/periode" label="Buka Periode Pilkades" />;
+  }
 
   const { data: tps } = await supabase
     .from("pilkades_tps")
@@ -20,52 +27,84 @@ export default async function TpsPage() {
     .order("nama");
 
   const jumlah = {};
-  for (const t of tps ?? []) {
-    const { count } = await supabase
-      .from("pilkades_pemilih")
-      .select("id", { count: "exact", head: true })
-      .eq("tps_id", t.id);
-    jumlah[t.id] = count ?? 0;
-  }
-
-  const input = "w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-navy";
+  await Promise.all(
+    (tps ?? []).map(async (t) => {
+      const { count } = await supabase
+        .from("pilkades_pemilih")
+        .select("id", { count: "exact", head: true })
+        .eq("tps_id", t.id);
+      jumlah[t.id] = count ?? 0;
+    })
+  );
+  const ada = (tps ?? []).length > 0;
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <div>
-        <h1 className="text-lg font-bold text-slate-800">TPS &mdash; {periode.nama}</h1>
-        <p className="text-sm text-slate-500">Tempat pemungutan suara dan jumlah pemilih yang ditempatkan.</p>
-      </div>
+      <PanduanLangkah aktif="tps" />
+      <JudulHalaman
+        langkah={3}
+        judul="Atur TPS"
+        penjelasan="TPS adalah tempat pemungutan suara, yaitu tempat warga mencoblos. Tambahkan semua TPS yang akan dipakai di desa ini."
+      />
+
+      {sp.hasil === "ok" && <Pesan jenis="sukses" judul="Berhasil">{sp.nama ? `“${sp.nama}” sudah ditambahkan.` : "TPS ditambahkan."}</Pesan>}
+      {sp.hasil === "kembar" && <Pesan jenis="perhatian" judul="Nama TPS sudah dipakai">Gunakan nama lain, misalnya TPS 2.</Pesan>}
+      {sp.hasil === "gagal" && <Pesan jenis="bahaya" judul="TPS gagal ditambahkan">Silakan coba lagi.</Pesan>}
 
       {bisaUbah && (
-      <form action={tambahTps} className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-3">
-        <input type="hidden" name="periode_id" value={periode.id} />
-        <input name="nama" required placeholder="Nama TPS, mis. TPS 1" className={input} />
-        <input name="lokasi" placeholder="Lokasi, mis. Balai Desa" className={input} />
-        <button className="rounded-lg bg-navy py-2 text-sm font-medium text-white hover:bg-navy-light">Tambah TPS</button>
-      </form>
+        <Kartu>
+          <h2 className="text-lg font-bold text-sky-950">{ada ? "Tambah TPS lagi" : "Tambah TPS pertama Anda"}</h2>
+          <form action={tambahTps} className="mt-3 grid gap-4 sm:grid-cols-2">
+            <input type="hidden" name="periode_id" value={periode.id} />
+            <label className={labelKolom}>
+              Nama TPS
+              <input name="nama" required placeholder="Contoh: TPS 1" className={`${kolom} mt-1 font-normal`} />
+            </label>
+            <label className={labelKolom}>
+              Lokasi <span className="font-normal text-slate-600">(boleh kosong)</span>
+              <input name="lokasi" placeholder="Contoh: Balai Desa" className={`${kolom} mt-1 font-normal`} />
+            </label>
+            <div className="sm:col-span-2">
+              <button className={ada ? tombol.sekunder : tombol.utama}>+ Tambah TPS</button>
+            </div>
+          </form>
+        </Kartu>
       )}
 
-      <ul className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white">
-        {(tps ?? []).map((t) => (
-          <li key={t.id} className="flex items-center justify-between gap-3 px-4 py-3">
-            <div>
-              <p className="text-sm font-medium text-slate-800">{t.nama}</p>
-              <p className="text-xs text-slate-400">{t.lokasi || "Lokasi belum diisi"}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-600">{jumlah[t.id]} pemilih</span>
-              {bisaUbah && (
-                <form action={hapusTps}>
-                  <input type="hidden" name="id" value={t.id} />
-                  <button className="text-xs text-red-500 hover:underline">Hapus</button>
-                </form>
-              )}
-            </div>
-          </li>
-        ))}
-        {!tps?.length && <li className="px-4 py-6 text-center text-sm text-slate-400">Belum ada TPS.</li>}
-      </ul>
+      {ada ? (
+        <ul className="divide-y divide-sky-100 overflow-hidden rounded-2xl border-2 border-sky-100 bg-white shadow-sm">
+          {tps.map((t) => (
+            <li key={t.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
+              <div>
+                <p className="text-lg font-bold text-slate-900">{t.nama}</p>
+                <p className="text-base text-slate-600">{t.lokasi || "Lokasi belum diisi"}</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <span className="rounded-full bg-sky-100 px-3 py-1 text-base font-bold text-sky-900">{jumlah[t.id]} pemilih</span>
+                {bisaUbah && (
+                  <form action={hapusTps}>
+                    <input type="hidden" name="id" value={t.id} />
+                    <TombolKonfirmasi
+                      pesan={`Hapus ${t.nama}? ${jumlah[t.id]} pemilih di TPS ini akan kembali menjadi “belum punya TPS”.`}
+                      className="rounded-lg border-2 border-red-200 px-3 py-1.5 text-base font-semibold text-red-700 hover:bg-red-50"
+                    >
+                      Hapus
+                    </TombolKonfirmasi>
+                  </form>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        !bisaUbah && <KosongPandu judul="Belum ada TPS" teks="TPS ditambahkan oleh Panitia Pilkades." />
+      )}
+
+      {ada && (
+        <div className="flex justify-end">
+          <Link href="/dashboard/pilkades/tempatkan" className={tombol.utama}>Lanjut ke Langkah 4: Tempatkan Pemilih →</Link>
+        </div>
+      )}
     </div>
   );
 }

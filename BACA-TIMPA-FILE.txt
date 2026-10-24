@@ -1,0 +1,34 @@
+CARA PAKAI
+1. Ekstrak zip ini, lalu salin SEMUA folder (app, components, lib) ke folder repo SI-LIPU. Pilih "Timpa / Replace" bila ditanya.
+2. Jalankan:  npm run dev   (atau npm run build) lalu buka /dashboard/pilkades
+3. Tidak ada migrasi database baru. Tidak ada paket baru.
+
+FILE BARU (belum ada di repo)
+- components/pilkades/UI.jsx
+- components/pilkades/PanduanLangkah.jsx
+- components/pilkades/TombolKonfirmasi.jsx
+- app/dashboard/pilkades/ambil/page.js
+- app/dashboard/pilkades/tempatkan/page.js
+- app/dashboard/pilkades/tempatkan/TabelTempatkan.jsx
+
+FILE YANG DITIMPA
+- lib/pilkades.js                        (ditambah alur 6 langkah, tidak ada yang dihapus)
+- lib/menuDashboard.js                   (menu bernomor & bahasa awam)
+- components/dashboard/DashboardShell.jsx (sidebar biru + huruf besar, HANYA di halaman Pilkades)
+- app/dashboard/pilkades/actions.js      (+ aksi "masukkanKeTps", pesan hasil, simpan tidak menghapus TPS)
+- app/dashboard/pilkades/page.js         (dashboard jadi panduan langkah)
+- app/dashboard/pilkades/pemilih/page.js
+- app/dashboard/pilkades/tps/page.js
+- app/dashboard/pilkades/daftar/page.js
+- app/dashboard/pilkades/daftar/FormTetapkan.jsx
+- app/dashboard/pilkades/cetak/page.js
+- app/dashboard/pilkades/riwayat/page.js
+- app/dashboard/pilkades/periode/page.js
+
+TIDAK DIUBAH (masih tampilan lama): app/dashboard/pilkades/daftar/[id]/page.js dan halaman cetak /cetak/pilkades.
+Modul lain (kependudukan, layanan, dll.) tetap memakai sidebar gelap seperti semula.
+
+CATATAN
+- DPS sengaja DIKUNCI sampai: ada pemilih memenuhi syarat, ada TPS, dan semua pemilih sudah punya TPS.
+  Mau dilonggarkan? Di app/dashboard/pilkades/daftar/page.js ubah  const alasanDps = s.alasanTetapkan;  menjadi  const alasanDps = s.memenuhi === 0 ? s.alasanTetapkan : null;
+- Data uji "UJI COBA NAMA" (umur 0) ada di data warga asli. Hapus/perbaiki dari data warga; di halaman Periksa Pemilih kini diberi tanda "cek tanggal lahir".
