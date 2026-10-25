@@ -153,6 +153,64 @@ export default async function HadirPage({ searchParams }) {
       </Kartu>
 
       <Kartu>
+        <h2 className="text-base font-bold text-sky-950">Cetak daftar hadir (untuk tanda tangan pemilih)</h2>
+        <p className="mt-1 text-sm text-slate-700">
+          Setiap baris nama setinggi 1 cm dan margin kecil, jadi satu lembar memuat banyak nama dengan kolom tanda tangan yang lega. Isinya mengikuti DPT versi {dpt.head.versi}.
+        </p>
+        <form action="/cetak/pilkades/hadir" target="_blank" className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <label className="text-sm font-semibold text-slate-800">
+            TPS
+            <select name="tps" defaultValue={fTps} className={`${kolomKecil} mt-1 block w-full`}>
+              <option value="">Semua TPS</option>
+              {rekapList.map((e) => <option key={e.tps} value={e.tps}>{e.tps}</option>)}
+            </select>
+          </label>
+          <label className="text-sm font-semibold text-slate-800">
+            Dusun
+            <select name="dusun" defaultValue="" className={`${kolomKecil} mt-1 block w-full`}>
+              <option value="">Semua dusun</option>
+              {[...new Set(isi.map((r) => r.dusun).filter(Boolean))].sort((a, b) => a.localeCompare(b, "id")).map((d) => (
+                <option key={d} value={d}>{d}</option>
+              ))}
+            </select>
+          </label>
+          <label className="text-sm font-semibold text-slate-800">
+            Siapa yang dicetak
+            <select name="tampil" defaultValue="semua" className={`${kolomKecil} mt-1 block w-full`}>
+              <option value="semua">Semua pemilih di DPT</option>
+              <option value="belum">Yang belum hadir saja</option>
+              <option value="sudah">Yang sudah hadir saja</option>
+            </select>
+          </label>
+          <label className="text-sm font-semibold text-slate-800">
+            Tata letak
+            <select name="tata" defaultValue="2kolom" className={`${kolomKecil} mt-1 block w-full`}>
+              <option value="2kolom">2 kolom lanskap (paling banyak nama)</option>
+              <option value="1kolom">1 kolom potret</option>
+            </select>
+          </label>
+          <label className="text-sm font-semibold text-slate-800">
+            Kertas
+            <select name="kertas" defaultValue="f4" className={`${kolomKecil} mt-1 block w-full`}>
+              <option value="f4">F4 / Folio</option>
+              <option value="a4">A4</option>
+            </select>
+          </label>
+          <label className="text-sm font-semibold text-slate-800">
+            Baris kosong tambahan <span className="font-normal text-slate-600">(pemilih tambahan)</span>
+            <input type="number" name="tambahan" min="0" max="100" defaultValue="0" className={`${kolomKecil} mt-1 block w-full`} />
+          </label>
+          <label className="flex items-center gap-2 text-sm font-semibold text-slate-800 sm:col-span-2 lg:col-span-3">
+            <input type="checkbox" name="nik" value="1" className="h-5 w-5" />
+            Sertakan NIK (sebagian angka disamarkan)
+          </label>
+          <div className="sm:col-span-2 lg:col-span-3">
+            <button className={tombol.sekunder}>Buka Pratinjau Cetak</button>
+          </div>
+        </form>
+      </Kartu>
+
+      <Kartu>
         <form className="flex flex-wrap items-end gap-3">
           <label className="flex-1 basis-56 text-sm font-semibold text-slate-800">
             Cari nama pemilih

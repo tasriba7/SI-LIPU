@@ -7,7 +7,7 @@ import { ambilJadwalLengkap, periksaUrutan } from "@/lib/pilkadesJadwal";
 import { pesanDari, teknis } from "@/lib/pilkadesPesan";
 import PesanSekali from "@/components/pilkades/PesanSekali";
 import { GarisWaktu } from "@/components/pilkades/GarisWaktu";
-import { JudulHalaman, Catatan, Kartu, KosongPandu } from "@/components/pilkades/UI";
+import { JudulHalaman, Catatan, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
 import FormJadwal from "./FormJadwal";
 
 export const metadata = { title: "Jadwal Tahapan — Pilkades" };
@@ -64,6 +64,19 @@ export default async function JadwalPage({ searchParams }) {
           <GarisWaktu tahap={j.tahap} />
         </Kartu>
       )}
+
+      <Kartu>
+        <h2 className="text-base font-bold text-sky-950">Cetak jadwal tahapan</h2>
+        <p className="mt-1 text-sm text-slate-700">Dicetak di kertas A4 dengan margin kecil, siap ditempel di papan pengumuman.</p>
+        <form action="/cetak/pilkades/jadwal" target="_blank" className="mt-3 flex flex-wrap items-center gap-4">
+          <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+            <input type="checkbox" name="status" value="1" className="h-5 w-5" />
+            Sertakan kolom status (selesai / berlangsung / akan datang)
+          </label>
+          <button className={tombol.sekunder}>Buka Pratinjau Cetak</button>
+        </form>
+        {bisaUbah && <p className="mt-2 text-sm text-slate-600">Jadwal yang dicetak adalah jadwal yang sudah disimpan. Simpan dulu bila ada perubahan.</p>}
+      </Kartu>
 
       <p className="text-sm text-slate-600">
         Hasilnya tampil sebagai progres dan garis waktu di{" "}

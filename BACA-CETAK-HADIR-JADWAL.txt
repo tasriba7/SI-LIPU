@@ -1,0 +1,33 @@
+Pilkades: cetak Daftar Hadir & Jadwal Tahapan (margin kecil, baris nama 1 cm)
+PAKET KUMULATIF: sudah termasuk perbaikan sinkron progres (BACA-SINKRON-PROGRES.txt).
+Aman ditimpa walau paket sebelumnya sudah dipasang. Tanpa migrasi SQL, tanpa paket baru.
+
+CARA PASANG
+1. Ekstrak zip, salin folder app dan lib ke repo. Pilih "Timpa / Replace".
+2. npm run dev.
+
+FITUR BARU
+1. Cetak Daftar Hadir  (menu Daftar Hadir -> kartu "Cetak daftar hadir")
+   - Tiap baris nama TEPAT 1 cm; margin 5 mm.
+   - Tata letak bawaan: 2 kolom lanskap F4 = 32 nama per lembar
+     (pilihan lain: 1 kolom potret F4 = 28 nama, A4 lanskap 32, A4 potret 24).
+   - Kolom: No, Nama, Dusun RT/RW, Tanda Tangan (lebar ~42% tabel, nomor selang-seling
+     kiri/tengah supaya tanda tangan tidak bertabrakan). NIK opsional (disamarkan).
+   - Saringan: TPS, dusun, semua / belum hadir / sudah hadir. Baris kosong tambahan
+     (maks 100) untuk pemilih tambahan.
+   - Isi mengikuti DPT terbaru. Tanda tangan: Ketua + Sekretaris (dari Susunan Panitia).
+   - Halaman terakhir tidak pernah berisi 1 nama saja.
+2. Cetak Jadwal Tahapan  (menu Jadwal Tahapan -> kartu "Cetak jadwal tahapan")
+   - A4 potret, margin 8 mm; kolom No, Tahapan, Waktu, Keterangan, (opsional) Status.
+   - Tanda tangan: Ketua.
+3. Daftar Pemilih (cetak lama): margin diperkecil jadi 5 mm, tanpa jarak tambahan di sisi.
+4. Kedua cetakan tercatat di Riwayat Aktivitas.
+
+Di dialog cetak: margin pilih "Default" (margin sudah diatur di dokumen), skala 100%.
+
+FILE BARU
+- app/cetak/pilkades/hadir/page.js, app/cetak/pilkades/jadwal/page.js
+FILE DITIMPA
+- app/cetak/pilkades/page.js (margin), app/dashboard/pilkades/hadir/page.js, jadwal/page.js
+- lib/pilkades.js (label riwayat + penandatangan), lib/menuDashboard.js
+- (dari paket sebelumnya) lib/pilkadesJadwal.js, app/dashboard/pilkades/page.js, actions.js, periode/page.js

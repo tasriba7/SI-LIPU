@@ -124,9 +124,9 @@ export default async function CetakPilkades({ searchParams }) {
   return (
     <>
       <style>{`
-        @page { size: 330mm 215mm; margin: 6mm; }
+        @page { size: 330mm 215mm; margin: 5mm; }
         html, body { background: #fff; }
-        .hal { position: relative; page-break-after: always; break-after: page; font-family: Arial, sans-serif; color: #000; padding: 4mm 6mm; }
+        .hal { position: relative; page-break-after: always; break-after: page; font-family: Arial, sans-serif; color: #000; padding: 0; }
         .hal:last-child { page-break-after: auto; break-after: auto; }
         .kop { position: relative; text-align: center; line-height: 1.25; margin-bottom: 3mm; }
         .kop .logo-kop { position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 15mm; max-width: 22mm; object-fit: contain; }
