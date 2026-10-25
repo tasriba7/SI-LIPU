@@ -1,0 +1,57 @@
+Pilkades - TAHAP 2 dari 4: DPT terkunci, Pemilih Tambahan, sambungan data penduduk
+PRASYARAT: Tahap 1 (migrasi 0065) sudah terpasang.
+
+CARA PASANG
+1. Supabase > SQL Editor > jalankan supabase/migrations/0066_pilkades_tahap2_kunci_dpt_tambahan_penduduk.sql
+   (aman diulang). Urutan: 0065 dulu, baru 0066.
+2. Ekstrak zip ke folder repo, pilih "Timpa / Replace". Tidak ada paket npm baru.
+3. npm run dev, lalu uji.
+
+YANG BERUBAH
+1. KUNCI DPT
+   - Setelah DPT ditetapkan: daftar pemilih (status, TPS), TPS, dan penetapan DPS/DPT TIDAK bisa
+     diubah lagi. Dijaga di database, bukan hanya tombol disembunyikan.
+   - Halaman Ambil Data, Periksa Pemilih, Atur TPS, Tempatkan, dan Tetapkan DPS/DPT menampilkan
+     catatan "terkunci" dan menyembunyikan tombol ubah.
+   - Perbaikan darurat tetap mungkin lewat Supabase SQL Editor (di sana tidak ada pengguna login).
+2. PEMILIH TAMBAHAN (menu baru, terbuka setelah DPT ditetapkan)
+   - Cari warga (nama min. 3 huruf atau NIK lengkap), pilih TPS, isi alasan (wajib), catat.
+   - Ditolak otomatis bila: bukan penduduk aktif, usia belum cukup, baru datang < 6 bulan,
+     sudah ada di DPT, atau sudah tercatat.
+   - DPT resmi TIDAK berubah. Pemilih Tambahan masuk daftar hadir dan Surat Undangan.
+   - Boleh dibatalkan (alasan wajib) selama belum tercatat hadir. Semua tercatat di Riwayat.
+3. SAMBUNGAN DATA PENDUDUK (tombol baru "Samakan dengan data penduduk" di Langkah 1)
+   - Pemilih yang di data penduduk sudah meninggal/pindah -> otomatis "Tidak memenuhi syarat".
+   - Pemilih yang baru datang kurang dari 6 bulan sebelum hari pemungutan -> "Perlu dicek".
+   - Tombol "Ambil/Tambah warga" ikut menjalankan penyamaan ini.
+   - Penetapan DPS/DPT ditolak bila masih ada pemilih "Memenuhi syarat" yang sudah meninggal/pindah.
+
+FILE
+ BARU : supabase/migrations/0066_pilkades_tahap2_kunci_dpt_tambahan_penduduk.sql
+        app/dashboard/pilkades/tambahan/page.js
+ TIMPA: lib/pilkades.js, lib/pilkadesKunci.js, lib/menuDashboard.js
+        app/dashboard/pilkades/actions.js
+        app/dashboard/pilkades/{ambil,tps,pemilih,tempatkan,daftar,undangan}/page.js
+
+UJI CEPAT
+ a. Sebelum DPT: Tambah warga baru lalu "Samakan dengan data penduduk". Tandai satu warga
+    meninggal di Kependudukan, samakan lagi -> pemilihnya jadi "Tidak memenuhi syarat".
+ b. Tetapkan DPS lalu DPT. Coba tambah TPS / ubah status pemilih -> ditolak/terkunci.
+ c. Menu Pemilih Tambahan: cari warga yang tidak ada di DPT, catat dengan alasan. Cari warga
+    yang sudah di DPT -> muncul "Sudah ada di DPT". Cek Daftar Hadir: namanya ikut muncul.
+ d. Login ADMIN: halaman terlihat tanpa tombol ubah.
+
+ASUMSI YANG PERLU ANDA KONFIRMASI KE PERBUP
+ - "Domisili 6 bulan" dihitung dari tanggal DATANG terakhir yang tercatat di menu Mutasi
+   (Penduduk Datang). Warga tanpa catatan datang dianggap penduduk lama.
+ - Aturan Pemilih Tambahan (siapa yang boleh, kapan, syaratnya) saya susun umum: usia sama
+   dengan DPT, domisili 6 bulan, alasan wajib. Teks Perbup tidak ada di repo, jadi cocokkan
+   dengan pasal yang mengaturnya; bila berbeda, beri tahu saya.
+ - Bila mutasi pindah/meninggal dibatalkan di Kependudukan, status pemilih TIDAK otomatis
+   pulih; ubah manual di Periksa Pemilih (sebelum DPT).
+ - Kode lolos cek sintaks (esbuild untuk JS, pglast untuk SQL), belum dijalankan di Supabase.
+
+SISA TAHAP
+ Tahap 3: Daftar hadir jadi dokumen cetak; hari-H hanya rangkuman angka per TPS; validasi suara
+          menyesuaikan.
+ Tahap 4: Berita acara sesuai lampiran Perbup; pembersihan menu.

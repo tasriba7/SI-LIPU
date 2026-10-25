@@ -42,7 +42,7 @@ export default async function UndanganPage() {
     <div className="mx-auto max-w-5xl space-y-5">
       <JudulHalaman
         judul="Surat Undangan Memilih"
-        penjelasan={`Surat pemberitahuan kepada pemilih untuk datang ke TPS. Isinya diambil dari DPT versi ${dpt.head.versi} (${dpt.head.jumlah ?? dpt.isi.length} pemilih): nama, nomor urut, dan TPS-nya. Dicetak 2 surat per lembar kertas, dengan bagian tanda terima yang digunting.`}
+        penjelasan={`Surat pemberitahuan kepada pemilih untuk datang ke TPS. Isinya diambil dari DPT versi ${dpt.head.versi} (${dpt.isi.length} pemilih, termasuk Pemilih Tambahan bila ada): nama, nomor urut, dan TPS-nya. Dicetak 2 surat per lembar kertas, dengan bagian tanda terima yang digunting.`}
       />
       <Catatan
         judul="Sebelum mencetak"

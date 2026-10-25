@@ -7,7 +7,7 @@ import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode, ambilLangkah, formatTanggal, JENIS_DAFTAR_LABEL } from "@/lib/pilkades";
 import FormTetapkan from "./FormTetapkan";
 import { DaftarLangkah } from "@/components/pilkades/PanduanLangkah";
-import { JudulHalaman, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
+import { JudulHalaman, Kartu, KosongPandu, Catatan, tombol } from "@/components/pilkades/UI";
 
 export const metadata = { title: "Tetapkan DPS & DPT" };
 
@@ -84,7 +84,10 @@ export default async function DaftarPage() {
         </ul>
       </Kartu>
 
-      {bisaUbah && (
+      {s.adaDpt && (
+        <Catatan butir={[{ jenis: "info", judul: "DPT sudah ditetapkan dan terkunci", isi: "DPS dan DPT tidak bisa ditetapkan ulang. Warga yang terlewat dicatat lewat menu Pemilih Tambahan; DPT resmi tidak berubah." }]} />
+      )}
+      {bisaUbah && !s.adaDpt && (
         <div className="grid gap-4 md:grid-cols-2">
           <FormTetapkan periodeId={periode.id} jenis="DPS" jumlah={s.memenuhi} nonaktifAlasan={alasanDps} tautan={tautanDps} />
           <FormTetapkan

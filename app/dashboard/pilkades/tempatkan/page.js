@@ -4,12 +4,12 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
-import { ambilPeriode, ambilDaftarPemilih, hitungUmur } from "@/lib/pilkades";
+import { ambilPeriode, ambilDaftarPemilih, hitungUmur, dptTerkunci } from "@/lib/pilkades";
 import { masukkanKeTps } from "../actions";
 import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
 import TabelTempatkan from "./TabelTempatkan";
-import { JudulHalaman, Kartu, KosongPandu, tombol, kolomKecil } from "@/components/pilkades/UI";
+import { JudulHalaman, Kartu, KosongPandu, Catatan, tombol, kolomKecil } from "@/components/pilkades/UI";
 import PesanSekali from "@/components/pilkades/PesanSekali";
 import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
@@ -28,7 +28,7 @@ export default async function TempatkanPage({ searchParams }) {
   const supabase = await createClient();
   const periode = await ambilPeriode(supabase);
   const { role } = await ambilRole(supabase);
-  const bisaUbah = bisaUbahPilkades(role);
+  const bisaUbahAwal = bisaUbahPilkades(role);
   if (!periode) {
     return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/pengaturan/periode" label="Buka Periode Pilkades" />;
   }
@@ -37,6 +37,8 @@ export default async function TempatkanPage({ searchParams }) {
   const kunci = await kunciHalaman(supabase, periode, "/dashboard/pilkades/tempatkan");
   if (kunci) return <TahapTerkunci kunci={kunci} />;
 
+  const terkunciDpt = await dptTerkunci(supabase, periode.id);
+  const bisaUbah = bisaUbahAwal && !terkunciDpt;
   const [{ data: tps }, { data: semua }] = await Promise.all([
     supabase.from("pilkades_tps").select("id, nama").eq("periode_id", periode.id).order("nama"),
     ambilDaftarPemilih(supabase, periode.id),
@@ -114,6 +116,9 @@ export default async function TempatkanPage({ searchParams }) {
       />
 
       <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} bersihkan={["hasil", "n", "tps"]} />
+      {terkunciDpt && (
+        <Catatan butir={[{ jenis: "info", judul: "DPT sudah ditetapkan, halaman ini terkunci", isi: "Daftar pemilih dan TPS tidak bisa diubah lagi. Warga yang terlewat dicatat lewat menu Pemilih Tambahan." }]} />
+      )}
 
       {/* Ringkasan per TPS */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

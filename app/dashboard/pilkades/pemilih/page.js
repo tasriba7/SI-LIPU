@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
 import {
+  dptTerkunci,
   ambilPeriode, ambilDaftarPemilih, hitungUmur, formatTanggal, terlaluMuda, STATUS_VERIFIKASI, STATUS_BADGE_CLASS,
 } from "@/lib/pilkades";
 import { simpanPemilih, terapkanFilterUsia } from "../actions";
@@ -41,7 +42,7 @@ export default async function PemilihPage({ searchParams }) {
   const supabase = await createClient();
   const periode = await ambilPeriode(supabase);
   const { role } = await ambilRole(supabase);
-  const bisaUbah = bisaUbahPilkades(role);
+  const bisaUbahAwal = bisaUbahPilkades(role);
   if (!periode) {
     return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/pengaturan/periode" label="Buka Periode Pilkades" />;
   }
@@ -50,6 +51,8 @@ export default async function PemilihPage({ searchParams }) {
   const kunci = await kunciHalaman(supabase, periode, "/dashboard/pilkades/pemilih");
   if (kunci) return <TahapTerkunci kunci={kunci} />;
 
+  const terkunciDpt = await dptTerkunci(supabase, periode.id);
+  const bisaUbah = bisaUbahAwal && !terkunciDpt;
   const { data: semua, error } = await ambilDaftarPemilih(supabase, periode.id);
   if (!error && !(semua ?? []).length) {
     return (
@@ -110,6 +113,9 @@ export default async function PemilihPage({ searchParams }) {
       />
 
       <PesanSekali pesan={pesanFilterUsia(sp)} bersihkan={["filter", "m", "t", "p", "b"]} />
+      {terkunciDpt && (
+        <Catatan butir={[{ jenis: "info", judul: "DPT sudah ditetapkan, halaman ini terkunci", isi: "Daftar pemilih dan TPS tidak bisa diubah lagi. Warga yang terlewat dicatat lewat menu Pemilih Tambahan." }]} />
+      )}
       <Catatan
         butir={[
           error && { jenis: "bahaya", judul: "Daftar gagal dimuat", isi: `Muat ulang halaman ini.${teknis(role, "0051")}` },

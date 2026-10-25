@@ -60,9 +60,70 @@ export async function ambilCalonPemilih(formData) {
   if (!adalahUuid(periodeId)) return;
   const { data, error } = await supabase.rpc("pilkades_ambil_calon_pemilih", { p_periode: periodeId });
   revalidatePath("/dashboard/pilkades", "layout");
-  if (error) redirect("/dashboard/pilkades/ambil?hasil=gagal");
+  if (error) redirect(`/dashboard/pilkades/ambil?hasil=${/terkunci|DPT sudah/i.test(error.message ?? "") ? "terkunci" : "gagal"}`);
   const n = typeof data === "number" ? data : null;
-  redirect(`/dashboard/pilkades/ambil?hasil=ok${n !== null ? `&n=${n}` : ""}`);
+  // Sambungan data penduduk: tandai yang meninggal/pindah dan yang baru datang (<6 bulan).
+  const { data: sk } = await supabase.rpc("pilkades_sinkron_penduduk", { p_periode: periodeId });
+  const h = Array.isArray(sk) ? sk[0] : sk;
+  const tambah = h ? `&ta=${h.tidak_aktif}&bd=${h.baru_datang}` : "";
+  redirect(`/dashboard/pilkades/ambil?hasil=ok${n !== null ? `&n=${n}` : ""}${tambah}`);
+}
+
+/** Samakan daftar calon pemilih dengan data penduduk terbaru (tanpa mengambil warga baru). */
+export async function sinkronPenduduk(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const periodeId = String(formData.get("periode_id") ?? "");
+  if (!adalahUuid(periodeId)) return;
+  const { data, error } = await supabase.rpc("pilkades_sinkron_penduduk", { p_periode: periodeId });
+  revalidatePath("/dashboard/pilkades", "layout");
+  const h = Array.isArray(data) ? data[0] : data;
+  if (error || !h) redirect(`/dashboard/pilkades/ambil?hasil=${/terkunci|DPT sudah/i.test(error?.message ?? "") ? "terkunci" : "gagal"}`);
+  redirect(`/dashboard/pilkades/ambil?hasil=sinkron&ta=${h.tidak_aktif}&bd=${h.baru_datang}`);
+}
+
+/* =====================================================================
+ * PEMILIH TAMBAHAN (setelah DPT; DPT sendiri tidak diubah) — migrasi 0066
+ * ===================================================================== */
+const ALAMAT_TAMBAHAN = "/dashboard/pilkades/tambahan";
+
+export async function tambahPemilihTambahan(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const periodeId = String(formData.get("periode_id") ?? "");
+  const wargaId = String(formData.get("warga_id") ?? "");
+  const tpsId = String(formData.get("tps_id") ?? "");
+  const alasan = String(formData.get("alasan") ?? "").trim().slice(0, 300);
+  if (!adalahUuid(periodeId) || !adalahUuid(wargaId) || !adalahUuid(tpsId)) redirect(`${ALAMAT_TAMBAHAN}?hasil=gagal`);
+  if (alasan.length < 5) redirect(`${ALAMAT_TAMBAHAN}?hasil=gagal&pesan=${encodeURIComponent("Alasan wajib diisi (minimal 5 huruf).")}`);
+  const { error } = await supabase.rpc("pilkades_tambah_pemilih", {
+    p_periode: periodeId, p_warga: wargaId, p_tps: tpsId, p_alasan: alasan,
+  });
+  revalidatePath("/dashboard/pilkades", "layout");
+  if (error) {
+    const pesan = error.code === "P0001" ? error.message : "Gagal mencatat. Silakan coba lagi.";
+    redirect(`${ALAMAT_TAMBAHAN}?hasil=gagal&pesan=${encodeURIComponent(pesan)}`);
+  }
+  redirect(`${ALAMAT_TAMBAHAN}?hasil=ok`);
+}
+
+export async function batalPemilihTambahan(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const id = String(formData.get("id") ?? "");
+  const alasan = String(formData.get("alasan") ?? "").trim().slice(0, 300);
+  if (!adalahUuid(id)) redirect(`${ALAMAT_TAMBAHAN}?hasil=gagal`);
+  if (alasan.length < 5) redirect(`${ALAMAT_TAMBAHAN}?hasil=gagal&pesan=${encodeURIComponent("Alasan pembatalan wajib diisi (minimal 5 huruf).")}`);
+  const { error } = await supabase.rpc("pilkades_batal_tambahan", { p_id: id, p_alasan: alasan });
+  revalidatePath("/dashboard/pilkades", "layout");
+  if (error) {
+    const pesan = error.code === "P0001" ? error.message : "Gagal membatalkan. Silakan coba lagi.";
+    redirect(`${ALAMAT_TAMBAHAN}?hasil=gagal&pesan=${encodeURIComponent(pesan)}`);
+  }
+  redirect(`${ALAMAT_TAMBAHAN}?hasil=batal`);
 }
 
 export async function simpanPemilih(formData) {
@@ -99,7 +160,7 @@ export async function tambahTps(formData) {
   if (!adalahUuid(periodeId) || !nama) return;
   const { error } = await supabase.from("pilkades_tps").insert({ periode_id: periodeId, nama, lokasi });
   revalidatePath("/dashboard/pilkades", "layout");
-  if (error) redirect(`/dashboard/pilkades/tps?hasil=${error.code === "23505" ? "kembar" : "gagal"}`);
+  if (error) redirect(`/dashboard/pilkades/tps?hasil=${error.code === "23505" ? "kembar" : error.code === "P0001" ? "terkunci" : "gagal"}`);
   redirect(`/dashboard/pilkades/tps?hasil=ok&nama=${encodeURIComponent(nama)}`);
 }
 
@@ -109,8 +170,9 @@ export async function hapusTps(formData) {
   if (cek.error) return;
   const id = String(formData.get("id") ?? "");
   if (!adalahUuid(id)) return;
-  await supabase.from("pilkades_tps").delete().eq("id", id);
+  const { error } = await supabase.from("pilkades_tps").delete().eq("id", id);
   revalidatePath("/dashboard/pilkades", "layout");
+  if (error) redirect(`/dashboard/pilkades/tps?hasil=${error.code === "P0001" ? "terkunci" : "gagal"}`);
 }
 
 /**

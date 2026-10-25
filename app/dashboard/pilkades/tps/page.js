@@ -2,11 +2,11 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
-import { ambilPeriode } from "@/lib/pilkades";
+import { ambilPeriode, dptTerkunci } from "@/lib/pilkades";
 import { tambahTps, hapusTps } from "../actions";
 import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
-import { JudulHalaman, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
+import { JudulHalaman, Kartu, KosongPandu, Catatan, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
 import PesanSekali from "@/components/pilkades/PesanSekali";
 import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
@@ -15,7 +15,8 @@ export const metadata = { title: "Atur TPS" };
 const PESAN_HASIL = {
   ok: (sp) => ["sukses", "Berhasil", sp.nama ? `“${sp.nama}” sudah ditambahkan.` : "TPS ditambahkan."],
   kembar: ["perhatian", "Nama TPS sudah dipakai", "Gunakan nama lain, misalnya TPS 2."],
-  gagal: ["bahaya", "TPS gagal ditambahkan", COBA_LAGI],
+  terkunci: ["perhatian", "TPS terkunci", "DPT sudah ditetapkan, jadi TPS tidak bisa ditambah, diubah, atau dihapus lagi."],
+  gagal: ["bahaya", "TPS belum berhasil diproses", COBA_LAGI],
 };
 
 export default async function TpsPage({ searchParams }) {
@@ -23,11 +24,13 @@ export default async function TpsPage({ searchParams }) {
   const supabase = await createClient();
   const periode = await ambilPeriode(supabase);
   const { role } = await ambilRole(supabase);
-  const bisaUbah = bisaUbahPilkades(role);
+  const bisaUbahAwal = bisaUbahPilkades(role);
   if (!periode) {
     return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/pengaturan/periode" label="Buka Periode Pilkades" />;
   }
 
+  const terkunciDpt = await dptTerkunci(supabase, periode.id);
+  const bisaUbah = bisaUbahAwal && !terkunciDpt;
   const { data: tps } = await supabase
     .from("pilkades_tps")
     .select("id, nama, lokasi")
@@ -56,6 +59,9 @@ export default async function TpsPage({ searchParams }) {
       />
 
       <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
+      {terkunciDpt && (
+        <Catatan butir={[{ jenis: "info", judul: "DPT sudah ditetapkan, halaman ini terkunci", isi: "Daftar pemilih dan TPS tidak bisa diubah lagi. Warga yang terlewat dicatat lewat menu Pemilih Tambahan." }]} />
+      )}
 
       {bisaUbah && (
         <Kartu>
@@ -106,7 +112,7 @@ export default async function TpsPage({ searchParams }) {
         !bisaUbah && <KosongPandu judul="Belum ada TPS" teks="TPS ditambahkan oleh Panitia Pilkades." />
       )}
 
-      {ada && (
+      {ada && !terkunciDpt && (
         <div className="flex justify-end">
           <Link href="/dashboard/pilkades/tempatkan" className={tombol.utama}>Lanjut ke Langkah 4: Tempatkan Pemilih →</Link>
         </div>
