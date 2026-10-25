@@ -4,10 +4,11 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
-import { ambilPeriode, ambilRekapSuara, tentukanPemenang, formatTanggal } from "@/lib/pilkades";
-import { simpanSuaraTps, tetapkanTerpilih, batalkanPenetapan } from "@/app/dashboard/pilkades/actions";
+import { ambilPeriode, ambilRekapSuara, tentukanPemenang, formatTanggal, ambilPenentuanSeri, tentukanDariDusun } from "@/lib/pilkades";
+import { simpanSuaraTps, simpanSuaraDusun, tetapkanTerpilih, batalkanPenetapan } from "@/app/dashboard/pilkades/actions";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
 import { JudulHalaman, Catatan, Pesan, Kartu, KosongPandu, tombol, kolom, kolomKecil, labelKolom } from "@/components/pilkades/UI";
+import PenentuanSeri from "@/components/pilkades/PenentuanSeri";
 import PesanSekali from "@/components/pilkades/PesanSekali";
 import { pesanDari, teknis, COBA_LAGI } from "@/lib/pilkadesPesan";
 
@@ -17,6 +18,7 @@ const persenDari = (n, total) => (total ? Math.round((n / total) * 1000) / 10 : 
 
 const PESAN_HASIL = {
   ok: ["sukses", "Rekap TPS tersimpan", "Tercatat di Riwayat Aktivitas."],
+  dusun: ["sukses", "Suara dusun tersimpan", "Lihat hasil penentuan seri di bagian Penetapan."],
   terpilih: ["sukses", "Calon terpilih ditetapkan", "Berita acara sekarang bisa dicetak."],
   batal: ["sukses", "Penetapan dibatalkan", "Suara bisa diperbaiki lagi. Pembatalan tercatat di Riwayat beserta alasannya."],
   gagal: (sp) => ["bahaya", "Tidak berhasil", sp.pesan || COBA_LAGI],
@@ -54,6 +56,11 @@ export default async function HasilPage({ searchParams }) {
 
   const { pemenang, seri } = tentukanPemenang(rekap);
   const lengkap = tps.length > 0 && total.tpsDiisi === tps.length;
+  // Seri: calon yang seri + penentuan lewat dusun (Perbup Pasal 83)
+  const calonSeri = seri ? calon.filter((c) => (total.perCalon[c.id] ?? 0) === Math.max(...calon.map((x) => total.perCalon[x.id] ?? 0))) : [];
+  const dataSeri = seri && lengkap && !hasil ? await ambilPenentuanSeri(supabase, periode.id) : null;
+  const penentu = dataSeri ? tentukanDariDusun(calonSeri, dataSeri.dusun, dataSeri.suara) : null;
+  const calonMenang = pemenang ?? (penentu?.status === "pemenang" ? penentu.calon : null);
   const calonTerpilih = hasil ? calon.find((c) => c.id === hasil.calon_id) : null;
   const tpsDibuka = tps.find((t) => t.id === sp.tps)?.id ?? null;
   const urutHasil = [...calon].sort((a, b) => (total.perCalon[b.id] ?? 0) - (total.perCalon[a.id] ?? 0));
@@ -204,14 +211,16 @@ export default async function HasilPage({ searchParams }) {
         ) : (
           <div className="mt-3 space-y-3">
             {!lengkap && <Pesan jenis="perhatian" judul="Rekap belum lengkap">Calon terpilih baru bisa ditetapkan setelah semua {tps.length} TPS diisi ({total.tpsDiisi} sudah).</Pesan>}
-            {lengkap && seri && <Pesan jenis="perhatian" judul="Suara terbanyak seri">Aplikasi tidak menetapkan otomatis. Ikuti ketentuan daerah Anda (misalnya pemilihan ulang).</Pesan>}
+            {lengkap && seri && penentu && (
+              <PenentuanSeri periodeId={periode.id} calonSeri={calonSeri} dusun={dataSeri.dusun} suara={dataSeri.suara} penentu={penentu} bisaUbah={bisaUbah} aksiSimpan={simpanSuaraDusun} />
+            )}
             {lengkap && !seri && !pemenang && <Pesan jenis="perhatian" judul="Belum ada suara sah">Periksa kembali angka yang dimasukkan.</Pesan>}
             {lengkap && pemenang && (
               <Pesan jenis="info" judul={`Suara terbanyak: No. ${pemenang.nomor_urut} ${pemenang.nama}`}>
                 {total.perCalon[pemenang.id]} dari {total.sah} suara sah. Aplikasi menetapkan berdasarkan suara terbanyak; bila aturan daerah Anda berbeda, jangan gunakan tombol ini.
               </Pesan>
             )}
-            {lengkap && pemenang && bisaUbah && (
+            {lengkap && calonMenang && bisaUbah && (
               <form action={tetapkanTerpilih} className="grid gap-4 sm:grid-cols-2">
                 <input type="hidden" name="periode_id" value={periode.id} />
                 <label className={labelKolom}>
@@ -231,7 +240,7 @@ export default async function HasilPage({ searchParams }) {
                   <span>Saya menyatakan angka rekap tiap TPS sudah dicocokkan dengan berita acara TPS. Suara terkunci setelah penetapan (bisa dibatalkan dengan alasan).</span>
                 </label>
                 <div className="sm:col-span-2">
-                  <TombolKonfirmasi pesan={`Tetapkan No. ${pemenang.nomor_urut} ${pemenang.nama} sebagai calon terpilih?`} className={tombol.hijau}>
+                  <TombolKonfirmasi pesan={`Tetapkan No. ${calonMenang.nomor_urut} ${calonMenang.nama} sebagai calon terpilih?`} className={tombol.hijau}>
                     Tetapkan calon terpilih
                   </TombolKonfirmasi>
                 </div>

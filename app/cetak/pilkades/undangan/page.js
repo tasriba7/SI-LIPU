@@ -67,6 +67,7 @@ export default async function CetakUndangan({ searchParams }) {
   const namaDesa = desa.nama_desa ?? "";
   const { hariTanggal, bulanTahun } = olahTanggal(periode.tanggal_pemungutan);
   const ketua = susunan.ketua?.nama ?? null;
+  const sekretaris = susunan.sekretaris?.nama ?? null;
 
   const lembar = [];
   for (let i = 0; i < surat.length; i += 2) lembar.push(surat.slice(i, i + 2));
@@ -103,13 +104,23 @@ export default async function CetakUndangan({ searchParams }) {
           </div>
           <div className="ttd">
             <div>{namaDesa}, ………… {bulanTahun}</div>
-            <div className="panitia">PANITIA PEMILIHAN KEPALA<br />{sebutan.toUpperCase()} {namaDesa.toUpperCase()}<br />K E T U A</div>
-            <div className="ruang" />
-            <div>({ketua ? <u>{ketua}</u> : "………………………………….."})</div>
+            <div className="panitia">PANITIA PEMILIHAN KEPALA {sebutan.toUpperCase()} {namaDesa.toUpperCase()}</div>
+            <div style={{ display: "flex", justifyContent: "space-between", gap: "8mm", marginTop: "1mm" }}>
+              <div>
+                <div>Ketua,</div>
+                <div className="ruang" />
+                <div>({ketua ? <u>{ketua}</u> : "……………………………"})</div>
+              </div>
+              <div>
+                <div>Sekretaris,</div>
+                <div className="ruang" />
+                <div>({sekretaris ? <u>{sekretaris}</u> : "……………………………"})</div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="catatan"><u><b>Catatan :</b></u><br />1. Untuk pelaksanaan Pemilu dimulai pada pukul {pukul.replace(/\s*WIB.*$/i, "")}.</div>
+        <div className="catatan"><u><b>Catatan :</b></u><br />1. Pemungutan suara Pilkades dimulai pada pukul {pukul.replace(/\s*WIB.*$/i, "")}.</div>
 
         <div className="gunting"><span className="alat">✂</span><span className="garis" /><i>gunting disini</i><span className="garis" /></div>
 
@@ -141,7 +152,7 @@ export default async function CetakUndangan({ searchParams }) {
         .bawah { display: flex; justify-content: space-between; align-items: flex-start; margin: 1mm 0 2mm; }
         .cara { width: 74mm; border: 0.3mm solid #000; padding: 1.2mm 2mm; font-size: 7.5pt; line-height: 1.25; margin-top: 7mm; }
         .cara ul { margin: 0; padding-left: 4mm; }
-        .ttd { width: 78mm; text-align: left; font-size: 9.5pt; padding-left: 4mm; }
+        .ttd { width: 92mm; text-align: left; font-size: 9.5pt; padding-left: 4mm; }
         .ttd .panitia { text-align: center; font-weight: 700; margin: 2.5mm 0 0; line-height: 1.25; }
         .ttd .ruang { height: 8mm; }
         .ttd > div:last-child { text-align: center; }

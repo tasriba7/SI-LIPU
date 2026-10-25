@@ -1,0 +1,24 @@
+Paket A (sesuai Perbup Banggai Kepulauan No. 10 Tahun 2026)
+
+URUTAN PASANG
+1. Jalankan SQL: supabase/migrations/0063_pilkades_penentuan_seri_dan_wakil_ketua.sql
+   (Supabase > SQL Editor > paste > Run). Aman diulang; data lama tidak berubah.
+2. Salin folder app, components, lib ke repo (Timpa). Tidak ada paket baru.
+
+ISI
+1. SUARA SERI (Pasal 82-83): bila dua calon sama-sama terbanyak, layar Hasil Suara menampilkan
+   tabel dusun (DPT terbesar di atas). Panitia mengisi suara calon yang seri per dusun, mulai dari
+   dusun teratas. Pemenang = unggul di dusun terbesar yang suaranya berbeda. Layar memberi tahu
+   langkah berikutnya, lalu tombol "Tetapkan calon terpilih" muncul. Database ikut memeriksa
+   (fungsi pilkades_tetapkan_terpilih) dan mencatat dusun penentu di Riwayat.
+2. SURAT UNDANGAN (Pasal 65 ayat 4): ditandatangani Ketua DAN Sekretaris (nama dari menu
+   Pengaturan Panitia). Kalimat catatan "Pemilu" diganti "Pemungutan suara Pilkades".
+3. WAKIL KETUA (Pasal 15): jabatan baru di Pengaturan Panitia > Susunan Panitia.
+
+CATATAN
+- Suara per dusun hanya dipakai saat seri. Suara per TPS yang sudah dicatat tidak berubah.
+- Bila suara sama di SEMUA dusun, aplikasi berhenti dan menyarankan bertanya ke Panitia Kabupaten
+  (Perbup tidak mengatur kelanjutannya).
+FILE: lib/pilkades.js, app/dashboard/pilkades/actions.js, app/dashboard/pilkades/hari-h/hasil/page.js,
+app/dashboard/pilkades/pengaturan/panitia/page.js, app/cetak/pilkades/undangan/page.js,
+components/pilkades/PenentuanSeri.jsx (baru), supabase/migrations/0063_... (baru)

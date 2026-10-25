@@ -455,7 +455,35 @@ export async function simpanSuaraTps(formData) {
   redirect(`${ALAMAT_HASIL}?hasil=ok&tps=${tpsId}`);
 }
 
-/** Tetapkan calon terpilih. Calon ditentukan database dari suara terbanyak. */
+/** Simpan suara calon yang SERI per dusun (Perbup Pasal 83). Kolom kosong = belum diisi. */
+export async function simpanSuaraDusun(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return;
+  const periodeId = String(formData.get("periode_id") ?? "");
+  if (!adalahUuid(periodeId)) redirect(`${ALAMAT_HASIL}?hasil=gagal`);
+  const data = {};
+  for (const [k, v] of formData.entries()) {
+    const m = /^sd_(\d+)_([0-9a-f-]{36})$/.exec(k);
+    if (!m) continue;
+    const teks = String(v ?? "").trim();
+    if (teks === "") continue;
+    if (!/^\d{1,6}$/.test(teks)) redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent("Isi suara dengan angka bulat 0 atau lebih.")}`);
+    const dusun = String(formData.get(`dusun_${m[1]}`) ?? "");
+    if (!dusun) continue;
+    (data[dusun] ??= {})[m[2]] = parseInt(teks, 10);
+  }
+  if (!Object.keys(data).length) redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent("Isi minimal satu angka suara.")}`);
+  const { error } = await supabase.rpc("pilkades_simpan_suara_dusun", { p_periode: periodeId, p_data: data });
+  revalidatePath("/dashboard/pilkades", "layout");
+  if (error) {
+    const pesan = error.code === "P0001" ? error.message : "Gagal menyimpan. Silakan coba lagi. Bila tetap gagal, hubungi Administrator desa.";
+    redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent(pesan)}`);
+  }
+  redirect(`${ALAMAT_HASIL}?hasil=dusun`);
+}
+
+/** Tetapkan calon terpilih. Calon ditentukan database dari suara terbanyak (seri: lewat dusun). */
 export async function tetapkanTerpilih(formData) {
   const supabase = await createClient();
   const cek = await pastikanKelolaPilkades(supabase);

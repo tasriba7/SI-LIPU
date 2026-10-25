@@ -12,6 +12,7 @@ export const metadata = { title: "Susunan Panitia — Pilkades" };
 
 const KETERANGAN = {
   ketua: "Menandatangani daftar pemilih dan dokumen resmi panitia.",
+  wakil_ketua: "Mewakili Ketua; tercantum di formulir hasil pemungutan suara.",
   sekretaris: "Menandatangani daftar pemilih bersama Ketua; mencatat berita acara.",
   bendahara: "Menandatangani dokumen keuangan panitia.",
 };
@@ -45,7 +46,7 @@ export default async function SusunanPanitiaPage({ searchParams }) {
     <div className="mx-auto max-w-5xl space-y-5">
       <JudulHalaman
         judul={`Susunan Panitia — ${periode.nama}`}
-        penjelasan="Isi nama Ketua, Sekretaris, dan Bendahara. Anda tetap masuk dengan satu akun panitia; nama-nama ini otomatis dipakai pada kolom tanda tangan dokumen yang dicetak."
+        penjelasan="Isi nama Ketua, Wakil Ketua, Sekretaris, dan Bendahara. Anda tetap masuk dengan satu akun panitia; nama-nama ini otomatis dipakai pada kolom tanda tangan dokumen yang dicetak."
       />
 
       <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
