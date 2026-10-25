@@ -91,7 +91,7 @@ export default async function UndanganPage() {
             </label>
             <label className={labelKolom}>
               Pukul
-              <input name="pukul" defaultValue="08.00 s/d 14.00 WIB" maxLength={40} className={`${kolom} mt-1 font-normal`} />
+              <input name="pukul" defaultValue="07.00 s/d 14.00 WITA" maxLength={40} className={`${kolom} mt-1 font-normal`} />
             </label>
           </div>
           <label className={labelKolom}>

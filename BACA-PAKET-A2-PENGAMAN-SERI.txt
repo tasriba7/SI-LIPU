@@ -1,0 +1,18 @@
+Paket A2: pengaman penentuan seri (menambal paket A, 0063 tidak diubah)
+
+URUTAN PASANG
+1. Jalankan SQL: supabase/migrations/0064_pilkades_seri_pengaman.sql (aman diulang).
+2. Salin folder app, components, lib ke repo (timpa).
+
+ISI
+1. Rincian suara dusun otomatis dikosongkan bila rekap suara TPS berubah (mencegah angka basi
+   menentukan pemenang). Setelah koreksi TPS, panitia mengisi ulang suara dusun.
+2. Semua calon yang seri wajib diisi di dusun yang dipakai (isi 0 bila tidak ada suara).
+3. Dua dusun dengan DPT sama besar: penentuan BERHENTI (Perbup tidak mengatur urutannya).
+4. Jam default undangan 07.00 s/d 14.00 WITA (sesuai Model C).
+
+YANG MASIH PERLU DIKONFIRMASI KE PANITIA KABUPATEN / DINAS PMD
+Pasal 83 ayat 3-4: pada dusun berikutnya, apakah yang dibandingkan hanya calon yang masih seri
+di dusun sebelumnya, atau semua calon yang seri di suara total? Aplikasi sekarang membandingkan
+SEMUA calon seri lagi. Akibatnya, calon yang kalah di dusun terbesar masih bisa menang di dusun
+kedua bila calon lain seri di dusun terbesar. Tafsir ini tidak disebut jelas oleh Perbup.

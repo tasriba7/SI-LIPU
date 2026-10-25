@@ -15,7 +15,7 @@ export default function PenentuanSeri({ periodeId, calonSeri, dusun, suara, pene
           Calon yang memperoleh suara terbanyak di dusun itu menang. Bila masih sama, dilanjutkan ke dusun terbesar berikutnya.
         </p>
         <ol className="mt-2 list-decimal space-y-0.5 pl-5 text-sm text-slate-800">
-          <li>Isi suara tiap calon yang seri di <b>dusun teratas</b> (lihat berita acara TPS, bagian rincian per dusun).</li>
+          <li>Isi suara <b>semua</b> calon yang seri di <b>dusun teratas</b> (lihat berita acara TPS, rincian per dusun). Isi 0 bila tidak ada suara.</li>
           <li>Klik <b>Simpan suara dusun</b>. Aplikasi memberi tahu siapa yang menang atau dusun mana yang diisi berikutnya.</li>
         </ol>
       </div>
@@ -77,6 +77,16 @@ export default function PenentuanSeri({ periodeId, calonSeri, dusun, suara, pene
       )}
       {penentu.status === "isi" && (
         <Pesan jenis="perhatian" judul={`Isi dulu suara di dusun ${penentu.dusun}`}>Calon terpilih baru bisa ditetapkan setelah seri terselesaikan.</Pesan>
+      )}
+      {penentu.status === "lengkapi" && (
+        <Pesan jenis="perhatian" judul={`Lengkapi suara di dusun ${penentu.dusun}`}>
+          Semua calon yang seri harus diisi di dusun ini. Isi 0 bila calon itu tidak mendapat suara. Calon terpilih baru bisa ditetapkan setelah lengkap.
+        </Pesan>
+      )}
+      {penentu.status === "dpt_sama" && (
+        <Pesan jenis="bahaya" judul={`Dusun dengan DPT sama besar (${penentu.jumlah} pemilih)`}>
+          Penentuan sampai ke dusun {penentu.dusun}, yang jumlah DPT-nya sama besar dengan dusun lain. Perbup tidak mengatur urutan dusun yang sama besar, jadi aplikasi tidak menetapkan. Tanyakan ke Panitia Kabupaten.
+        </Pesan>
       )}
       {penentu.status === "sama" && (
         <Pesan jenis="bahaya" judul="Suara sama di semua dusun">Hal ini belum diatur dalam Perbup. Tanyakan ke Panitia Kabupaten sebelum menetapkan.</Pesan>

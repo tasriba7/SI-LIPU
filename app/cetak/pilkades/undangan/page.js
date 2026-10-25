@@ -45,7 +45,7 @@ export default async function CetakUndangan({ searchParams }) {
   const { l, t } = KERTAS[kertas];
   const fTps = String(sp.tps ?? "");
   const fDusun = String(sp.dusun ?? "");
-  const pukul = String(sp.pukul ?? "").trim().slice(0, 40) || "08.00 s/d 14.00 WIB";
+  const pukul = String(sp.pukul ?? "").trim().slice(0, 40) || "07.00 s/d 14.00 WITA";
   const kosong = Math.min(200, Math.max(0, parseInt(sp.kosong ?? "0", 10) || 0));
 
   const terisi = dpt.isi
@@ -120,7 +120,7 @@ export default async function CetakUndangan({ searchParams }) {
           </div>
         </div>
 
-        <div className="catatan"><u><b>Catatan :</b></u><br />1. Pemungutan suara Pilkades dimulai pada pukul {pukul.replace(/\s*WIB.*$/i, "")}.</div>
+        <div className="catatan"><u><b>Catatan :</b></u><br />1. Pemungutan suara Pilkades dimulai pada pukul {pukul.replace(/\s*(WIB|WITA|WIT)\b.*$/i, "")}.</div>
 
         <div className="gunting"><span className="alat">✂</span><span className="garis" /><i>gunting disini</i><span className="garis" /></div>
 
