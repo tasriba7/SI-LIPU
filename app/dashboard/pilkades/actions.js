@@ -27,6 +27,19 @@ export async function buatPeriode(formData) {
   revalidatePath("/dashboard/pilkades", "layout");
 }
 
+/** Ubah tanggal pemungutan suara periode (hanya Administrator). Kosong = hapus tanggal. */
+export async function ubahTanggalPemungutan(formData) {
+  const supabase = await createClient();
+  const cek = await pastikanAdmin(supabase);
+  if (cek.error) return;
+  const id = String(formData.get("id") ?? "");
+  if (!adalahUuid(id)) return;
+  const t = String(formData.get("tanggal_pemungutan") ?? "").trim();
+  if (t && !(/^\d{4}-\d{2}-\d{2}$/.test(t) && !Number.isNaN(Date.parse(`${t}T00:00:00Z`)))) return;
+  await supabase.from("pilkades_periode").update({ tanggal_pemungutan: t || null }).eq("id", id);
+  revalidatePath("/dashboard/pilkades", "layout");
+}
+
 export async function aktifkanPeriode(formData) {
   const supabase = await createClient();
   const cek = await pastikanAdmin(supabase);

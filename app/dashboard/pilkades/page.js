@@ -11,12 +11,40 @@ import { IconArrowRight } from "@/components/icons";
 
 export const metadata = { title: "Mulai di Sini — Pilkades" };
 
-function sisaHari(tanggal) {
-  if (!tanggal) return null;
-  const hari = Math.ceil((new Date(tanggal).setHours(0, 0, 0, 0) - new Date().setHours(0, 0, 0, 0)) / 86400000);
-  if (hari > 0) return `${hari} hari lagi`;
-  if (hari === 0) return "Hari ini";
+// Sisa hari memakai hitungan WITA yang sama dengan kartu progres (j.ringkas.hMin),
+// bukan jam server, supaya dua angka di halaman ini tidak pernah berbeda.
+function sisaHari(hMin) {
+  if (hMin === null || hMin === undefined) return null;
+  if (hMin > 0) return `${hMin} hari lagi`;
+  if (hMin === 0) return "Hari ini";
   return null;
+}
+
+// Setelah 6 langkah daftar pemilih selesai, arahkan panitia ke fase berikutnya
+// berdasarkan data nyata (calon ditetapkan, hasil suara).
+function fasePasca(data) {
+  if (!data.calon) {
+    return {
+      judul: "Catat calon kepala desa",
+      teks: "Daftar pemilih sudah ditetapkan. Berikutnya catat calon yang mendaftar, hasil verifikasi, dan nomor urut.",
+      href: "/dashboard/pilkades/calon",
+      tombol: "Buka Calon Kepala Desa",
+    };
+  }
+  if (!data.hasil) {
+    return {
+      judul: "Hari pemungutan: daftar hadir & hasil suara",
+      teks: "Catat pemilih yang hadir di TPS, lalu masukkan rekap suara tiap TPS dan tetapkan calon terpilih.",
+      href: "/dashboard/pilkades/hadir",
+      tombol: "Buka Daftar Hadir",
+    };
+  }
+  return {
+    judul: "Cetak berita acara hasil",
+    teks: "Calon terpilih sudah ditetapkan. Berita acara bisa dicetak dari halaman Hasil Suara.",
+    href: "/dashboard/pilkades/hasil",
+    tombol: "Buka Hasil Suara & Berita Acara",
+  };
 }
 
 export default async function BerandaPilkades() {
@@ -40,7 +68,9 @@ export default async function BerandaPilkades() {
   const j = await ambilJadwalLengkap(supabase, periode, { arsip: s.arsip });
   const { role } = await ambilRole(supabase);
   const bisaUbah = bisaUbahPilkades(role);
-  const sisa = sisaHari(periode.tanggal_pemungutan);
+  const sisa = sisaHari(j.ringkas.hMin);
+  const langkahSelesai = s.langkah.filter((l) => l.status === "selesai").length;
+  const pasca = s.berikutnya ? null : fasePasca(j.data);
   const dps = s.arsip.find((a) => a.jenis === "DPS");
   const dpt = s.arsip.find((a) => a.jenis === "DPT");
 
@@ -93,11 +123,21 @@ export default async function BerandaPilkades() {
           </>
         ) : (
           <>
-            <p className="text-xl font-extrabold">🎉 Semua langkah sudah selesai</p>
-            <p className="mt-2 text-sm text-sky-50">Daftar pemilih sudah ditetapkan. Anda masih bisa mencetaknya kapan saja.</p>
-            <Link href="/dashboard/pilkades/cetak" className="mt-5 inline-flex rounded-lg bg-white px-5 py-2.5 text-sm font-bold text-sky-800 hover:bg-sky-50">
-              Cetak Daftar
-            </Link>
+            <p className="text-sm font-bold uppercase tracking-wide text-sky-100">✓ Daftar pemilih selesai · Langkah berikutnya</p>
+            <p className="mt-1 text-xl font-bold md:text-2xl">{pasca.judul}</p>
+            <p className="mt-2 max-w-2xl text-sm text-sky-50">{pasca.teks}</p>
+            <div className="mt-5 flex flex-wrap items-center gap-3">
+              <Link
+                href={pasca.href}
+                className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2.5 text-sm font-bold text-sky-800 shadow hover:bg-sky-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              >
+                {pasca.tombol}
+                <IconArrowRight className="h-5 w-5" />
+              </Link>
+              <Link href="/dashboard/pilkades/cetak" className="text-sm font-bold text-white underline">
+                Cetak daftar pemilih
+              </Link>
+            </div>
           </>
         )}
       </div>
@@ -115,8 +155,10 @@ export default async function BerandaPilkades() {
 
       {/* 6 langkah */}
       <section>
-        <h2 className="mb-1 text-lg font-bold text-sky-950">Urutan kerja panitia</h2>
-        <p className="mb-3 text-sm text-slate-600">Langkah menyiapkan daftar pemilih di aplikasi ini, dari data warga sampai cetak.</p>
+        <h2 className="mb-1 text-lg font-bold text-sky-950">Urutan kerja panitia: menyiapkan daftar pemilih</h2>
+        <p className="mb-3 text-sm text-slate-600">
+          <b className="text-emerald-700">{langkahSelesai}</b> dari {s.langkah.length} langkah selesai. Ini rincian tahap “Penyusunan Daftar Pemilih” sampai “Penetapan DPT” pada jadwal di atas; tahap calon, hari pemungutan, dan hasil suara dihitung di progres pelaksanaan.
+        </p>
         <DaftarLangkah langkah={s.langkah} varian="lengkap" />
       </section>
 

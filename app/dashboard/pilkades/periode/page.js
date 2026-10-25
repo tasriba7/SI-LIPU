@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { isAdminRole } from "@/lib/roles";
 import { formatTanggal } from "@/lib/pilkades";
-import { buatPeriode, aktifkanPeriode } from "../actions";
+import { buatPeriode, aktifkanPeriode, ubahTanggalPemungutan } from "../actions";
 import { JudulHalaman, Kartu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
 
 export const metadata = { title: "Periode Pilkades" };
@@ -15,6 +15,7 @@ export default async function PeriodePage() {
     .from("pilkades_periode")
     .select("id, nama, tanggal_pemungutan, aktif")
     .order("created_at", { ascending: false });
+  const tglInput = (t) => (t ? String(t).slice(0, 10) : "");
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
@@ -46,6 +47,19 @@ export default async function PeriodePage() {
             <div>
               <p className="text-base font-bold text-slate-900">{p.nama}</p>
               <p className="text-sm text-slate-600">Pemungutan suara: {formatTanggal(p.tanggal_pemungutan)}</p>
+              {admin && (
+                <form action={ubahTanggalPemungutan} className="mt-2 flex flex-wrap items-center gap-2">
+                  <input type="hidden" name="id" value={p.id} />
+                  <input
+                    name="tanggal_pemungutan"
+                    type="date"
+                    defaultValue={tglInput(p.tanggal_pemungutan)}
+                    aria-label={`Tanggal pemungutan suara ${p.nama}`}
+                    className={`${kolom} font-normal`}
+                  />
+                  <button className={tombol.sekunder}>Simpan tanggal</button>
+                </form>
+              )}
             </div>
             {p.aktif ? (
               <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-bold text-emerald-800">✓ Aktif</span>

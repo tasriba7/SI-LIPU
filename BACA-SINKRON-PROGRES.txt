@@ -1,0 +1,25 @@
+Pilkades: sinkronkan menu, tahapan, dan progres akun panitia
+Dibuat di atas clone main terbaru. Tidak ada migrasi SQL dan tidak ada paket baru.
+
+CARA PASANG
+1. Ekstrak zip, salin folder app dan lib ke repo. Pilih "Timpa / Replace".
+2. npm run dev, buka /dashboard/pilkades.
+
+ISI PERBAIKAN
+1. Langkah 6 (Cetak) kini "selesai" saat DPT ditetapkan. Kartu "Langkah berikutnya"
+   lalu maju ke: Calon -> Daftar Hadir -> Cetak berita acara (sesuai data nyata),
+   bukan macet di "Cetak Daftar".
+2. Judul "Urutan kerja panitia" kini menampilkan "X dari 6 langkah selesai" dan
+   menjelaskan hubungannya dengan progres 10 tahapan.
+3. Setelah DPS ditetapkan, keterangan Langkah 5 mengarahkan: cetak & umumkan DPS
+   (Langkah 6), lalu tetapkan DPT. Penjelasan Langkah 6 ikut diperbarui.
+4. Tombol "Buka halaman kerja" tahap Penyusunan Daftar Pemilih kini ke halaman
+   Tetapkan DPS & DPT (bukan Langkah 1). Tahap tanpa jenis (Persiapan Panitia,
+   Pengumuman DPS, Pendaftaran Calon) kini ikut tertaut ke halamannya, ditebak dari nama.
+5. Menu "Periode Pilkades": deskripsi diluruskan; Administrator kini bisa mengubah
+   tanggal pemungutan (form "Simpan tanggal" per periode).
+6. "(N hari lagi)" di judul beranda kini memakai hitungan WITA yang sama dengan H-N.
+
+FILE DITIMPA
+- lib/pilkades.js, lib/pilkadesJadwal.js, lib/menuDashboard.js
+- app/dashboard/pilkades/page.js, actions.js (+ ubahTanggalPemungutan), periode/page.js
