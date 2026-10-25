@@ -38,15 +38,15 @@ function Cincin({ persen }) {
 /** Kartu progres: cincin persen, tahap sekarang, hitung mundur, dan bilah 10 segmen. */
 export function KartuProgres({ tahap, ringkas }) {
   const { selesai, total, persen, berlangsung, terlewat, berikut, hMin } = ringkas;
-  const pemungutan = tahap.find((t) => t.kunci === "pemungutan");
+  const pemungutan = tahap.find((t) => t.jenis === "pemungutan");
 
   let sekarang;
   if (berlangsung.length) {
-    sekarang = { judul: "Sedang berlangsung", isi: berlangsung.map((t) => `${t.singkat} (${t.ket.toLowerCase()})`).join(" · "), warna: "text-sky-800" };
+    sekarang = { judul: "Sedang berlangsung", isi: berlangsung.map((t) => `${t.nama} (${t.ket.toLowerCase()})`).join(" · "), warna: "text-sky-800" };
   } else if (terlewat.length) {
-    sekarang = { judul: "Perlu dikejar", isi: terlewat.map((t) => `${t.singkat}`).join(" · ") + " — jadwal sudah lewat, belum dikerjakan.", warna: "text-amber-800" };
+    sekarang = { judul: "Perlu dikejar", isi: terlewat.map((t) => `${t.nama}`).join(" · ") + " — jadwal sudah lewat, belum dikerjakan.", warna: "text-amber-800" };
   } else if (berikut) {
-    sekarang = { judul: "Tahap berikutnya", isi: `${berikut.singkat} · ${formatRentang(berikut.mulai, berikut.selesai)} (${berikut.ket.toLowerCase()})`, warna: "text-sky-800" };
+    sekarang = { judul: "Tahap berikutnya", isi: `${berikut.nama} · ${formatRentang(berikut.mulai, berikut.selesai)} (${berikut.ket.toLowerCase()})`, warna: "text-sky-800" };
   } else if (selesai === total) {
     sekarang = { judul: "Semua tahapan selesai", isi: "Pilkades sudah dilaksanakan sampai akhir.", warna: "text-emerald-800" };
   } else {
@@ -86,9 +86,9 @@ export function KartuProgres({ tahap, ringkas }) {
       {/* Bilah 10 segmen: satu kotak = satu tahapan */}
       <ol className="mt-5 grid grid-cols-10 gap-1" aria-label="Status tiap tahapan">
         {tahap.map((t) => (
-          <li key={t.kunci} title={`${t.no}. ${t.singkat}: ${GAYA[t.s].label.replace(/^[✓●!] /, "")}`}>
+          <li key={t.key} title={`${t.no}. ${t.nama}: ${GAYA[t.s].label.replace(/^[✓●!] /, "")}`}>
             <div className={`h-3 rounded-full ${GAYA[t.s].batang} ${t.s === "berlangsung" ? "motion-safe:animate-pulse" : ""}`} />
-            <p className="mt-1 hidden truncate text-center text-[11px] font-medium text-slate-600 lg:block">{t.singkat}</p>
+            <p className="mt-1 hidden truncate text-center text-[11px] font-medium text-slate-600 lg:block">{t.nama}</p>
           </li>
         ))}
       </ol>
@@ -123,7 +123,7 @@ export function GarisWaktu({ tahap }) {
         const g = GAYA[t.s];
         const akhir = i === tahap.length - 1;
         return (
-          <li key={t.kunci} className="flex gap-3">
+          <li key={t.key} className="flex gap-3">
             <div className="flex flex-col items-center">
               <Penanda t={t} />
               {!akhir && <span aria-hidden className={`my-1 w-1 flex-1 rounded-full ${t.s === "selesai" ? "bg-emerald-300" : "bg-slate-200"}`} />}
@@ -138,10 +138,12 @@ export function GarisWaktu({ tahap }) {
                 </div>
                 <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-sm font-semibold ${g.chip}`}>{g.label}</span>
               </div>
-              <p className="mt-1 text-sm text-slate-600">
-                {t.s === "berlangsung" || t.s === "akan" || t.s === "terlewat" ? <b className="text-slate-800">{t.ket}. </b> : null}
-                {t.arti}
-              </p>
+              {(t.s === "berlangsung" || t.s === "akan" || t.s === "terlewat" || t.arti) && (
+                <p className="mt-1 text-sm text-slate-600">
+                  {t.s === "berlangsung" || t.s === "akan" || t.s === "terlewat" ? <b className="text-slate-800">{t.ket}. </b> : null}
+                  {t.arti}
+                </p>
+              )}
               {t.catatan && <p className="mt-1 text-sm italic text-slate-600">Catatan: {t.catatan}</p>}
               {t.href && (t.s === "berlangsung" || t.s === "terlewat") && (
                 <Link href={t.href} className="mt-2 inline-block text-sm font-bold text-sky-800 underline">

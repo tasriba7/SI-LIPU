@@ -9,7 +9,7 @@ import {
   STATUS_VERIFIKASI, STATUS_CALON, JABATAN_PANITIA, ambilDaftarPemilih,
   BUCKET_LOGO_PILKADES, EKSTENSI_LOGO, MAKS_LOGO_MB,
 } from "@/lib/pilkades";
-import { TAHAP_BISA_DIISI } from "@/lib/pilkadesJadwal";
+import { JENIS_OTOMATIS, MAKS_TAHAPAN } from "@/lib/pilkadesJadwal";
 
 // Semua action di sini memakai sesi login pemanggil (RLS tetap berlaku),
 // bukan kunci service_role. Cek role di server + RLS di database.
@@ -548,23 +548,42 @@ export async function simpanJadwal(_state, formData) {
   const periodeId = String(formData.get("periode_id") ?? "");
   if (!adalahUuid(periodeId)) return { error: "Periode tidak dikenali. Muat ulang halaman ini." };
 
-  const tanggal = (k) => {
-    const v = String(formData.get(k) ?? "").trim();
-    return /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`)) ? v : null;
+  let mentah;
+  try {
+    mentah = JSON.parse(String(formData.get("data") ?? "[]"));
+  } catch {
+    return { error: "Data jadwal tidak terbaca. Muat ulang halaman ini lalu coba lagi." };
+  }
+  if (!Array.isArray(mentah)) return { error: "Data jadwal tidak valid." };
+  if (mentah.length > MAKS_TAHAPAN) return { error: `Maksimal ${MAKS_TAHAPAN} tahapan.` };
+
+  const tanggal = (v) => {
+    const t = String(v ?? "").trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(t) && !Number.isNaN(Date.parse(`${t}T00:00:00Z`)) ? t : "";
   };
+  const dipakai = new Set();
   const data = [];
-  for (const t of TAHAP_BISA_DIISI) {
-    const mulai = tanggal(`mulai_${t.kunci}`);
-    const selesai = tanggal(`selesai_${t.kunci}`);
-    const catatan = String(formData.get(`catatan_${t.kunci}`) ?? "").trim().slice(0, 200);
-    if (!mulai) {
-      if (selesai) return { error: `“${t.singkat}”: isi tanggal mulai dulu, atau kosongkan tanggal selesainya.` };
-      continue;
+  for (let i = 0; i < mentah.length; i++) {
+    const r = mentah[i] ?? {};
+    const nama = String(r.nama ?? "").trim().slice(0, 80);
+    if (nama.length < 3) return { error: `Tahap nomor ${i + 1}: tulis nama tahapan (minimal 3 huruf), atau hapus tahap ini.` };
+    const jenis = JENIS_OTOMATIS.includes(r.jenis) ? r.jenis : "";
+    if (jenis) {
+      if (dipakai.has(jenis)) return { error: "Ada tahap otomatis yang dobel. Muat ulang halaman ini lalu coba lagi." };
+      dipakai.add(jenis);
     }
-    if (selesai && selesai < mulai) {
-      return { error: `“${t.singkat}”: tanggal selesai tidak boleh lebih awal dari tanggal mulai.` };
-    }
-    data.push({ tahap: t.kunci, mulai, selesai: selesai ?? "", catatan });
+    const mulai = jenis === "pemungutan" ? "" : tanggal(r.mulai);
+    const selesai = jenis === "pemungutan" ? "" : tanggal(r.selesai);
+    if (selesai && !mulai) return { error: `“${nama}”: isi tanggal mulai dulu, atau kosongkan tanggal selesainya.` };
+    if (selesai && selesai < mulai) return { error: `“${nama}”: tanggal selesai tidak boleh lebih awal dari tanggal mulai.` };
+    data.push({
+      jenis,
+      nama,
+      arti: String(r.arti ?? "").trim().slice(0, 200),
+      mulai,
+      selesai,
+      catatan: String(r.catatan ?? "").trim().slice(0, 200),
+    });
   }
 
   const { error } = await supabase.rpc("pilkades_simpan_jadwal", { p_periode: periodeId, p_data: data });

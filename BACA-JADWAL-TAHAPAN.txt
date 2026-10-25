@@ -1,35 +1,35 @@
-Pilkades: Jadwal Tahapan + progres visual di beranda
-Dibuat di atas commit main 8f4b362. Paket ini KUMULATIF: sudah termasuk perapian pesan
-(BACA-RAPIKAN-PESAN.txt). Aman ditimpa walau paket pesan sebelumnya sudah dipasang.
+Pilkades: Jadwal Tahapan yang bisa diatur + progres visual di beranda
+Dibuat di atas commit main 8f4b362. Paket KUMULATIF: sudah termasuk perapian pesan
+(BACA-RAPIKAN-PESAN.txt). Aman ditimpa walau paket sebelumnya sudah dipasang.
 
 CARA PASANG
 1. Supabase SQL Editor: jalankan supabase/migrations/0062_pilkades_jadwal_tahapan.sql
-   (sesudah 0051-0061). Lalu boleh jalankan supabase/verifikasi_0062.sql (hanya membaca).
+   (sesudah 0051-0061). Bila versi 0062 yang lama sudah pernah dijalankan, aman dijalankan lagi:
+   tabel lama diganti bentuk baru (tanggal jadwal lama perlu diisi ulang).
+   Lalu boleh jalankan supabase/verifikasi_0062.sql (hanya membaca).
 2. Ekstrak zip, salin folder app, components, lib, supabase ke repo. Pilih "Timpa / Replace".
 3. npm run dev, buka /dashboard/pilkades. Tidak ada paket baru.
 
-YANG BARU
-- Menu "Jadwal Tahapan" (/dashboard/pilkades/jadwal): panitia mengisi tanggal MULAI, tanggal SELESAI
-  (kosong = 1 hari), dan catatan untuk 9 tahapan. Satu tombol "Simpan jadwal". Salah isi tanggal
-  tidak menghapus isian. Urutan tanggal yang janggal hanya diberi peringatan, tetap boleh disimpan.
-  Admin hanya melihat (garis waktu, tanpa formulir). Perubahan tercatat di Riwayat Aktivitas.
-- Beranda Pilkades kini punya:
-  a. Kartu "Progres pelaksanaan": cincin persen, tahap yang sedang berjalan, hitung mundur H-xx
-     menuju pemungutan, dan bilah 10 kotak berwarna (satu kotak = satu tahapan).
-  b. "Jadwal tahapan Pilkades": garis waktu tegak (nyaman di HP) berisi tanggal, status, dan
-     tautan ke halaman kerja. Jadwal yang sedang berjalan disorot dan berdenyut.
-- 10 tahapan: Persiapan, Penyusunan Daftar Pemilih, Pengumuman DPS, Penetapan DPT, Pendaftaran Calon,
-  Penetapan Calon, Kampanye, Masa Tenang, Pemungutan Suara, Penetapan Calon Terpilih.
+CARA PAKAI (panitia): menu "Jadwal Tahapan"
+- Ganti nama tahapan: ketik langsung di kolom nama.
+- Ubah urutan: tombol panah naik/turun. Hapus: tombol tong sampah. Tambah: "+ Tambah tahapan".
+- "Kembalikan ke daftar standar": mengisi ulang 10 tahapan bawaan.
+- Tidak ada yang tersimpan sebelum menekan "Simpan jadwal" (ada penanda "perubahan belum disimpan").
+- Maksimal 30 tahapan. Tanggal selesai kosong = satu hari.
 
-CARA STATUS DIHITUNG (otomatis, tanggal acuan = hari ini menurut WITA)
-- Selesai   : pekerjaannya tercatat di aplikasi (DPS ditetapkan, DPT ditetapkan, calon ditetapkan,
-              calon terpilih ditetapkan) ATAU jadwalnya sudah lewat untuk tahap tanpa data otomatis
-              (persiapan, pengumuman, pendaftaran calon, kampanye, masa tenang, pemungutan).
-- Berlangsung: hari ini ada di antara tanggal mulai dan selesai.
-- Akan datang: belum mulai. Terlewat (kuning): jadwal lewat tetapi pekerjaan belum tercatat.
-- Belum dijadwalkan (abu-abu): tanggal kosong.
-- Tanggal pemungutan TIDAK diisi di halaman jadwal; diambil dari menu Periode Pilkades (Administrator),
-  supaya hanya ada satu sumber tanggal.
+OTOMATISASI (tetap jalan)
+Tahap bertanda ⚙ selesai sendiri saat pekerjaannya tercatat di aplikasi, walau namanya diganti
+atau urutannya dipindah:
+  Penyusunan Daftar Pemilih -> DPS ditetapkan | Penetapan DPT -> DPT ditetapkan
+  Penetapan Calon -> ada calon berstatus Ditetapkan | Calon Terpilih -> calon terpilih ditetapkan
+  Pemungutan Suara -> tanggal mengikuti menu Periode (Administrator); tahap ini tidak bisa dihapus.
+Bila tahap otomatis dihapus, otomatisasi tahap itu ikut hilang; "Kembalikan ke daftar standar" memulihkannya.
+Tahap lain (termasuk yang ditambah sendiri): selesai bila tanggalnya sudah lewat.
+Status: Selesai (hijau) | Berlangsung (biru) | Akan datang | Terlewat (kuning: jadwal lewat tapi data belum
+tercatat) | Belum dijadwalkan (abu-abu). Acuan hari ini = WITA.
+
+BERANDA: kartu "Progres pelaksanaan" (cincin persen, tahap berjalan, hitung mundur H-xx, bilah segmen)
++ garis waktu tahapan sesuai urutan yang diatur panitia. Admin hanya melihat.
 
 FILE BARU
 - supabase/migrations/0062_pilkades_jadwal_tahapan.sql, supabase/verifikasi_0062.sql
@@ -40,8 +40,3 @@ FILE DITIMPA
 - app/dashboard/pilkades/page.js (beranda), actions.js, layout.js, daftar/FormTetapkan.jsx
 - app/dashboard/pilkades/{ambil,calon,cetak,daftar,hadir,hasil,logo,panitia,pemilih,tempatkan,tps,undangan}/page.js
 - components/pilkades/UI.jsx, lib/pilkades.js (+1 label riwayat), lib/menuDashboard.js (+1 menu)
-
-UJI
-a. Panitia: Jadwal Tahapan > isi beberapa tanggal > Simpan > beranda menampilkan progres dan garis waktu.
-b. Isi tanggal selesai lebih awal dari mulai > muncul pesan merah, isian tetap ada.
-c. Admin: halaman jadwal hanya menampilkan garis waktu.

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades, isAdminRole } from "@/lib/roles";
 import { ambilPeriode } from "@/lib/pilkades";
-import { ambilJadwalLengkap, periksaUrutan, TAHAP_BISA_DIISI } from "@/lib/pilkadesJadwal";
+import { ambilJadwalLengkap, periksaUrutan } from "@/lib/pilkadesJadwal";
 import { pesanDari, teknis } from "@/lib/pilkadesPesan";
 import PesanSekali from "@/components/pilkades/PesanSekali";
 import { GarisWaktu } from "@/components/pilkades/GarisWaktu";
@@ -13,7 +13,7 @@ import FormJadwal from "./FormJadwal";
 export const metadata = { title: "Jadwal Tahapan — Pilkades" };
 
 const PESAN_HASIL = {
-  ok: (sp) => ["sukses", "Jadwal tersimpan", Number(sp.n) > 0 ? `${sp.n} tahapan sudah ada tanggalnya. Garis waktu di beranda ikut diperbarui.` : "Semua tanggal dikosongkan."],
+  ok: (sp) => ["sukses", "Jadwal tersimpan", `${sp.n} tahapan tersimpan. Progres dan garis waktu di beranda ikut diperbarui.`],
 };
 
 export default async function JadwalPage({ searchParams }) {
@@ -27,16 +27,14 @@ export default async function JadwalPage({ searchParams }) {
   }
 
   const j = await ambilJadwalLengkap(supabase, periode);
-  const awal = Object.fromEntries(j.tahap.map((t) => [t.kunci, { mulai: t.mulai ?? "", selesai: t.selesai ?? "", catatan: t.catatan }]));
-  const baris = j.tahap.filter((t) => TAHAP_BISA_DIISI.some((x) => x.kunci === t.kunci));
-  const pemungutan = j.tahap.find((t) => t.kunci === "pemungutan");
+  const awal = j.tahap.map((t) => ({ jenis: t.jenis ?? "", nama: t.nama, arti: t.arti, mulai: t.mulai && t.jenis !== "pemungutan" ? t.mulai : "", selesai: t.selesai ?? "", catatan: t.catatan }));
   const urutan = periksaUrutan(j.tahap);
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
       <JudulHalaman
         judul={`Jadwal Tahapan — ${periode.nama}`}
-        penjelasan="Isi tanggal mulai (dan tanggal selesai bila lebih dari sehari) untuk tiap tahapan. Tahapan yang dikosongkan tampil sebagai “belum dijadwalkan”. Semua tanggal bisa diubah kapan saja."
+        penjelasan="Atur tahapan sesuai aturan desa Anda: ganti nama, ubah urutan, tambah, atau hapus. Isi tanggal mulai (dan tanggal selesai bila lebih dari sehari). Tahap bertanda ⚙ selesai sendiri saat pekerjaannya tercatat di aplikasi."
       />
 
       <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
@@ -53,11 +51,11 @@ export default async function JadwalPage({ searchParams }) {
 
       {bisaUbah ? (
         <FormJadwal
+          key={JSON.stringify(awal)}
           periodeId={periode.id}
-          baris={baris}
           awal={awal}
-          pemungutan={pemungutan}
-          tautanPeriode={isAdminRole(role)}
+          tanggalPemungutan={periode.tanggal_pemungutan}
+          adminTautan={isAdminRole(role)}
         />
       ) : (
         <Kartu>
