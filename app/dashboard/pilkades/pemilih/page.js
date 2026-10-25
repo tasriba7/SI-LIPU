@@ -66,10 +66,11 @@ export default async function PemilihPage({ searchParams }) {
   }
 
   // Pratinjau saringan usia (hanya menghitung, tidak mengubah data).
-  const usiaForm = Number.isInteger(parseInt(sp.usia, 10)) ? parseInt(sp.usia, 10) : (periode.usia_minimum ?? 17);
+  // Usia minimum pemilih dikunci 17 tahun (juga dipaksa di server dan database).
+  const usiaForm = 17;
   const kawinForm = sp.usia === undefined ? periode.termasuk_pernah_kawin !== false : sp.kawin === "1";
   let pratinjau = null;
-  if (sp.usia !== undefined && usiaForm >= 0 && usiaForm <= 120) {
+  if (sp.usia !== undefined) {
     const { data } = await supabase.rpc("pilkades_pratinjau_usia", {
       p_periode: periode.id, p_usia: usiaForm, p_kawin: kawinForm,
     });
@@ -128,13 +129,13 @@ export default async function PemilihPage({ searchParams }) {
         <div className="space-y-4 border-t-2 border-sky-100 p-5">
           <p className="text-sm text-slate-700">
             Usia dihitung pada hari pemungutan suara{periode.tanggal_pemungutan ? ` (${formatTanggal(periode.tanggal_pemungutan)})` : " (tanggal belum diisi, memakai hari ini)"}.
-            {!bisaUbah && ` Aturan saat ini: minimal ${periode.usia_minimum ?? 17} tahun${periode.termasuk_pernah_kawin === false ? "" : " atau sudah/pernah kawin"}.`}
+            {!bisaUbah && ` Aturan: minimal ${usiaForm} tahun${periode.termasuk_pernah_kawin === false ? "" : " atau sudah/pernah kawin"}.`}
           </p>
           <form className="flex flex-wrap items-end gap-4">
-            <label className="text-sm font-semibold text-slate-800">
-              Usia minimal (tahun)
-              <input type="number" name="usia" min="0" max="120" defaultValue={usiaForm} className={`${kolomKecil} mt-1 block w-28`} />
-            </label>
+            <input type="hidden" name="usia" value={usiaForm} />
+            <p className="pb-2 text-sm font-semibold text-slate-800">
+              Usia minimal: {usiaForm} tahun <span className="font-normal text-slate-600">(ditetapkan aturan, tidak bisa diubah)</span>
+            </p>
             <label className="flex items-center gap-2 pb-2 text-sm text-slate-800">
               <input type="checkbox" name="kawin" value="1" defaultChecked={kawinForm} className="h-5 w-5" />
               Yang sudah/pernah menikah tetap boleh

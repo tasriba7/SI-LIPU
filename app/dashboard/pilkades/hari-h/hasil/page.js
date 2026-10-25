@@ -3,7 +3,7 @@ import { kunciHalaman } from "@/lib/pilkadesKunci";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
-import { bisaUbahPilkades } from "@/lib/roles";
+import { bisaUbahPilkades, isAdminRole } from "@/lib/roles";
 import { ambilPeriode, ambilRekapSuara, tentukanPemenang, formatTanggal, ambilPenentuanSeri, tentukanDariDusun } from "@/lib/pilkades";
 import { simpanSuaraTps, simpanSuaraDusun, tetapkanTerpilih, batalkanPenetapan } from "@/app/dashboard/pilkades/actions";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
@@ -20,7 +20,7 @@ const PESAN_HASIL = {
   ok: ["sukses", "Rekap TPS tersimpan", "Tercatat di Riwayat Aktivitas."],
   dusun: ["sukses", "Suara dusun tersimpan", "Lihat hasil penentuan seri di bagian Penetapan."],
   terpilih: ["sukses", "Calon terpilih ditetapkan", "Berita acara sekarang bisa dicetak."],
-  batal: ["sukses", "Penetapan dibatalkan", "Suara bisa diperbaiki lagi. Pembatalan tercatat di Riwayat beserta alasannya."],
+  batal: ["sukses", "Penetapan dibatalkan", "Koreksi teknis oleh Administrator. Suara bisa diperbaiki lagi; pembatalan tercatat di Riwayat beserta alasannya."],
   gagal: (sp) => ["bahaya", "Tidak berhasil", sp.pesan || COBA_LAGI],
 };
 
@@ -30,6 +30,7 @@ export default async function HasilPage({ searchParams }) {
   const periode = await ambilPeriode(supabase);
   const { role } = await ambilRole(supabase);
   const bisaUbah = bisaUbahPilkades(role);
+  const adalahAdmin = isAdminRole(role);
   if (!periode) {
     return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/pengaturan/periode" label="Buka Periode Pilkades" />;
   }
@@ -193,9 +194,9 @@ export default async function HasilPage({ searchParams }) {
             </Pesan>
             <div className="flex flex-wrap items-start gap-3">
               <Link href="/cetak/pilkades/berita-acara" target="_blank" className={tombol.utama}>Cetak Berita Acara</Link>
-              {bisaUbah && (
+              {adalahAdmin && (
                 <details className="rounded-xl border border-red-100 p-3">
-                  <summary className="cursor-pointer text-sm font-semibold text-red-700">Batalkan penetapan</summary>
+                  <summary className="cursor-pointer text-sm font-semibold text-red-700">Koreksi teknis: batalkan penetapan (Administrator)</summary>
                   <form action={batalkanPenetapan} className="mt-3 space-y-3">
                     <input type="hidden" name="periode_id" value={periode.id} />
                     <label className={labelKolom}>
@@ -237,7 +238,7 @@ export default async function HasilPage({ searchParams }) {
                 </label>
                 <label className="flex items-start gap-3 rounded-xl bg-sky-50 p-4 text-sm text-slate-900 sm:col-span-2">
                   <input type="checkbox" name="konfirmasi" value="ya" required className="mt-1 h-5 w-5" />
-                  <span>Saya menyatakan angka rekap tiap TPS sudah dicocokkan dengan berita acara TPS. Suara terkunci setelah penetapan (bisa dibatalkan dengan alasan).</span>
+                  <span>Saya menyatakan angka rekap tiap TPS sudah dicocokkan dengan berita acara TPS. Suara terkunci setelah penetapan. Panitia tidak dapat membatalkannya; koreksi teknis hanya oleh Administrator.</span>
                 </label>
                 <div className="sm:col-span-2">
                   <TombolKonfirmasi pesan={`Tetapkan No. ${calonMenang.nomor_urut} ${calonMenang.nama} sebagai calon terpilih?`} className={tombol.hijau}>

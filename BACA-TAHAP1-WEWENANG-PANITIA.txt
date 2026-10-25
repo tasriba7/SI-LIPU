@@ -1,0 +1,48 @@
+Pilkades - TAHAP 1 dari 4: rapikan wewenang panitia
+(Tahap lain TIDAK ada di zip ini. Jadwal Tahapan tidak disentuh sama sekali.)
+
+CARA PASANG
+1. Supabase > SQL Editor > jalankan supabase/migrations/0065_pilkades_wewenang_panitia_tahap1.sql
+   (aman diulang; prasyarat 0054, 0055, 0060, 0063, 0064 sudah dijalankan).
+2. Ekstrak zip ke folder repo, pilih "Timpa / Replace". Tidak ada paket npm baru.
+3. npm run dev, lalu uji.
+
+YANG BERUBAH
+1. BATAL PENETAPAN CALON TERPILIH bukan lagi wewenang panitia.
+   - Tombol hilang dari akun panitia. Muncul hanya di akun Administrator, diberi nama
+     "Koreksi teknis" (alasan wajib, tercatat di Riwayat).
+   - Dijaga di database: panitia yang memanggil lewat jalur lain tetap ditolak.
+2. USIA MINIMUM PEMILIH DIKUNCI 17 TAHUN.
+   - Kolom isian usia diganti tulisan tetap. Server dan database memaksa 17.
+   - Aturan "sudah/pernah kawin" tidak diubah.
+3. CALON 2-5 + STATUS "GUGUR".
+   - Status baru "Gugur" (calon mundur/berhalangan). Alasan wajib untuk "Tidak lolos" dan "Gugur".
+   - Calon berstatus "Ditetapkan" paling banyak 5 (ditolak di aplikasi dan database).
+   - Calon terpilih baru bisa ditetapkan bila ada minimal 2 calon "Ditetapkan".
+   - Calon gugur tidak ikut dihitung di rekap suara.
+
+FILE
+ BARU : supabase/migrations/0065_pilkades_wewenang_panitia_tahap1.sql
+ TIMPA: lib/pilkades.js
+        app/dashboard/pilkades/actions.js
+        app/dashboard/pilkades/calon/page.js
+        app/dashboard/pilkades/pemilih/page.js
+        app/dashboard/pilkades/hari-h/hasil/page.js
+
+UJI CEPAT
+ a. Login PANITIA > Hasil Suara: setelah penetapan, tidak ada tombol batal. Login ADMIN: ada.
+ b. Calon: tetapkan calon ke-6 > ditolak. Status "Gugur" tanpa alasan > ditolak.
+ c. Hanya 1 calon ditetapkan > tombol penetapan calon terpilih ditolak dengan pesan jelas.
+ d. Periksa Pemilih: kolom usia tidak bisa diketik; tertulis 17 tahun.
+
+CATATAN JUJUR
+ - Teks Perbup tidak ada di repo. Rujukan pasal (16, 34, 93) saya ambil dari rangkuman
+   percakapan kita. Mohon cocokkan sekali lagi dengan naskah resmi sebelum dipakai sungguhan.
+ - Kode lolos cek sintaks (esbuild), tetapi belum dijalankan di Supabase/aplikasi Anda.
+
+RENCANA TAHAP BERIKUTNYA
+ Tahap 2: Kunci DPT (Pasal 34) dan alur Pemilih Tambahan; sambungan data penduduk berlanjut
+          (domisili 6 bulan).
+ Tahap 3: Daftar hadir jadi dokumen cetak; hari-H hanya rangkuman angka per TPS
+          (tanpa mencatat hadir per orang). Validasi suara disesuaikan.
+ Tahap 4: Berita acara sesuai lampiran Perbup; sisa pembersihan menu.

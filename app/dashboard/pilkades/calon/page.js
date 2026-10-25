@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
-import { ambilPeriode, ambilCalon, STATUS_CALON, STATUS_CALON_BADGE } from "@/lib/pilkades";
+import { ambilPeriode, ambilCalon, STATUS_CALON, STATUS_CALON_BADGE, MIN_CALON, MAKS_CALON } from "@/lib/pilkades";
 import { simpanCalon, hapusCalon } from "../actions";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
 import { JudulHalaman, Catatan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
@@ -16,7 +16,8 @@ const PESAN_HASIL = {
   nama: ["perhatian", "Nama terlalu pendek", "Tulis nama lengkap calon, minimal 3 huruf."],
   nomor: ["perhatian", "Nomor urut tidak valid", "Isi angka 1 sampai 99, atau kosongkan bila belum ada."],
   perlu_nomor: ["perhatian", "Nomor urut wajib untuk calon yang ditetapkan", "Isi nomor urut dulu, atau pilih status lain."],
-  perlu_alasan: ["perhatian", "Alasan wajib diisi", "Calon yang tidak lolos harus disertai alasan (minimal 5 huruf)."],
+  perlu_alasan: ["perhatian", "Alasan wajib diisi", "Calon yang tidak lolos atau gugur harus disertai alasan (minimal 5 huruf)."],
+  maks_calon: ["perhatian", "Calon yang ditetapkan sudah 5 orang", "Calon yang ditetapkan paling banyak 5 orang. Ubah status calon lain lebih dulu bila memang ada yang tidak jadi ditetapkan."],
   nomor_kembar: ["perhatian", "Nomor urut sudah dipakai", "Setiap calon dalam satu periode harus punya nomor urut berbeda."],
   terkunci: ["perhatian", "Calon yang sudah ditetapkan tidak bisa dihapus", "Ubah statusnya lebih dulu bila memang ada kesalahan, lalu hapus."],
   terkunci_suara: ["perhatian", "Calon ini sudah punya data suara", "Status dan nomor urut calon yang sudah punya suara tidak bisa diubah, dan calonnya tidak bisa dihapus."],
@@ -43,7 +44,7 @@ function FormCalon({ periodeId, calon }) {
         </select>
       </label>
       <label className={`${labelKolom} sm:col-span-2`}>
-        Alasan <span className="font-normal text-slate-600">(wajib bila “Tidak lolos”)</span>
+        Alasan <span className="font-normal text-slate-600">(wajib bila “Tidak lolos” atau “Gugur”)</span>
         <input name="alasan" maxLength={300} defaultValue={calon?.alasan ?? ""} className={`${kolom} mt-1 font-normal`} />
       </label>
       <label className={`${labelKolom} sm:col-span-2`}>
@@ -69,27 +70,36 @@ export default async function CalonPage({ searchParams }) {
 
   const { data: calon, error } = await ambilCalon(supabase, periode.id);
   const ditetapkan = calon.filter((c) => c.status === "ditetapkan").length;
-  
+  const gugur = calon.filter((c) => c.status === "gugur").length;
+  const jumlahCalonOk = ditetapkan >= MIN_CALON && ditetapkan <= MAKS_CALON;
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
       <JudulHalaman
         judul={`Calon Kepala Desa — ${periode.nama}`}
-        penjelasan="Catat calon yang mendaftar, hasil verifikasi berkas, dan nomor urutnya. Alurnya: Mendaftar → Lolos verifikasi berkas → Ditetapkan sebagai calon (dengan nomor urut)."
+        penjelasan="Catat calon yang mendaftar, hasil penyaringan berkas, dan nomor urutnya. Alurnya: Mendaftar → Lolos verifikasi berkas → Ditetapkan sebagai calon (dengan nomor urut). Calon yang ditetapkan harus 2 sampai 5 orang. Calon yang mengundurkan diri atau berhalangan setelah ditetapkan diberi status “Gugur”."
       />
 
       <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
       <Catatan
         butir={[
-          error && { jenis: "bahaya", judul: "Daftar calon gagal dimuat", isi: `Muat ulang halaman ini.${teknis(role, "0054", "0055")}` },
+          error && { jenis: "bahaya", judul: "Daftar calon gagal dimuat", isi: `Muat ulang halaman ini.${teknis(role, "0054", "0055", "0065")}` },
+          !error && !jumlahCalonOk && {
+            jenis: "perhatian",
+            judul: `Calon yang ditetapkan baru ${ditetapkan} orang`,
+            isi: ditetapkan < MIN_CALON
+              ? `Pemungutan suara membutuhkan ${MIN_CALON} sampai ${MAKS_CALON} calon yang ditetapkan. Calon terpilih belum bisa ditetapkan sebelum jumlahnya cukup.`
+              : `Calon yang ditetapkan paling banyak ${MAKS_CALON} orang.`,
+          },
         ]}
       />
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
           ["Seluruh pendaftar", calon.length, "border-sky-200 bg-sky-50 text-sky-800"],
           ["Ditetapkan", ditetapkan, "border-emerald-200 bg-emerald-50 text-emerald-800"],
           ["Tidak lolos", calon.filter((c) => c.status === "tidak_lolos").length, "border-slate-200 bg-slate-50 text-slate-700"],
+          ["Gugur", gugur, "border-orange-200 bg-orange-50 text-orange-800"],
         ].map(([label, n, gaya]) => (
           <div key={label} className={`rounded-xl border p-4 ${gaya}`}>
             <p className="text-sm font-semibold text-slate-800">{label}</p>

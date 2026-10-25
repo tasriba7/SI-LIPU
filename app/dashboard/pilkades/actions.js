@@ -7,7 +7,7 @@ import { pastikanAdmin, pastikanKelolaPilkades } from "@/lib/akses";
 import { adalahUuid } from "@/lib/validasiPengajuan";
 import {
   STATUS_VERIFIKASI, STATUS_CALON, JABATAN_PANITIA, ambilDaftarPemilih,
-  BUCKET_LOGO_PILKADES, EKSTENSI_LOGO, MAKS_LOGO_MB,
+  BUCKET_LOGO_PILKADES, EKSTENSI_LOGO, MAKS_LOGO_MB, USIA_MINIMUM_PEMILIH, MAKS_CALON, MIN_CALON,
 } from "@/lib/pilkades";
 import { JENIS_OTOMATIS, MAKS_TAHAPAN } from "@/lib/pilkadesJadwal";
 
@@ -162,10 +162,10 @@ export async function terapkanFilterUsia(formData) {
   const cek = await pastikanKelolaPilkades(supabase);
   if (cek.error) return;
   const periodeId = String(formData.get("periode_id") ?? "");
-  const usia = parseInt(String(formData.get("usia") ?? ""), 10);
+  const usia = USIA_MINIMUM_PEMILIH; // dikunci 17 tahun, nilai kiriman form diabaikan
   const kawin = formData.get("kawin") === "1";
   const tandai = formData.get("tandai") === "1";
-  if (!adalahUuid(periodeId) || !Number.isInteger(usia) || usia < 0 || usia > 120) return;
+  if (!adalahUuid(periodeId)) return;
   const { data, error } = await supabase.rpc("pilkades_terapkan_usia", {
     p_periode: periodeId,
     p_usia: usia,
@@ -301,7 +301,15 @@ export async function simpanCalon(formData) {
   if (nama.length < 3) redirect(`${kembali}?hasil=nama`);
   if (nomor !== null && (!Number.isInteger(nomor) || nomor < 1 || nomor > 99)) redirect(`${kembali}?hasil=nomor`);
   if (status === "ditetapkan" && nomor === null) redirect(`${kembali}?hasil=perlu_nomor`);
-  if (status === "tidak_lolos" && (!alasan || alasan.length < 5)) redirect(`${kembali}?hasil=perlu_alasan`);
+  if ((status === "tidak_lolos" || status === "gugur") && (!alasan || alasan.length < 5)) redirect(`${kembali}?hasil=perlu_alasan`);
+  if (status === "ditetapkan") {
+    // Calon ditetapkan paling banyak MAKS_CALON orang (database ikut menjaga).
+    let q = supabase.from("pilkades_calon").select("id", { count: "exact", head: true })
+      .eq("periode_id", periodeId).eq("status", "ditetapkan");
+    if (id) q = q.neq("id", id);
+    const { count } = await q;
+    if ((count ?? 0) >= MAKS_CALON) redirect(`${kembali}?hasil=maks_calon`);
+  }
 
   const data = { nama, status, nomor_urut: nomor, alasan, visi_misi: visiMisi };
   const { error } = id
@@ -310,7 +318,7 @@ export async function simpanCalon(formData) {
 
   revalidatePath("/dashboard/pilkades", "layout");
   if (error) {
-    const hasil = error.code === "23505" ? "nomor_kembar" : error.code === "P0001" ? "terkunci_suara" : "gagal";
+    const hasil = error.code === "23505" ? "nomor_kembar" : error.code === "P0001" ? (/paling banyak 5/.test(error.message) ? "maks_calon" : /Alasan wajib/.test(error.message) ? "perlu_alasan" : "terkunci_suara") : "gagal";
     redirect(`${kembali}?hasil=${hasil}`);
   }
 
@@ -499,6 +507,11 @@ export async function tetapkanTerpilih(formData) {
   if (formData.get("konfirmasi") !== "ya") {
     redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent("Centang pernyataan bahwa rekap suara sudah diperiksa.")}`);
   }
+  const { count: jumlahCalon } = await supabase.from("pilkades_calon").select("id", { count: "exact", head: true })
+    .eq("periode_id", periodeId).eq("status", "ditetapkan");
+  if ((jumlahCalon ?? 0) < MIN_CALON) {
+    redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent("Calon terpilih baru bisa ditetapkan bila ada paling sedikit 2 calon yang ditetapkan. Hubungi Panitia Kabupaten bila calon tinggal satu.")}`);
+  }
   const { error } = await supabase.rpc("pilkades_tetapkan_terpilih", {
     p_periode: periodeId, p_tanggal: tanggal, p_nomor: nomor, p_catatan: catatan,
   });
@@ -510,9 +523,10 @@ export async function tetapkanTerpilih(formData) {
   redirect(`${ALAMAT_HASIL}?hasil=terpilih`);
 }
 
+/** Koreksi teknis: BUKAN wewenang panitia. Hanya Administrator (dijaga juga di database, 0065). */
 export async function batalkanPenetapan(formData) {
   const supabase = await createClient();
-  const cek = await pastikanKelolaPilkades(supabase);
+  const cek = await pastikanAdmin(supabase);
   if (cek.error) return;
   const periodeId = String(formData.get("periode_id") ?? "");
   const alasan = String(formData.get("alasan") ?? "").trim().slice(0, 300);
