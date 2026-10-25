@@ -9,6 +9,7 @@ import {
   STATUS_VERIFIKASI, STATUS_CALON, JABATAN_PANITIA, ambilDaftarPemilih,
   BUCKET_LOGO_PILKADES, EKSTENSI_LOGO, MAKS_LOGO_MB,
 } from "@/lib/pilkades";
+import { TAHAP_BISA_DIISI } from "@/lib/pilkadesJadwal";
 
 // Semua action di sini memakai sesi login pemanggil (RLS tetap berlaku),
 // bukan kunci service_role. Cek role di server + RLS di database.
@@ -532,4 +533,44 @@ export async function simpanLogoPanitia(formData) {
   if (lama?.logo_path) await supabase.storage.from(BUCKET_LOGO_PILKADES).remove([lama.logo_path]);
   revalidatePath("/dashboard/pilkades", "layout");
   redirect(`${kembali}?hasil=ok`);
+}
+
+/* =====================================================================
+ * JADWAL TAHAPAN (migrasi 0062) — hanya panitia; admin hanya melihat.
+ * Dipakai formulir klien lewat useActionState: galat dikembalikan sebagai
+ * { error } supaya isian tidak hilang; berhasil -> kembali ke halaman jadwal.
+ * ===================================================================== */
+
+export async function simpanJadwal(_state, formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return { error: "Hanya Panitia Pilkades yang dapat mengubah jadwal." };
+  const periodeId = String(formData.get("periode_id") ?? "");
+  if (!adalahUuid(periodeId)) return { error: "Periode tidak dikenali. Muat ulang halaman ini." };
+
+  const tanggal = (k) => {
+    const v = String(formData.get(k) ?? "").trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`)) ? v : null;
+  };
+  const data = [];
+  for (const t of TAHAP_BISA_DIISI) {
+    const mulai = tanggal(`mulai_${t.kunci}`);
+    const selesai = tanggal(`selesai_${t.kunci}`);
+    const catatan = String(formData.get(`catatan_${t.kunci}`) ?? "").trim().slice(0, 200);
+    if (!mulai) {
+      if (selesai) return { error: `“${t.singkat}”: isi tanggal mulai dulu, atau kosongkan tanggal selesainya.` };
+      continue;
+    }
+    if (selesai && selesai < mulai) {
+      return { error: `“${t.singkat}”: tanggal selesai tidak boleh lebih awal dari tanggal mulai.` };
+    }
+    data.push({ tahap: t.kunci, mulai, selesai: selesai ?? "", catatan });
+  }
+
+  const { error } = await supabase.rpc("pilkades_simpan_jadwal", { p_periode: periodeId, p_data: data });
+  if (error) {
+    return { error: error.code === "P0001" ? error.message : "Jadwal gagal disimpan. Silakan coba lagi. Bila tetap gagal, hubungi Administrator desa." };
+  }
+  revalidatePath("/dashboard/pilkades", "layout");
+  redirect(`/dashboard/pilkades/jadwal?hasil=ok&n=${data.length}`);
 }

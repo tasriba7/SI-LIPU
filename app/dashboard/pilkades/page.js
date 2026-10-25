@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { ambilRole } from "@/lib/akses";
+import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode, ambilLangkah, formatTanggal } from "@/lib/pilkades";
+import { ambilJadwalLengkap } from "@/lib/pilkadesJadwal";
+import { KartuProgres, GarisWaktu } from "@/components/pilkades/GarisWaktu";
 import { DaftarLangkah } from "@/components/pilkades/PanduanLangkah";
 import { JudulHalaman, KosongPandu, Kartu, tombol } from "@/components/pilkades/UI";
 import { IconArrowRight } from "@/components/icons";
@@ -33,6 +37,9 @@ export default async function BerandaPilkades() {
   }
 
   const s = await ambilLangkah(supabase, periode);
+  const j = await ambilJadwalLengkap(supabase, periode, { arsip: s.arsip });
+  const { role } = await ambilRole(supabase);
+  const bisaUbah = bisaUbahPilkades(role);
   const sisa = sisaHari(periode.tanggal_pemungutan);
   const dps = s.arsip.find((a) => a.jenis === "DPS");
   const dpt = s.arsip.find((a) => a.jenis === "DPT");
@@ -54,6 +61,18 @@ export default async function BerandaPilkades() {
           periode.aktif ? "" : " · periode ini belum diaktifkan"
         }`}
       />
+
+      {/* Progres pelaksanaan + ajakan mengisi jadwal */}
+      <KartuProgres tahap={j.tahap} ringkas={j.ringkas} />
+      {!j.adaJadwal && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-sky-300 bg-sky-50 p-4">
+          <p className="min-w-0 flex-1 basis-64 text-sm text-slate-800">
+            <b className="text-sky-950">Jadwal tahapan belum diisi.</b>{" "}
+            {bisaUbah ? "Isi tanggal tiap tahapan agar progres dan garis waktu terlihat jelas." : "Jadwal akan tampil di sini setelah diisi oleh Panitia Pilkades."}
+          </p>
+          {bisaUbah && <Link href="/dashboard/pilkades/jadwal" className={tombol.utama}>Isi jadwal tahapan</Link>}
+        </div>
+      )}
 
       {/* Langkah berikutnya */}
       <div className="rounded-2xl bg-gradient-to-r from-sky-600 to-teal-500 p-6 text-white shadow-md">
@@ -83,9 +102,21 @@ export default async function BerandaPilkades() {
         )}
       </div>
 
+      {/* Garis waktu tahapan */}
+      <section aria-labelledby="judul-garis-waktu">
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+          <h2 id="judul-garis-waktu" className="text-lg font-bold text-sky-950">Jadwal tahapan Pilkades</h2>
+          <Link href="/dashboard/pilkades/jadwal" className="text-sm font-bold text-sky-800 underline">
+            {bisaUbah ? "Isi / ubah jadwal →" : "Lihat rincian →"}
+          </Link>
+        </div>
+        <GarisWaktu tahap={j.tahap} />
+      </section>
+
       {/* 6 langkah */}
       <section>
-        <h2 className="mb-3 text-lg font-bold text-sky-950">Urutan kerja panitia</h2>
+        <h2 className="mb-1 text-lg font-bold text-sky-950">Urutan kerja panitia</h2>
+        <p className="mb-3 text-sm text-slate-600">Langkah menyiapkan daftar pemilih di aplikasi ini, dari data warga sampai cetak.</p>
         <DaftarLangkah langkah={s.langkah} varian="lengkap" />
       </section>
 
