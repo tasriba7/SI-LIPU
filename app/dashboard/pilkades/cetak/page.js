@@ -5,7 +5,7 @@ import {
   formatTanggal, STATUS_VERIFIKASI, JENIS_DAFTAR_LABEL,
 } from "@/lib/pilkades";
 import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
-import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
+import { JudulHalaman, Catatan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
 
 export const metadata = { title: "Cetak Daftar Pemilih" };
 
@@ -39,17 +39,20 @@ export default async function PilihanCetak() {
         penjelasan="Pilih daftar yang ingin dicetak, lalu klik tombol di bawah. Layar pratinjau akan terbuka di tab baru sebelum dicetak."
       />
 
-      <Pesan jenis="info" judul="Bedanya draf dan daftar resmi">
-        Cetakan dari <b>“Draf terkini”</b> diberi tanda air DRAF. Cetakan dari <b>DPS atau DPT</b> yang sudah ditetapkan adalah daftar resmi.
-        {!adaArsip && " Saat ini belum ada DPS/DPT yang ditetapkan, jadi hanya draf yang bisa dicetak."}
-      </Pesan>
-
-      {ttdKosong.length > 0 && (
-        <Pesan jenis="perhatian" judul="Kolom tanda tangan belum berisi nama">
-          Nama {ttdKosong.map((p) => p.label).join(" dan ")} belum diisi, jadi kolomnya dicetak kosong.{" "}
-          <Link href="/dashboard/pilkades/panitia" className="font-bold underline">Isi Susunan Panitia →</Link>
-        </Pesan>
-      )}
+      <Catatan
+        butir={[
+          ttdKosong.length > 0 && {
+            jenis: "perhatian",
+            judul: "Kolom tanda tangan belum berisi nama",
+            isi: (
+              <>
+                Nama {ttdKosong.map((p) => p.label).join(" dan ")} belum diisi, jadi kolomnya dicetak kosong.{" "}
+                <Link href="/dashboard/pilkades/panitia" className="font-bold underline">Isi Susunan Panitia →</Link>
+              </>
+            ),
+          },
+        ]}
+      />
 
       <Kartu>
         <form action="/cetak/pilkades" target="_blank" className="space-y-5">
@@ -99,12 +102,20 @@ export default async function PilihanCetak() {
         </form>
       </Kartu>
 
-      <Pesan jenis="info" judul="Berikutnya: Surat Undangan Memilih">
-        Setelah daftar ditempel, cetak surat undangan untuk tiap pemilih di DPT.{" "}
-        <Link href="/dashboard/pilkades/undangan" className="font-bold underline">Buka Surat Undangan →</Link>
-      </Pesan>
-
-      <p className="text-sm text-slate-600">Info kertas: F4 lanskap (330 × 215 mm), dua kolom berdampingan, margin 6 mm.</p>
+      <Kartu className="space-y-2 text-sm leading-relaxed text-slate-700">
+        <p className="font-bold text-sky-950">Catatan cetak</p>
+        <ul className="list-disc space-y-1 pl-5">
+          <li>
+            Cetakan dari <b>“Draf terkini”</b> diberi tanda air DRAF. Cetakan dari <b>DPS atau DPT</b> yang sudah ditetapkan adalah daftar resmi.
+            {!adaArsip && " Saat ini belum ada DPS/DPT yang ditetapkan, jadi hanya draf yang bisa dicetak."}
+          </li>
+          <li>Kertas F4 lanskap (330 × 215 mm), dua kolom berdampingan, margin 6 mm.</li>
+          <li>
+            Berikutnya: cetak surat undangan untuk tiap pemilih di DPT.{" "}
+            <Link href="/dashboard/pilkades/undangan" className="font-bold text-sky-700 underline">Buka Surat Undangan →</Link>
+          </li>
+        </ul>
+      </Kartu>
     </div>
   );
 }

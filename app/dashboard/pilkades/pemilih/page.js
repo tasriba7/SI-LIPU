@@ -8,10 +8,31 @@ import {
 import { simpanPemilih, terapkanFilterUsia } from "../actions";
 import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
-import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolomKecil } from "@/components/pilkades/UI";
+import { JudulHalaman, Catatan, Kartu, KosongPandu, tombol, kolomKecil } from "@/components/pilkades/UI";
+import PesanSekali from "@/components/pilkades/PesanSekali";
+import { teknis } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Periksa Pemilih" };
 const PER_HALAMAN = 30;
+
+// Pesan hasil "saring otomatis berdasarkan usia" (alamat: ?filter=ok&m=..&t=..&p=..&b=..).
+function pesanFilterUsia(sp) {
+  if (sp.filter === "ok") {
+    return {
+      jenis: "sukses",
+      judul: "Saringan usia sudah diterapkan",
+      isi: `${sp.m ?? 0} memenuhi syarat · ${sp.t ?? 0} tidak memenuhi syarat (kurang usia) · ${sp.p ?? 0} perlu dicek · ${sp.b ?? 0} belum diperiksa.`,
+    };
+  }
+  if (sp.filter === "gagal") {
+    return {
+      jenis: "bahaya",
+      judul: "Saringan usia gagal diterapkan",
+      isi: "Saringan hanya bisa diterapkan oleh Panitia Pilkades. Silakan coba lagi.",
+    };
+  }
+  return null;
+}
 
 export default async function PemilihPage({ searchParams }) {
   const sp = await searchParams;
@@ -81,17 +102,12 @@ export default async function PemilihPage({ searchParams }) {
         penjelasan="Tentukan siapa yang berhak memilih. Pilih “Memenuhi syarat” bagi yang berhak. Aturan syarat mengikuti Pilkades daerah dan ditentukan panitia."
       />
 
-      {sp.filter === "ok" && (
-        <Pesan jenis="sukses" judul="Saringan usia sudah diterapkan">
-          {sp.m} ditandai memenuhi syarat · {sp.t} tidak memenuhi syarat (kurang usia) · {sp.p ?? 0} perlu dicek · {sp.b} masih belum diperiksa.
-        </Pesan>
-      )}
-      {sp.filter === "gagal" && (
-        <Pesan jenis="bahaya" judul="Saringan usia gagal diterapkan">
-          Pastikan migrasi 0056 sudah dijalankan dan Anda masuk sebagai panitia.
-        </Pesan>
-      )}
-      {error && <Pesan jenis="bahaya">Daftar gagal dimuat. Pastikan migrasi 0051 sudah dijalankan.</Pesan>}
+      <PesanSekali pesan={pesanFilterUsia(sp)} bersihkan={["filter", "m", "t", "p", "b"]} />
+      <Catatan
+        butir={[
+          error && { jenis: "bahaya", judul: "Daftar gagal dimuat", isi: `Muat ulang halaman ini.${teknis(role, "0051")}` },
+        ]}
+      />
 
       {/* Cara cepat: saring usia */}
       <details open={!!pratinjau} className="group rounded-xl border border-sky-100 bg-white shadow-sm">

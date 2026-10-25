@@ -6,9 +6,17 @@ import { ambilPeriode } from "@/lib/pilkades";
 import { tambahTps, hapusTps } from "../actions";
 import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
-import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
+import { JudulHalaman, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
+import PesanSekali from "@/components/pilkades/PesanSekali";
+import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Atur TPS" };
+
+const PESAN_HASIL = {
+  ok: (sp) => ["sukses", "Berhasil", sp.nama ? `“${sp.nama}” sudah ditambahkan.` : "TPS ditambahkan."],
+  kembar: ["perhatian", "Nama TPS sudah dipakai", "Gunakan nama lain, misalnya TPS 2."],
+  gagal: ["bahaya", "TPS gagal ditambahkan", COBA_LAGI],
+};
 
 export default async function TpsPage({ searchParams }) {
   const sp = await searchParams;
@@ -47,9 +55,7 @@ export default async function TpsPage({ searchParams }) {
         penjelasan="TPS adalah tempat pemungutan suara, yaitu tempat warga mencoblos. Tambahkan semua TPS yang akan dipakai di desa ini."
       />
 
-      {sp.hasil === "ok" && <Pesan jenis="sukses" judul="Berhasil">{sp.nama ? `“${sp.nama}” sudah ditambahkan.` : "TPS ditambahkan."}</Pesan>}
-      {sp.hasil === "kembar" && <Pesan jenis="perhatian" judul="Nama TPS sudah dipakai">Gunakan nama lain, misalnya TPS 2.</Pesan>}
-      {sp.hasil === "gagal" && <Pesan jenis="bahaya" judul="TPS gagal ditambahkan">Silakan coba lagi.</Pesan>}
+      <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
 
       {bisaUbah && (
         <Kartu>

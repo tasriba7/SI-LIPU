@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { tetapkanDaftar } from "../actions";
-import { IconKunci, kolom, labelKolom } from "@/components/pilkades/UI";
+import { IconKunci, Pesan, kolom, labelKolom } from "@/components/pilkades/UI";
 
 const WARNA = {
   DPS: { kotak: "border-amber-300", kepala: "bg-amber-100 text-amber-950", tombol: "bg-amber-600 hover:bg-amber-700 focus-visible:ring-amber-300" },
@@ -99,7 +99,7 @@ export default function FormTetapkan({ periodeId, jenis, jumlah, nonaktifAlasan,
       </div>
 
       {state?.error && (
-        <p role="alert" className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">{state.error}</p>
+        <Pesan jenis="bahaya" judul="Belum berhasil">{state.error}</Pesan>
       )}
       <Tombol jenis={jenis} siap={paham} />
     </form>

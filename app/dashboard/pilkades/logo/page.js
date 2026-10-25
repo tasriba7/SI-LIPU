@@ -4,7 +4,9 @@ import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode, ambilLogoPanitia, formatTanggal, EKSTENSI_LOGO, MAKS_LOGO_MB } from "@/lib/pilkades";
 import { simpanLogoPanitia } from "../actions";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
-import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
+import { JudulHalaman, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
+import PesanSekali from "@/components/pilkades/PesanSekali";
+import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Logo Panitia — Pilkades" };
 
@@ -14,7 +16,7 @@ const PESAN_HASIL = {
   kosong: ["perhatian", "Belum ada berkas dipilih", "Pilih gambar logo dulu."],
   format: ["perhatian", "Format tidak didukung", "Gunakan gambar PNG, JPG, atau WEBP."],
   besar: ["perhatian", `Ukuran terlalu besar`, `Ukuran logo maksimal ${MAKS_LOGO_MB} MB.`],
-  gagal: ["bahaya", "Gagal menyimpan", "Silakan coba lagi. Pastikan migrasi 0061 sudah dijalankan."],
+  gagal: ["bahaya", "Gagal menyimpan", COBA_LAGI],
 };
 
 export default async function LogoPanitiaPage({ searchParams }) {
@@ -27,7 +29,6 @@ export default async function LogoPanitiaPage({ searchParams }) {
     return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/periode" label="Buka Periode Pilkades" />;
   }
   const logo = await ambilLogoPanitia(supabase, periode.id);
-  const pesan = PESAN_HASIL[sp.hasil];
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
@@ -35,8 +36,7 @@ export default async function LogoPanitiaPage({ searchParams }) {
         judul={`Logo Panitia — ${periode.nama}`}
         penjelasan="Logo ini otomatis tampil di sebelah kiri kop dokumen cetak panitia: Daftar Pemilih (DPS/DPT) dan Berita Acara Hasil Pemilihan. Satu logo untuk satu periode."
       />
-      {pesan && <Pesan jenis={pesan[0]} judul={pesan[1]}>{pesan[2]}</Pesan>}
-      {!bisaUbah && <Pesan jenis="info">Logo diunggah oleh Panitia Pilkades. Akun ini hanya dapat melihat.</Pesan>}
+      <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
 
       <Kartu>
         <h2 className="text-base font-bold text-sky-950">Logo saat ini</h2>

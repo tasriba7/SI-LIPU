@@ -5,11 +5,20 @@ import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode, ambilRekapSuara, tentukanPemenang, formatTanggal } from "@/lib/pilkades";
 import { simpanSuaraTps, tetapkanTerpilih, batalkanPenetapan } from "../actions";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
-import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolom, kolomKecil, labelKolom } from "@/components/pilkades/UI";
+import { JudulHalaman, Catatan, Pesan, Kartu, KosongPandu, tombol, kolom, kolomKecil, labelKolom } from "@/components/pilkades/UI";
+import PesanSekali from "@/components/pilkades/PesanSekali";
+import { pesanDari, teknis, COBA_LAGI } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Hasil Suara — Pilkades" };
 
 const persenDari = (n, total) => (total ? Math.round((n / total) * 1000) / 10 : 0);
+
+const PESAN_HASIL = {
+  ok: ["sukses", "Rekap TPS tersimpan", "Tercatat di Riwayat Aktivitas."],
+  terpilih: ["sukses", "Calon terpilih ditetapkan", "Berita acara sekarang bisa dicetak."],
+  batal: ["sukses", "Penetapan dibatalkan", "Suara bisa diperbaiki lagi. Pembatalan tercatat di Riwayat beserta alasannya."],
+  gagal: (sp) => ["bahaya", "Tidak berhasil", sp.pesan || COBA_LAGI],
+};
 
 export default async function HasilPage({ searchParams }) {
   const sp = await searchParams;
@@ -50,12 +59,12 @@ export default async function HasilPage({ searchParams }) {
         penjelasan="Masukkan hasil hitung suara tiap TPS dari berita acara TPS. Yang dicatat hanya angka per calon, bukan pilihan individu. Setelah semua TPS terisi, calon terpilih bisa ditetapkan dan berita acara dicetak."
       />
 
-      {sp.hasil === "ok" && <Pesan jenis="sukses" judul="Rekap TPS tersimpan">Tercatat di Riwayat Aktivitas.</Pesan>}
-      {sp.hasil === "terpilih" && <Pesan jenis="sukses" judul="Calon terpilih ditetapkan">Berita acara sekarang bisa dicetak.</Pesan>}
-      {sp.hasil === "batal" && <Pesan jenis="sukses" judul="Penetapan dibatalkan">Suara bisa diperbaiki lagi. Pembatalan tercatat di Riwayat beserta alasannya.</Pesan>}
-      {sp.hasil === "gagal" && <Pesan jenis="bahaya" judul="Tidak berhasil">{sp.pesan || "Silakan coba lagi. Pastikan migrasi 0060 sudah dijalankan."}</Pesan>}
-      {rekap.error && <Pesan jenis="bahaya" judul="Data gagal dimuat">Pastikan migrasi 0054, 0055, dan 0060 sudah dijalankan.</Pesan>}
-      {!bisaUbah && <Pesan jenis="info">Hasil suara dicatat oleh Panitia Pilkades. Akun ini hanya dapat melihat.</Pesan>}
+      <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
+      <Catatan
+        butir={[
+          rekap.error && { jenis: "bahaya", judul: "Data gagal dimuat", isi: `Muat ulang halaman ini.${teknis(role, "0054", "0055", "0060")}` },
+        ]}
+      />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[

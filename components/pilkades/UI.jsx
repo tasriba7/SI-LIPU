@@ -43,25 +43,79 @@ export function JudulHalaman({ langkah, judul, penjelasan }) {
   );
 }
 
+// Gaya pesan: garis warna di kiri + latar lembut. Satu bahasa visual untuk semua halaman.
 const GAYA_PESAN = {
-  info: ["border-sky-300 bg-sky-50 text-sky-950", "bg-sky-600", "i"],
-  sukses: ["border-emerald-300 bg-emerald-50 text-emerald-950", "bg-emerald-600", "✓"],
-  perhatian: ["border-amber-300 bg-amber-50 text-amber-950", "bg-amber-500", "!"],
-  bahaya: ["border-red-300 bg-red-50 text-red-950", "bg-red-600", "!"],
+  info: ["border-sky-500 bg-sky-50 text-sky-950", "bg-sky-600", "i"],
+  sukses: ["border-emerald-500 bg-emerald-50 text-emerald-950", "bg-emerald-600", "✓"],
+  perhatian: ["border-amber-500 bg-amber-50 text-amber-950", "bg-amber-500", "!"],
+  bahaya: ["border-red-500 bg-red-50 text-red-950", "bg-red-600", "!"],
 };
 
-export function Pesan({ jenis = "info", judul, children }) {
+/** Satu pesan. `onTutup` (opsional) menampilkan tombol ×. */
+export function Pesan({ jenis = "info", judul, onTutup, children }) {
   const [kotak, bulat, simbol] = GAYA_PESAN[jenis] ?? GAYA_PESAN.info;
+  const isi = children !== undefined && children !== null && children !== false && children !== "";
   return (
-    <div role={jenis === "bahaya" ? "alert" : "status"} className={`flex gap-3 rounded-lg border p-3 ${kotak}`}>
-      <span className={`mt-0.5 flex h-6 w-6 shrink-0 text-xs items-center justify-center rounded-full font-bold text-white ${bulat}`}>
+    <div
+      role={jenis === "bahaya" ? "alert" : "status"}
+      className={`flex items-start gap-3 rounded-lg border-l-4 px-3 py-2.5 ${kotak}`}
+    >
+      <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${bulat}`}>
         {simbol}
       </span>
-      <div className="min-w-0 text-sm leading-relaxed">
+      <div className="min-w-0 flex-1 text-sm leading-relaxed">
         {judul && <p className="font-bold">{judul}</p>}
-        <div className={judul ? "mt-1" : ""}>{children}</div>
+        {isi && <div className={judul ? "mt-0.5" : ""}>{children}</div>}
       </div>
+      {onTutup && (
+        <button
+          type="button"
+          onClick={onTutup}
+          aria-label="Tutup pesan"
+          className="-mr-1 -mt-0.5 shrink-0 rounded-md px-2 py-0.5 text-lg leading-none text-slate-500 hover:bg-white/70 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300"
+        >
+          ×
+        </button>
+      )}
     </div>
+  );
+}
+
+const TITIK = { info: "bg-sky-600", sukses: "bg-emerald-600", perhatian: "bg-amber-500", bahaya: "bg-red-600" };
+
+/**
+ * Kumpulan catatan dalam SATU kartu (bukan kotak bertumpuk).
+ * `butir`: [{ jenis, judul, isi }]; butir yang kosong/false diabaikan.
+ * Satu butir saja tampil sebagai pesan biasa.
+ */
+export function Catatan({ butir, judul = "Perlu diperhatikan" }) {
+  const ada = (butir ?? []).filter(Boolean);
+  if (ada.length === 0) return null;
+  if (ada.length === 1) {
+    const b = ada[0];
+    return (
+      <Pesan jenis={b.jenis} judul={b.judul}>
+        {b.isi}
+      </Pesan>
+    );
+  }
+  return (
+    <section aria-label={judul} className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+      <h2 className="border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold uppercase tracking-wide text-slate-600">
+        {judul} · {ada.length}
+      </h2>
+      <ul className="divide-y divide-slate-100">
+        {ada.map((b, i) => (
+          <li key={i} className="flex items-start gap-3 px-3 py-2.5 text-sm leading-relaxed text-slate-800">
+            <span aria-hidden className={`mt-2 h-2 w-2 shrink-0 rounded-full ${TITIK[b.jenis] ?? TITIK.info}`} />
+            <p className="min-w-0">
+              {b.judul && <b className="text-slate-950">{b.judul}. </b>}
+              {b.isi}
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

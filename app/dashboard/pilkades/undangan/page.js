@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { ambilPeriode, ambilDptTerbaru, ambilLogoPanitia, ambilSusunanPanitia, formatTanggal } from "@/lib/pilkades";
 import Link from "next/link";
-import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
+import { JudulHalaman, Catatan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
 
 export const metadata = { title: "Surat Undangan Memilih — Pilkades" };
 
@@ -38,19 +38,26 @@ export default async function UndanganPage() {
         judul="Surat Undangan Memilih"
         penjelasan={`Surat pemberitahuan kepada pemilih untuk datang ke TPS. Isinya diambil dari DPT versi ${dpt.head.versi} (${dpt.head.jumlah ?? dpt.isi.length} pemilih): nama, nomor urut, dan TPS-nya. Dicetak 2 surat per lembar kertas, dengan bagian tanda terima yang digunting.`}
       />
-      {!logo && (
-        <Pesan jenis="perhatian" judul="Logo panitia belum diunggah">
-          Surat dicetak tanpa logo. <Link href="/dashboard/pilkades/logo" className="font-bold underline">Unggah logo →</Link>
-        </Pesan>
-      )}
-      {!susunan.ketua && (
-        <Pesan jenis="perhatian" judul="Nama Ketua belum diisi">
-          Kolom tanda tangan dicetak kosong. <Link href="/dashboard/pilkades/panitia" className="font-bold underline">Isi Susunan Panitia →</Link>
-        </Pesan>
-      )}
-      {!periode.tanggal_pemungutan && (
-        <Pesan jenis="perhatian" judul="Tanggal pemungutan belum diisi">Hari/tanggal dicetak berupa titik-titik untuk ditulis tangan.</Pesan>
-      )}
+      <Catatan
+        judul="Sebelum mencetak"
+        butir={[
+          !logo && {
+            jenis: "perhatian",
+            judul: "Logo panitia belum diunggah",
+            isi: (<>Surat dicetak tanpa logo. <Link href="/dashboard/pilkades/logo" className="font-bold underline">Unggah logo →</Link></>),
+          },
+          !susunan.ketua && {
+            jenis: "perhatian",
+            judul: "Nama Ketua belum diisi",
+            isi: (<>Kolom tanda tangan dicetak kosong. <Link href="/dashboard/pilkades/panitia" className="font-bold underline">Isi Susunan Panitia →</Link></>),
+          },
+          !periode.tanggal_pemungutan && {
+            jenis: "perhatian",
+            judul: "Tanggal pemungutan belum diisi",
+            isi: "Hari/tanggal dicetak berupa titik-titik untuk ditulis tangan.",
+          },
+        ]}
+      />
 
       <Kartu>
         <form action="/cetak/pilkades/undangan" target="_blank" className="space-y-5">

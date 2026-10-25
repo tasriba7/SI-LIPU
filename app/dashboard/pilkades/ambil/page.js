@@ -5,9 +5,16 @@ import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode } from "@/lib/pilkades";
 import { ambilCalonPemilih } from "../actions";
 import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
-import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
+import { JudulHalaman, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
+import PesanSekali from "@/components/pilkades/PesanSekali";
+import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Ambil Data Warga" };
+
+const PESAN_HASIL = {
+  ok: (sp) => ["sukses", "Berhasil", sp.n !== undefined ? `${sp.n} calon pemilih baru ditambahkan.` : "Data warga berhasil diambil."],
+  gagal: ["bahaya", "Belum berhasil", `Data warga gagal diambil. ${COBA_LAGI}`],
+};
 
 export default async function AmbilPage({ searchParams }) {
   const sp = await searchParams;
@@ -33,14 +40,7 @@ export default async function AmbilPage({ searchParams }) {
         penjelasan="Salin data warga yang sudah ada di SI-LIPU menjadi daftar calon pemilih. Anda tidak perlu mengetik ulang. Data warga yang asli tidak berubah."
       />
 
-      {sp.hasil === "ok" && (
-        <Pesan jenis="sukses" judul="Berhasil">
-          {sp.n !== undefined ? `${sp.n} calon pemilih baru ditambahkan.` : "Data warga berhasil diambil."}
-        </Pesan>
-      )}
-      {sp.hasil === "gagal" && (
-        <Pesan jenis="bahaya" judul="Belum berhasil">Data warga gagal diambil. Coba lagi, atau hubungi Administrator bila terus gagal.</Pesan>
-      )}
+      <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
 
       {total === 0 ? (
         <KosongPandu judul="Belum ada calon pemilih" teks="Klik tombol di bawah untuk mengambil data warga desa.">
@@ -68,7 +68,6 @@ export default async function AmbilPage({ searchParams }) {
           </div>
         </Kartu>
       )}
-      {!bisaUbah && <Pesan jenis="info">Akun ini hanya dapat melihat. Pengambilan data dilakukan oleh Panitia Pilkades.</Pesan>}
     </div>
   );
 }

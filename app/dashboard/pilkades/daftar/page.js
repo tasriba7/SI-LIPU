@@ -5,7 +5,7 @@ import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode, ambilLangkah, formatTanggal, JENIS_DAFTAR_LABEL } from "@/lib/pilkades";
 import FormTetapkan from "./FormTetapkan";
 import { DaftarLangkah } from "@/components/pilkades/PanduanLangkah";
-import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
+import { JudulHalaman, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
 
 export const metadata = { title: "Tetapkan DPS & DPT" };
 
@@ -77,8 +77,6 @@ export default async function DaftarPage() {
           )}
         </ul>
       </Kartu>
-
-      {!bisaUbah && <Pesan jenis="info">Penetapan DPS/DPT dilakukan oleh Panitia Pilkades. Akun ini hanya dapat melihat arsip.</Pesan>}
 
       {bisaUbah && (
         <div className="grid gap-4 md:grid-cols-2">

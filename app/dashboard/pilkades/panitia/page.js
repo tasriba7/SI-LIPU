@@ -4,7 +4,9 @@ import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode, ambilSusunanPanitia, JABATAN_PANITIA, JABATAN_UTAMA, PENANDATANGAN_DOKUMEN } from "@/lib/pilkades";
 import { simpanPanitia, hapusPanitia } from "../actions";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
-import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
+import { JudulHalaman, Catatan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
+import PesanSekali from "@/components/pilkades/PesanSekali";
+import { pesanDari, teknis, COBA_LAGI } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Susunan Panitia — Pilkades" };
 
@@ -12,6 +14,17 @@ const KETERANGAN = {
   ketua: "Menandatangani daftar pemilih dan dokumen resmi panitia.",
   sekretaris: "Menandatangani daftar pemilih bersama Ketua; mencatat berita acara.",
   bendahara: "Menandatangani dokumen keuangan panitia.",
+};
+
+const PESAN_HASIL = {
+  ok: (sp) => [
+    "sukses",
+    "Tersimpan",
+    sp.nama ? `${sp.nama} tercatat sebagai ${JABATAN_PANITIA[sp.jabatan]?.toLowerCase() ?? "panitia"}.` : "Susunan panitia diperbarui.",
+  ],
+  hapus: ["sukses", "Dihapus dari susunan panitia", ""],
+  pendek: ["perhatian", "Nama terlalu pendek", "Tulis nama lengkap, minimal 3 huruf."],
+  gagal: (sp) => ["bahaya", "Gagal menyimpan", sp.pesan || COBA_LAGI],
 };
 
 export default async function SusunanPanitiaPage({ searchParams }) {
@@ -35,29 +48,17 @@ export default async function SusunanPanitiaPage({ searchParams }) {
         penjelasan="Isi nama Ketua, Sekretaris, dan Bendahara. Anda tetap masuk dengan satu akun panitia; nama-nama ini otomatis dipakai pada kolom tanda tangan dokumen yang dicetak."
       />
 
-      {sp.hasil === "ok" && (
-        <Pesan jenis="sukses" judul="Tersimpan">
-          {sp.nama ? `${sp.nama} tercatat sebagai ${JABATAN_PANITIA[sp.jabatan]?.toLowerCase() ?? "panitia"}.` : "Susunan panitia diperbarui."}
-        </Pesan>
-      )}
-      {sp.hasil === "hapus" && <Pesan jenis="sukses" judul="Dihapus dari susunan panitia" />}
-      {sp.hasil === "pendek" && <Pesan jenis="perhatian" judul="Nama terlalu pendek">Tulis nama lengkap, minimal 3 huruf.</Pesan>}
-      {sp.hasil === "gagal" && (
-        <Pesan jenis="bahaya" judul="Gagal menyimpan">
-          {sp.pesan || "Silakan coba lagi. Pastikan migrasi 0059 sudah dijalankan."}
-        </Pesan>
-      )}
-      {susunan.error && (
-        <Pesan jenis="bahaya" judul="Susunan panitia gagal dimuat">
-          Pastikan migrasi 0059 sudah dijalankan di Supabase.
-        </Pesan>
-      )}
-      {!bisaUbah && <Pesan jenis="info">Susunan panitia diisi oleh Panitia Pilkades. Akun ini hanya dapat melihat.</Pesan>}
-      {bisaUbah && !susunan.error && kosong.length > 0 && (
-        <Pesan jenis="perhatian" judul="Belum lengkap">
-          Belum diisi: {kosong.map((j) => JABATAN_PANITIA[j]).join(", ")}. Kolom tanda tangan pada cetakan akan dibiarkan kosong sampai nama diisi.
-        </Pesan>
-      )}
+      <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
+      <Catatan
+        butir={[
+          susunan.error && { jenis: "bahaya", judul: "Susunan panitia gagal dimuat", isi: `Muat ulang halaman ini.${teknis(role, "0059")}` },
+          bisaUbah && !susunan.error && kosong.length > 0 && {
+            jenis: "perhatian",
+            judul: "Belum lengkap",
+            isi: `Belum diisi: ${kosong.map((j) => JABATAN_PANITIA[j]).join(", ")}. Kolom tanda tangan pada cetakan dibiarkan kosong sampai nama diisi.`,
+          },
+        ]}
+      />
 
       <section className="space-y-3">
         {JABATAN_UTAMA.map((j) => {

@@ -5,13 +5,21 @@ import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode, ambilDptTerbaru, ambilHadir, formatTanggal } from "@/lib/pilkades";
 import { catatHadir, batalHadir } from "../actions";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
-import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolomKecil } from "@/components/pilkades/UI";
+import { JudulHalaman, Catatan, Kartu, KosongPandu, tombol, kolomKecil } from "@/components/pilkades/UI";
+import PesanSekali from "@/components/pilkades/PesanSekali";
+import { pesanDari, teknis } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Daftar Hadir — Pilkades" };
 const PER_HALAMAN = 30;
 
 const jam = (t) =>
   new Date(t).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Makassar" });
+
+const PESAN_HASIL = {
+  ok: (sp) => ["sukses", "Hadir tercatat", sp.nama ? `${sp.nama} sudah dicatat hadir.` : "Kehadiran dicatat."],
+  batal: ["sukses", "Catatan hadir dibatalkan", "Pembatalan tercatat di Riwayat Aktivitas beserta alasannya."],
+  gagal: (sp) => ["bahaya", "Tidak berhasil", sp.pesan || "Silakan coba lagi."],
+};
 
 export default async function HadirPage({ searchParams }) {
   const sp = await searchParams;
@@ -93,11 +101,12 @@ export default async function HadirPage({ searchParams }) {
         penjelasan={`Dipakai pada hari pemungutan suara (${formatTanggal(periode.tanggal_pemungutan)}). Cari nama pemilih, lalu klik “Catat hadir”. Acuannya DPT versi ${dpt.head.versi} (ditetapkan ${formatTanggal(dpt.head.tanggal_penetapan)}). Satu pemilih hanya bisa dicatat sekali.`}
       />
 
-      {sp.hasil === "ok" && <Pesan jenis="sukses" judul="Hadir tercatat">{sp.nama ? `${sp.nama} sudah dicatat hadir.` : "Kehadiran dicatat."}</Pesan>}
-      {sp.hasil === "batal" && <Pesan jenis="sukses" judul="Catatan hadir dibatalkan">Pembatalan tercatat di Riwayat Aktivitas beserta alasannya.</Pesan>}
-      {sp.hasil === "gagal" && <Pesan jenis="bahaya" judul="Tidak berhasil">{sp.pesan || "Silakan coba lagi."}</Pesan>}
-      {(dpt.error || errHadir) && <Pesan jenis="bahaya" judul="Data gagal dimuat">Pastikan migrasi 0054 dan 0055 sudah dijalankan.</Pesan>}
-      {!bisaUbah && <Pesan jenis="info">Kehadiran dicatat oleh Panitia Pilkades. Akun ini hanya dapat melihat.</Pesan>}
+      <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
+      <Catatan
+        butir={[
+          (dpt.error || errHadir) && { jenis: "bahaya", judul: "Data gagal dimuat", isi: `Muat ulang halaman ini.${teknis(role, "0054", "0055")}` },
+        ]}
+      />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[

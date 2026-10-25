@@ -4,11 +4,15 @@ import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode, ambilCalon, STATUS_CALON, STATUS_CALON_BADGE } from "@/lib/pilkades";
 import { simpanCalon, hapusCalon } from "../actions";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
-import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
+import { JudulHalaman, Catatan, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
+import PesanSekali from "@/components/pilkades/PesanSekali";
+import { pesanDari, teknis, COBA_LAGI } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Calon Kepala Desa — Pilkades" };
 
 const PESAN_HASIL = {
+  ok: (sp) => ["sukses", "Tersimpan", sp.nama ? `Data ${sp.nama} sudah disimpan.` : "Data calon disimpan."],
+  hapus: ["sukses", "Calon dihapus", ""],
   nama: ["perhatian", "Nama terlalu pendek", "Tulis nama lengkap calon, minimal 3 huruf."],
   nomor: ["perhatian", "Nomor urut tidak valid", "Isi angka 1 sampai 99, atau kosongkan bila belum ada."],
   perlu_nomor: ["perhatian", "Nomor urut wajib untuk calon yang ditetapkan", "Isi nomor urut dulu, atau pilih status lain."],
@@ -16,7 +20,7 @@ const PESAN_HASIL = {
   nomor_kembar: ["perhatian", "Nomor urut sudah dipakai", "Setiap calon dalam satu periode harus punya nomor urut berbeda."],
   terkunci: ["perhatian", "Calon yang sudah ditetapkan tidak bisa dihapus", "Ubah statusnya lebih dulu bila memang ada kesalahan, lalu hapus."],
   terkunci_suara: ["perhatian", "Calon ini sudah punya data suara", "Status dan nomor urut calon yang sudah punya suara tidak bisa diubah, dan calonnya tidak bisa dihapus."],
-  gagal: ["bahaya", "Gagal menyimpan", "Silakan coba lagi. Pastikan migrasi 0054 dan 0055 sudah dijalankan."],
+  gagal: ["bahaya", "Gagal menyimpan", COBA_LAGI],
 };
 
 function FormCalon({ periodeId, calon }) {
@@ -65,7 +69,7 @@ export default async function CalonPage({ searchParams }) {
 
   const { data: calon, error } = await ambilCalon(supabase, periode.id);
   const ditetapkan = calon.filter((c) => c.status === "ditetapkan").length;
-  const pesan = PESAN_HASIL[sp.hasil];
+  
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
@@ -74,11 +78,12 @@ export default async function CalonPage({ searchParams }) {
         penjelasan="Catat calon yang mendaftar, hasil verifikasi berkas, dan nomor urutnya. Alurnya: Mendaftar → Lolos verifikasi berkas → Ditetapkan sebagai calon (dengan nomor urut)."
       />
 
-      {sp.hasil === "ok" && <Pesan jenis="sukses" judul="Tersimpan">{sp.nama ? `Data ${sp.nama} sudah disimpan.` : "Data calon disimpan."}</Pesan>}
-      {sp.hasil === "hapus" && <Pesan jenis="sukses" judul="Calon dihapus" />}
-      {pesan && <Pesan jenis={pesan[0]} judul={pesan[1]}>{pesan[2]}</Pesan>}
-      {error && <Pesan jenis="bahaya" judul="Daftar calon gagal dimuat">Pastikan migrasi 0054 dan 0055 sudah dijalankan.</Pesan>}
-      {!bisaUbah && <Pesan jenis="info">Data calon dikelola oleh Panitia Pilkades. Akun ini hanya dapat melihat.</Pesan>}
+      <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
+      <Catatan
+        butir={[
+          error && { jenis: "bahaya", judul: "Daftar calon gagal dimuat", isi: `Muat ulang halaman ini.${teknis(role, "0054", "0055")}` },
+        ]}
+      />
 
       <div className="grid grid-cols-3 gap-3">
         {[

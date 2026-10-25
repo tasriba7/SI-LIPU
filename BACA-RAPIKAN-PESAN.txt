@@ -1,0 +1,37 @@
+Pilkades: perapian pesan (hanya tampilan, tanpa migrasi, tanpa paket baru, tanpa ubah database)
+Dibuat di atas commit main 8f4b362 ("Add files via upload").
+
+CARA PAKAI
+1. Ekstrak zip ini, salin folder app, components, lib ke folder repo SI-LIPU. Pilih "Timpa / Replace".
+2. npm run dev (atau npm run build), buka /dashboard/pilkades.
+
+APA YANG BERUBAH
+- Satu gaya pesan di semua halaman: garis warna di kiri, ikon kecil, lebih tipis.
+- Kumpulan catatan dijadikan SATU kartu berdaftar (komponen Catatan), bukan kotak bertumpuk.
+  Contoh: Surat Undangan (3 peringatan -> 1 kartu), Susunan Panitia, Cetak Daftar.
+- Pesan hasil aksi (Berhasil/Gagal) tampil sekali: kode pesan dihapus dari alamat halaman,
+  jadi muat ulang tidak memunculkannya lagi. Ada tombol x. Pesan "Berhasil" hilang sendiri 8 detik.
+- Pemberitahuan "Anda masuk sebagai Administrator (hanya melihat)" kini tampil SATU kali di layout,
+  tidak diulang di tiap halaman.
+- Kata-kata teknis ("jalankan migrasi 0060") dihapus dari pesan untuk panitia. Nomor migrasi
+  hanya muncul untuk Administrator, lewat fungsi teknis() di lib/pilkadesPesan.js.
+- Teks pesan tiap halaman dikumpulkan dalam satu peta PESAN_HASIL di bagian atas file halaman.
+- Halaman Cetak Daftar: tiga kotak info digabung jadi satu kartu "Catatan cetak".
+
+FILE BARU
+- components/pilkades/PesanSekali.jsx
+- lib/pilkadesPesan.js
+- BACA-RAPIKAN-PESAN.txt (boleh tidak disalin)
+
+FILE DITIMPA
+- components/pilkades/UI.jsx   (Pesan lebih rapi + komponen Catatan; semua ekspor lama tetap ada)
+- app/dashboard/pilkades/layout.js
+- app/dashboard/pilkades/actions.js   (hanya 3 kalimat pesan galat, tanpa nomor migrasi)
+- app/dashboard/pilkades/{ambil,calon,cetak,daftar,hadir,hasil,logo,panitia,pemilih,tempatkan,tps,undangan}/page.js
+- app/dashboard/pilkades/daftar/FormTetapkan.jsx
+
+UJI CEPAT
+a. Login sebagai admin: muncul satu kotak biru "Anda masuk sebagai Administrator" di atas tiap halaman Pilkades.
+b. Login sebagai panitia: tambah TPS -> pesan hijau "Berhasil" muncul, tekan F5, pesan hilang.
+c. Tambah TPS dengan nama yang sama -> pesan kuning "Nama TPS sudah dipakai", tombol x menutupnya.
+d. Buka Surat Undangan tanpa logo dan tanpa nama ketua -> satu kartu "Sebelum mencetak · 2".

@@ -7,10 +7,19 @@ import { masukkanKeTps } from "../actions";
 import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
 import TabelTempatkan from "./TabelTempatkan";
-import { JudulHalaman, Pesan, Kartu, KosongPandu, tombol, kolomKecil } from "@/components/pilkades/UI";
+import { JudulHalaman, Kartu, KosongPandu, tombol, kolomKecil } from "@/components/pilkades/UI";
+import PesanSekali from "@/components/pilkades/PesanSekali";
+import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Tempatkan Pemilih ke TPS" };
 const PER_HALAMAN = 50;
+
+const PESAN_HASIL = {
+  ok: (sp) => ["sukses", "Berhasil", `${sp.n} pemilih dimasukkan ke ${sp.tps}.`],
+  kosong: ["perhatian", "Belum ada yang dipilih", "Centang nama pemilih dulu, atau tidak ada pemilih yang cocok."],
+  tps: ["perhatian", "TPS belum dipilih", "Pilih TPS tujuan dulu."],
+  gagal: ["bahaya", "Gagal menyimpan", COBA_LAGI],
+};
 
 export default async function TempatkanPage({ searchParams }) {
   const sp = await searchParams;
@@ -98,10 +107,7 @@ export default async function TempatkanPage({ searchParams }) {
         penjelasan="Tentukan tiap pemilih mencoblos di TPS mana. Hanya warga yang berstatus “Memenuhi syarat” yang tampil di sini. Anda bisa memasukkan banyak orang sekaligus."
       />
 
-      {sp.hasil === "ok" && <Pesan jenis="sukses" judul="Berhasil">{sp.n} pemilih dimasukkan ke {sp.tps}.</Pesan>}
-      {sp.hasil === "kosong" && <Pesan jenis="perhatian" judul="Belum ada yang dipilih">Centang nama pemilih dulu, atau tidak ada pemilih yang cocok.</Pesan>}
-      {sp.hasil === "tps" && <Pesan jenis="perhatian" judul="TPS belum dipilih">Pilih TPS tujuan dulu.</Pesan>}
-      {sp.hasil === "gagal" && <Pesan jenis="bahaya" judul="Gagal menyimpan">Silakan coba lagi.</Pesan>}
+      <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} bersihkan={["hasil", "n", "tps"]} />
 
       {/* Ringkasan per TPS */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

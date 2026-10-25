@@ -132,7 +132,7 @@ export async function tetapkanDaftar(prevState, formData) {
   if (error || !data) {
     // Pesan dari fungsi database (P0001) sudah berbahasa Indonesia dan aman ditampilkan.
     const aman = error?.code === "P0001" ? error.message : null;
-    return { error: aman ?? "Gagal menetapkan daftar. Pastikan migrasi 0052 sudah dijalankan." };
+    return { error: aman ?? "Gagal menetapkan daftar. Silakan coba lagi. Bila tetap gagal, hubungi Administrator desa." };
   }
 
   revalidatePath("/dashboard/pilkades", "layout");
@@ -435,7 +435,7 @@ export async function simpanSuaraTps(formData) {
   revalidatePath("/dashboard/pilkades", "layout");
   if (error) {
     // Pesan fungsi database (P0001) sudah berbahasa Indonesia dan aman ditampilkan.
-    const pesan = error.code === "P0001" ? error.message : "Gagal menyimpan. Pastikan migrasi 0060 sudah dijalankan.";
+    const pesan = error.code === "P0001" ? error.message : "Gagal menyimpan. Silakan coba lagi. Bila tetap gagal, hubungi Administrator desa.";
     redirect(`${ALAMAT_HASIL}?hasil=gagal&tps=${tpsId}&pesan=${encodeURIComponent(pesan)}`);
   }
   redirect(`${ALAMAT_HASIL}?hasil=ok&tps=${tpsId}`);
@@ -462,7 +462,7 @@ export async function tetapkanTerpilih(formData) {
   });
   revalidatePath("/dashboard/pilkades", "layout");
   if (error) {
-    const pesan = error.code === "P0001" ? error.message : "Gagal menetapkan. Pastikan migrasi 0060 sudah dijalankan.";
+    const pesan = error.code === "P0001" ? error.message : "Gagal menetapkan. Silakan coba lagi. Bila tetap gagal, hubungi Administrator desa.";
     redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent(pesan)}`);
   }
   redirect(`${ALAMAT_HASIL}?hasil=terpilih`);
