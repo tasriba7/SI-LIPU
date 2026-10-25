@@ -3,7 +3,7 @@ import { ambilPeriode } from "@/lib/pilkades";
 import { ambilKunciPilkades } from "@/lib/pilkadesKunci";
 import TabHalaman from "@/components/pilkades/TabHalaman";
 
-// Menu gabungan "Hari Pemungutan": Daftar Hadir + Hasil Suara & Berita Acara.
+// Menu gabungan "Hari Pemungutan": Cetak Daftar Hadir + Hasil Suara & Berita Acara.
 // Tab yang belum waktunya diberi gembok (klik = penjelasan).
 export default async function HariHLayout({ children }) {
   const supabase = await createClient();
@@ -13,7 +13,7 @@ export default async function HariHLayout({ children }) {
       <TabHalaman
         judul="Hari Pemungutan"
         tab={[
-          { href: "/dashboard/pilkades/hari-h/hadir", label: "1. Daftar Hadir", kunci: peta["/dashboard/pilkades/hari-h/hadir"] },
+          { href: "/dashboard/pilkades/hari-h/hadir", label: "1. Cetak Daftar Hadir", kunci: peta["/dashboard/pilkades/hari-h/hadir"] },
           { href: "/dashboard/pilkades/hari-h/hasil", label: "2. Hasil Suara & Berita Acara", kunci: peta["/dashboard/pilkades/hari-h/hasil"] },
         ]}
       />

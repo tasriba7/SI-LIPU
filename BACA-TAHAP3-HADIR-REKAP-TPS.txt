@@ -1,0 +1,46 @@
+TAHAP 3: Daftar hadir jadi dokumen cetak, hari-H hanya rekap angka per TPS
+Prasyarat: Tahap 1 (0065) dan Tahap 2 (0066) sudah dijalankan.
+
+CARA PASANG
+1. Jalankan supabase/migrations/0067_pilkades_tahap3_hadir_rekap_tps.sql di Supabase SQL Editor
+   (aman diulang).
+2. Ekstrak zip ke folder repo, pilih "Timpa". Tidak ada paket npm baru.
+3. Deploy ulang aplikasi.
+
+YANG BERUBAH
+- Tab "1. Cetak Daftar Hadir": tombol "Catat hadir" dan "Batalkan" HILANG. Halaman ini hanya
+  menampilkan rangkuman per TPS (DPT, Pemilih Tambahan, total) dan form cetak. Ada tautan
+  "Cetak TPS ini" di tiap baris.
+- Dokumen cetak daftar hadir:
+  * Halaman terakhir daftar memuat baris "Rangkuman": jumlah nama (DPT + Pemilih Tambahan)
+    dan titik-titik untuk jumlah hadir yang ditulis petugas.
+  * Bila yang dicetak lebih dari satu TPS, ada halaman tambahan "Rangkuman Daftar Hadir per TPS"
+    (kolom Jumlah hadir dan Paraf dikosongkan untuk diisi tangan).
+  * Pilihan "Siapa yang dicetak" (belum/sudah hadir) dihapus karena aplikasi tidak lagi
+    mencatat hadir per orang.
+- Tab "2. Hasil Suara & Berita Acara": tiap TPS punya isian baru "Jumlah pemilih yang hadir".
+  Validasi baru (dijaga database):
+  * Jumlah hadir wajib diisi dan tidak boleh melebihi pemilih terdaftar di TPS itu
+    (DPT + Pemilih Tambahan).
+  * Suara sah + tidak sah tidak boleh melebihi jumlah hadir.
+- Database menolak pilkades_catat_hadir dan pilkades_batal_hadir (tidak sekadar tombol hilang).
+  Tabel pilkades_hadir tidak dihapus; isinya tinggal sebagai arsip.
+- Data lama: hadir per TPS yang sudah pernah direkap dipindahkan otomatis dari catatan hadir lama.
+- Pemilih Tambahan tidak bisa ditambah/dibatalkan bila rekap TPS-nya sudah diisi.
+- Berita acara tidak diubah (Tahap 4); angka "Pemilih hadir" di sana kini berasal dari angka yang
+  diisi panitia.
+
+CARA UJI
+1. Buka Hari Pemungutan > tab 1. Pastikan tidak ada tombol "Catat hadir". Coba cetak satu TPS
+   dan semua TPS; periksa baris Rangkuman dan halaman rangkuman per TPS.
+2. Buka tab 2, isi satu TPS: hadir lebih besar dari terdaftar harus ditolak; suara sah + tidak sah
+   lebih besar dari hadir harus ditolak; angka yang benar harus tersimpan.
+3. Pada TPS yang sudah direkap, coba tambah atau batalkan Pemilih Tambahan: harus ditolak.
+4. (Opsional, di SQL Editor) select tps_id, hadir, suara_tidak_sah from pilkades_suara_tps;
+   semua baris harus punya angka hadir.
+
+CATATAN
+- Teks Perbup tidak ada di repo. Batas "hadir tidak melebihi terdaftar" dan "suara <= hadir" adalah
+  pemeriksaan kewajaran; mohon cocokkan dengan ketentuan Perbup bila ada aturan yang berbeda.
+- Kode lolos cek sintaks (pglast untuk SQL, esbuild untuk JS), belum dijalankan di Supabase/aplikasi Anda.
+- Rollback: lihat bagian akhir file 0067.

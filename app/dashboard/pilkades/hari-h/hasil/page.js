@@ -70,20 +70,20 @@ export default async function HasilPage({ searchParams }) {
     <div className="mx-auto max-w-5xl space-y-5">
       <JudulHalaman
         judul={`Hasil Suara — ${periode.nama}`}
-        penjelasan="Masukkan hasil hitung suara tiap TPS dari berita acara TPS. Yang dicatat hanya angka per calon, bukan pilihan individu. Setelah semua TPS terisi, calon terpilih bisa ditetapkan dan berita acara dicetak."
+        penjelasan="Masukkan rangkuman angka tiap TPS dari berita acara TPS: jumlah pemilih yang hadir (dihitung dari daftar hadir yang sudah ditandatangani) dan hasil hitung suara. Yang dicatat hanya angka, bukan nama pemilih atau pilihan individu. Setelah semua TPS terisi, calon terpilih bisa ditetapkan dan berita acara dicetak."
       />
 
       <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
       <Catatan
         butir={[
-          rekap.error && { jenis: "bahaya", judul: "Data gagal dimuat", isi: `Muat ulang halaman ini.${teknis(role, "0054", "0055", "0060")}` },
+          rekap.error && { jenis: "bahaya", judul: "Data gagal dimuat", isi: `Muat ulang halaman ini.${teknis(role, "0054", "0055", "0060", "0067")}` },
         ]}
       />
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
           ["TPS sudah diisi", `${total.tpsDiisi} / ${tps.length}`, "border-sky-200 bg-sky-50 text-sky-800"],
-          ["Pemilih hadir", total.hadir, "border-slate-200 bg-slate-50 text-slate-800"],
+          ["Pemilih hadir (TPS terisi)", total.hadir, "border-slate-200 bg-slate-50 text-slate-800"],
           ["Suara sah", total.sah, "border-emerald-200 bg-emerald-50 text-emerald-800"],
           ["Suara tidak sah", total.tidakSah, "border-amber-200 bg-amber-50 text-amber-800"],
         ].map(([label, n, gaya]) => (
@@ -123,6 +123,7 @@ export default async function HasilPage({ searchParams }) {
             <thead className="text-sm font-bold text-sky-900">
               <tr>
                 <th className="py-2 pr-4">TPS</th>
+                <th className="py-2 pr-4">Terdaftar</th>
                 <th className="py-2 pr-4">Hadir</th>
                 {calon.map((c) => <th key={c.id} className="py-2 pr-4">No. {c.nomor_urut}</th>)}
                 <th className="py-2 pr-4">Tidak sah</th>
@@ -133,7 +134,8 @@ export default async function HasilPage({ searchParams }) {
               {tps.map((t) => (
                 <tr key={t.id}>
                   <td className="py-2 pr-4 font-semibold text-slate-900">{t.nama}</td>
-                  <td className="py-2 pr-4">{t.hadir}</td>
+                  <td className="py-2 pr-4">{t.dpt}</td>
+                  <td className="py-2 pr-4">{t.diisi ? t.hadir : "–"}</td>
                   {calon.map((c) => <td key={c.id} className="py-2 pr-4">{t.diisi ? (t.suara[c.id] ?? 0) : "–"}</td>)}
                   <td className="py-2 pr-4">{t.diisi ? t.tidakSah : "–"}</td>
                   <td className="py-2 pr-4">
@@ -143,7 +145,7 @@ export default async function HasilPage({ searchParams }) {
                   </td>
                 </tr>
               ))}
-              {!tps.length && <tr><td colSpan={calon.length + 4} className="py-6 text-center text-slate-500">Belum ada TPS.</td></tr>}
+              {!tps.length && <tr><td colSpan={calon.length + 5} className="py-6 text-center text-slate-500">Belum ada TPS.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -155,11 +157,16 @@ export default async function HasilPage({ searchParams }) {
           {tps.map((t) => (
             <details key={t.id} open={tpsDibuka === t.id} className="rounded-xl border border-sky-100 bg-white p-4 shadow-sm">
               <summary className="cursor-pointer text-sm font-bold text-sky-900">
-                {t.nama} <span className="font-normal text-slate-600">— {t.hadir} pemilih tercatat hadir{t.diisi ? " · sudah diisi" : ""}</span>
+                {t.nama} <span className="font-normal text-slate-600">— {t.dpt} pemilih terdaftar{t.tambahan ? ` (termasuk ${t.tambahan} Pemilih Tambahan)` : ""}{t.diisi ? " · sudah diisi" : ""}</span>
               </summary>
               <form action={simpanSuaraTps} className="mt-4 grid gap-4 sm:grid-cols-2">
                 <input type="hidden" name="periode_id" value={periode.id} />
                 <input type="hidden" name="tps_id" value={t.id} />
+                <label className={`${labelKolom} sm:col-span-2`}>
+                  Jumlah pemilih yang hadir
+                  <input type="number" name="hadir" min="0" max={t.dpt} step="1" required inputMode="numeric"
+                    defaultValue={t.diisi ? t.hadir : ""} className={`${kolom} mt-1 font-normal`} />
+                </label>
                 {calon.map((c) => (
                   <label key={c.id} className={labelKolom}>
                     No. {c.nomor_urut} — {c.nama}
@@ -173,7 +180,7 @@ export default async function HasilPage({ searchParams }) {
                     defaultValue={t.diisi ? t.tidakSah : ""} className={`${kolom} mt-1 font-normal`} />
                 </label>
                 <p className="text-sm text-slate-600 sm:col-span-2">
-                  Isi 0 bila tidak ada. Jumlah suara sah + tidak sah tidak boleh melebihi pemilih yang tercatat hadir di TPS ini ({t.hadir}).
+                  Isi 0 bila tidak ada. Jumlah hadir tidak boleh melebihi pemilih terdaftar di TPS ini ({t.dpt}), dan suara sah + tidak sah tidak boleh melebihi jumlah hadir.
                 </p>
                 <div className="sm:col-span-2">
                   <button className={t.diisi ? tombol.sekunder : tombol.utama}>{t.diisi ? "Simpan perubahan" : "Simpan hasil TPS ini"}</button>

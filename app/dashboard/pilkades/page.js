@@ -34,8 +34,8 @@ function fasePasca(data) {
   }
   if (!data.hasil) {
     return {
-      judul: "Hari pemungutan: undangan, daftar hadir & hasil suara",
-      teks: "Cetak dan bagikan surat undangan ke pemilih. Pada hari pemungutan, catat pemilih yang hadir di TPS, lalu masukkan rekap suara tiap TPS dan tetapkan calon terpilih.",
+      judul: "Hari pemungutan: undangan, daftar hadir cetak & hasil suara",
+      teks: "Cetak dan bagikan surat undangan ke pemilih. Cetak daftar hadir untuk ditandatangani pemilih di TPS. Setelah pemungutan, masukkan rekap angka tiap TPS (jumlah hadir dan suara) lalu tetapkan calon terpilih.",
       tautanLain: { href: "/dashboard/pilkades/undangan", label: "Cetak surat undangan" },
       href: "/dashboard/pilkades/hari-h/hadir",
       tombol: "Buka Hari Pemungutan",

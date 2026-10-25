@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { jagaHalamanPilkades } from "@/lib/akses";
 import { getConfigDesa } from "@/lib/configDesa";
 import {
-  ambilPeriode, ambilDptTerbaru, ambilHadir, ambilSusunanPanitia, susunPenandatangan,
+  ambilPeriode, ambilDptTerbaru, ambilSusunanPanitia, susunPenandatangan,
   ambilLogoPanitia, formatTanggal,
 } from "@/lib/pilkades";
 import BlokTtd from "@/components/pilkades/BlokTtd";
@@ -52,17 +52,14 @@ export default async function CetakDaftarHadir({ searchParams }) {
   const dpt = await ambilDptTerbaru(supabase, periode.id);
   if (!dpt.head) redirect("/dashboard/pilkades/hari-h/hadir");
 
-  const [{ data: hadirList }, desa, susunan, logo] = await Promise.all([
-    ambilHadir(supabase, periode.id),
+  const [desa, susunan, logo] = await Promise.all([
     getConfigDesa(supabase),
     ambilSusunanPanitia(supabase, periode.id),
     ambilLogoPanitia(supabase, periode.id),
   ]);
-  const sudahHadir = new Set((hadirList ?? []).map((h) => h.warga_id));
 
   const fTps = String(sp.tps ?? "");
   const fDusun = String(sp.dusun ?? "");
-  const tampil = ["semua", "belum", "sudah"].includes(sp.tampil) ? sp.tampil : "semua";
   const tampilNik = sp.nik === "1";
   const kertas = KERTAS[sp.kertas] ? sp.kertas : "f4";
   const dua = sp.tata !== "1kolom"; // bawaan: 2 kolom lanskap = paling banyak nama per lembar
@@ -72,8 +69,7 @@ export default async function CetakDaftarHadir({ searchParams }) {
     .filter(
       (r) =>
         (!fTps || (r.tps_nama ?? "Tanpa TPS") === fTps) &&
-        (!fDusun || r.dusun === fDusun) &&
-        (tampil === "semua" || (tampil === "sudah" ? sudahHadir.has(r.warga_id) : !sudahHadir.has(r.warga_id)))
+        (!fDusun || r.dusun === fDusun)
     )
     .sort((a, b) => (a.tps_nama ?? "").localeCompare(b.tps_nama ?? "", "id") || a.urut - b.urut);
 
@@ -110,8 +106,23 @@ export default async function CetakDaftarHadir({ searchParams }) {
   const tempatTanggal = periode.tanggal_pemungutan
     ? `${desa.nama_desa ?? ""}${desa.nama_desa ? ", " : ""}${formatTanggal(periode.tanggal_pemungutan)}`
     : null;
-  const sasaran = [sasaranTps, fDusun && `Dusun ${fDusun}`, tampil === "belum" && "Yang belum hadir", tampil === "sudah" && "Yang sudah hadir"]
-    .filter(Boolean).join(" · ");
+  const sasaran = [sasaranTps, fDusun && `Dusun ${fDusun}`].filter(Boolean).join(" · ");
+
+  // Rangkuman angka per TPS (dari nama yang dicetak). Kolom "Jumlah hadir" dikosongkan:
+  // petugas mengisinya dengan tangan setelah menghitung tanda tangan, lalu angkanya
+  // dimasukkan ke aplikasi di tab Hasil Suara.
+  const rangkumanMap = new Map();
+  for (const r of terisi) {
+    const k = r.tps_nama ?? "Tanpa TPS";
+    const e = rangkumanMap.get(k) ?? { tps: k, dpt: 0, tambahan: 0 };
+    if (r.tambahan) e.tambahan += 1;
+    else e.dpt += 1;
+    rangkumanMap.set(k, e);
+  }
+  const rangkuman = [...rangkumanMap.values()].sort((a, b) => a.tps.localeCompare(b.tps, "id"));
+  const adaRangkumanHalaman = rangkuman.length > 1;
+  const jumlahDpt = rangkuman.reduce((n, e) => n + e.dpt, 0);
+  const jumlahTambahan = rangkuman.reduce((n, e) => n + e.tambahan, 0);
 
   const Tabel = ({ rows }) => (
     <table className="tbl">
@@ -174,6 +185,13 @@ export default async function CetakDaftarHadir({ searchParams }) {
         .ttd { text-align: center; min-width: 55mm; }
         .ttd .ruang { height: 9mm; }
         .ttd-nama { font-weight: 700; }
+        .rkp { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 10pt; margin-top: 4mm; }
+        .rkp th, .rkp td { border: 0.35mm solid #000; padding: 1.5mm 2mm; text-align: center; }
+        .rkp th { background: #e5e7eb; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .rkp td.kiri { text-align: left; }
+        .rkp td.isi { height: 9mm; }
+        .rkp-judul { font-size: 11pt; font-weight: 700; margin: 4mm 0 0; }
+        .rkp-baris { font-size: 8.5pt; font-weight: 700; margin-bottom: 0.6mm; }
         @media print { .no-print, button { display: none !important; } }
         @media screen { .hal { max-width: ${lebar}mm; margin: 12px auto; padding: ${MARGIN}mm; border: 1px solid #cbd5e1; background: #fff; box-sizing: content-box; } }
       `}</style>
@@ -210,6 +228,11 @@ export default async function CetakDaftarHadir({ searchParams }) {
 
             <div className="kaki">
               <div>
+                {akhir && (
+                  <div className="rkp-baris">
+                    Rangkuman: {terisi.length} nama tercantum (DPT {jumlahDpt} + Pemilih Tambahan {jumlahTambahan}) · Jumlah hadir (diisi petugas): ……………… orang
+                  </div>
+                )}
                 Halaman {n + 1} dari {jumlahHal} · Nomor {mulai + 1}–{mulai + h.isi.length} dari {semua.length} orang<br />
                 DPT versi {dpt.head.versi} (ditetapkan {formatTanggal(dpt.head.tanggal_penetapan)}) · Dicetak {cetakPada}
               </div>
@@ -224,6 +247,59 @@ export default async function CetakDaftarHadir({ searchParams }) {
           </section>
         );
       })}
+
+      {adaRangkumanHalaman && (
+        <section className="hal">
+          <div className="kop">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {logo && <img src={logo.url} alt="" className="logo-kop" />}
+            <h1>RANGKUMAN DAFTAR HADIR PER TPS</h1>
+            <p>{periode.nama.toUpperCase()} · {namaDesa.toUpperCase()}</p>
+            <p>{sasaran} · Pemungutan suara: {formatTanggal(periode.tanggal_pemungutan)}</p>
+          </div>
+          <p className="rkp-judul">Isi kolom “Jumlah hadir” dengan jumlah tanda tangan di daftar hadir tiap TPS.</p>
+          <table className="rkp">
+            <thead>
+              <tr>
+                <th style={{ width: "26%" }}>TPS</th>
+                <th>Pemilih di DPT</th>
+                <th>Pemilih Tambahan</th>
+                <th>Jumlah terdaftar</th>
+                <th style={{ width: "20%" }}>Jumlah hadir</th>
+                <th style={{ width: "14%" }}>Paraf</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rangkuman.map((e) => (
+                <tr key={e.tps}>
+                  <td className="kiri isi">{e.tps}</td>
+                  <td>{e.dpt}</td>
+                  <td>{e.tambahan}</td>
+                  <td>{e.dpt + e.tambahan}</td>
+                  <td />
+                  <td />
+                </tr>
+              ))}
+              <tr>
+                <td className="kiri isi"><b>Jumlah</b></td>
+                <td><b>{jumlahDpt}</b></td>
+                <td><b>{jumlahTambahan}</b></td>
+                <td><b>{jumlahDpt + jumlahTambahan}</b></td>
+                <td />
+                <td />
+              </tr>
+            </tbody>
+          </table>
+          <div className="kaki">
+            <div>DPT versi {dpt.head.versi} (ditetapkan {formatTanggal(dpt.head.tanggal_penetapan)}) · Dicetak {cetakPada}</div>
+            <BlokTtd
+              judulPanitia={`Panitia Pemilihan Kepala ${sebutan}`}
+              tempatTanggal={tempatTanggal}
+              penandatangan={penandatangan}
+            />
+          </div>
+        </section>
+      )}
     </>
   );
 }
