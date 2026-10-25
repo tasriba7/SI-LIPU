@@ -1,3 +1,5 @@
+import TahapTerkunci from "@/components/pilkades/TahapTerkunci";
+import { kunciHalaman } from "@/lib/pilkadesKunci";
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import {
@@ -15,6 +17,10 @@ export default async function PilihanCetak() {
   if (!periode) {
     return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/periode" label="Buka Periode Pilkades" />;
   }
+
+  // Gerbang urutan kerja: tahap ini terkunci sampai pekerjaan sebelumnya selesai.
+  const kunci = await kunciHalaman(supabase, periode, "/dashboard/pilkades/cetak");
+  if (kunci) return <TahapTerkunci kunci={kunci} />;
 
   const [{ data: tps }, { data: pemilih }, { data: arsip }] = await Promise.all([
     supabase.from("pilkades_tps").select("id, nama").eq("periode_id", periode.id).order("nama"),

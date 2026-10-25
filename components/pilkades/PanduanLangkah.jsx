@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { ambilPeriode, ambilLangkah } from "@/lib/pilkades";
 import { IconCheck } from "@/components/icons";
 import { IconKunci, tombol } from "./UI";
+import TombolTerkunci from "./TombolTerkunci";
+import { hitungKunci } from "@/lib/pilkadesKunci";
 
 // Warna ikon tiap langkah (class ditulis utuh agar terbaca Tailwind).
 const WARNA_LANGKAH = [
@@ -37,12 +39,13 @@ function Bulat({ no, status }) {
 }
 
 /** Tampilan murni (tanpa query): dipakai dashboard (lengkap) dan bilah di tiap halaman (ringkas). */
-export function DaftarLangkah({ langkah, aktif, varian = "ringkas" }) {
+export function DaftarLangkah({ langkah, aktif, varian = "ringkas", kunciPeta = {} }) {
   if (varian === "lengkap") {
     return (
       <ol className="space-y-3">
         {langkah.map((l, i) => {
           const kunci = l.status === "terkunci";
+          const infoKunci = kunciPeta[l.href];
           return (
             <li
               key={l.kunci}
@@ -63,7 +66,14 @@ export function DaftarLangkah({ langkah, aktif, varian = "ringkas" }) {
                 <p className="mt-0.5 text-sm text-slate-700">{l.penjelasan}</p>
                 <p className="mt-0.5 text-sm font-medium text-slate-500">{l.ket}</p>
               </div>
-              {kunci ? null : (
+              {kunci ? (
+                infoKunci ? (
+                  <TombolTerkunci kunci={infoKunci} className={`${tombol.sekunder} gap-1.5`}>
+                    <IconKunci className="h-4 w-4" />
+                    Kenapa terkunci?
+                  </TombolTerkunci>
+                ) : null
+              ) : (
                 <Link href={l.href} className={l.status === "selesai" ? tombol.sekunder : tombol.utama}>
                   {l.status === "selesai" ? "Lihat" : "Kerjakan"}
                 </Link>
@@ -94,9 +104,18 @@ export function DaftarLangkah({ langkah, aktif, varian = "ringkas" }) {
           return (
             <li key={l.kunci}>
               {l.status === "terkunci" ? (
-                <div title={l.ket} className={`flex items-center gap-2 rounded-xl border bg-slate-50 p-2.5 opacity-80 ${ring}`}>
-                  {isi}
-                </div>
+                kunciPeta[l.href] ? (
+                  <TombolTerkunci
+                    kunci={kunciPeta[l.href]}
+                    className={`flex w-full items-center gap-2 rounded-xl border bg-slate-50 p-2.5 text-left opacity-90 transition hover:border-amber-400 ${ring}`}
+                  >
+                    {isi}
+                  </TombolTerkunci>
+                ) : (
+                  <div title={l.ket} className={`flex items-center gap-2 rounded-xl border bg-slate-50 p-2.5 opacity-80 ${ring}`}>
+                    {isi}
+                  </div>
+                )
               ) : (
                 <Link href={l.href} className={`flex items-center gap-2 rounded-xl border bg-white p-2.5 transition hover:border-sky-400 ${ring}`}>
                   {isi}
@@ -116,5 +135,5 @@ export default async function PanduanLangkah({ aktif }) {
   const periode = await ambilPeriode(supabase);
   if (!periode) return null;
   const s = await ambilLangkah(supabase, periode);
-  return <DaftarLangkah langkah={s.langkah} aktif={aktif} />;
+  return <DaftarLangkah langkah={s.langkah} aktif={aktif} kunciPeta={hitungKunci(s)} />;
 }

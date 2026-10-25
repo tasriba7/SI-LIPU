@@ -7,6 +7,8 @@ import { useRouter, usePathname } from "next/navigation";
 import { IconMenu, IconClose, IconHome, IconLogout } from "@/components/icons";
 import { ROLE_BADGE_CLASS, bisaMenulis, isPanitiaPilkades, labelJabatan } from "@/lib/roles";
 import { grupUntukRole, cariHrefAktif } from "@/lib/menuDashboard";
+import TombolTerkunci from "@/components/pilkades/TombolTerkunci";
+import { IconKunci } from "@/components/pilkades/UI";
 
 function sapaanWaktu(jam) {
   if (jam < 10) return "Selamat pagi";
@@ -21,6 +23,7 @@ export default function DashboardShell({
   jumlahPendaftaran = 0,
   jumlahDataKurang = 0,
   jumlahPengajuanBaru = 0,
+  kunciPilkades = {},
   children,
 }) {
   const router = useRouter();
@@ -217,6 +220,24 @@ export default function DashboardShell({
                               <span className="flex-1">{nama}</span>
                               <span className="rounded bg-white/10 px-1.5 py-0.5 text-[10px]">segera</span>
                             </div>
+                          </li>
+                        );
+                      }
+                      const kunci = kunciPilkades?.[href];
+                      if (kunci) {
+                        return (
+                          <li key={nama}>
+                            <TombolTerkunci
+                              kunci={kunci}
+                              className={`flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm transition ${
+                                modePilkades ? "text-sky-100/60 hover:bg-white/10 hover:text-white" : "text-white/40 hover:bg-white/10 hover:text-white/70"
+                              }`}
+                            >
+                              <Icon className="h-4 w-4 opacity-60" />
+                              <span className="flex-1">{nama}</span>
+                              <IconKunci className="h-4 w-4 shrink-0 text-amber-300" />
+                              <span className="sr-only">(terkunci)</span>
+                            </TombolTerkunci>
                           </li>
                         );
                       }

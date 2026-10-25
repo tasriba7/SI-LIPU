@@ -4,6 +4,7 @@ import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode, ambilLangkah, formatTanggal } from "@/lib/pilkades";
 import { ambilJadwalLengkap } from "@/lib/pilkadesJadwal";
+import { hitungKunci } from "@/lib/pilkadesKunci";
 import { KartuProgres, GarisWaktu } from "@/components/pilkades/GarisWaktu";
 import { DaftarLangkah } from "@/components/pilkades/PanduanLangkah";
 import { JudulHalaman, KosongPandu, Kartu, tombol } from "@/components/pilkades/UI";
@@ -159,7 +160,7 @@ export default async function BerandaPilkades() {
         <p className="mb-3 text-sm text-slate-600">
           <b className="text-emerald-700">{langkahSelesai}</b> dari {s.langkah.length} langkah selesai. Ini rincian tahap “Penyusunan Daftar Pemilih” sampai “Penetapan DPT” pada jadwal di atas; tahap calon, hari pemungutan, dan hasil suara dihitung di progres pelaksanaan.
         </p>
-        <DaftarLangkah langkah={s.langkah} varian="lengkap" />
+        <DaftarLangkah langkah={s.langkah} varian="lengkap" kunciPeta={hitungKunci(s)} />
       </section>
 
       {/* Angka ringkas */}

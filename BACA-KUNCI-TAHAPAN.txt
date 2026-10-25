@@ -1,0 +1,40 @@
+Pilkades: gembok pada tahapan yang belum waktunya
+Dibuat di atas clone main terbaru. TIDAK ada migrasi SQL dan TIDAK ada paket baru.
+
+CARA PASANG
+1. Ekstrak zip, salin folder app, components, lib ke repo. Pilih "Timpa / Replace".
+2. npm run dev, login sebagai Panitia, buka /dashboard/pilkades.
+
+APA YANG BERUBAH
+Menu samping, bilah langkah, dan halaman kini mengikuti urutan kerja:
+- Tahap yang belum waktunya diberi ikon gembok (menu samping) dan tampil redup.
+- Bila diklik, muncul jendela pesan: alasan terkunci, daftar syarat (✓ selesai / ! mulai dari sini),
+  dan tombol langsung ke pekerjaan yang harus dikerjakan lebih dulu.
+- Bila halaman dibuka lewat alamat langsung, tampil layar gerbang yang sama (bukan halaman kosong).
+- Gembok hilang sendiri begitu syaratnya terpenuhi (menu diperbarui tiap 30 detik / setelah simpan).
+
+YANG DIKUNCI (dan kapan terbuka)
+2. Periksa Pemilih ........ setelah data warga diambil
+4. Tempatkan ke TPS ....... setelah ada pemilih "Memenuhi syarat" dan ada TPS
+5. Tetapkan DPS & DPT ..... setelah langkah 1-4 beres (tetap terbuka bila DPS sudah ditetapkan)
+6. Cetak Daftar ........... setelah data warga diambil
+Surat Undangan Memilih ... setelah DPT ditetapkan
+Daftar Hadir (Hari-H) .... setelah DPT ditetapkan
+Hasil Suara & Berita Acara setelah DPT ditetapkan DAN ada calon berstatus "Ditetapkan"
+
+TIDAK PERNAH DIKUNCI
+Mulai di Sini, Jadwal Tahapan, 1. Ambil Data Warga, 3. Atur TPS, Calon Kepala Desa,
+Riwayat Aktivitas, Susunan Panitia, Logo Panitia, Periode Pilkades.
+
+Mengubah aturan: cukup satu file, lib/pilkadesKunci.js (tabel ATURAN: "perlu" = syarat terbuka).
+Catatan: ini lapisan tampilan. Penjaga utama tetap fungsi database (mis. DPT butuh DPS,
+rekap suara harus lengkap sebelum calon terpilih ditetapkan).
+
+FILE BARU
+lib/pilkadesKunci.js
+components/pilkades/IsiKunci.jsx, TahapTerkunci.jsx, TombolTerkunci.jsx
+FILE DITIMPA
+app/dashboard/layout.js
+app/dashboard/pilkades/page.js
+app/dashboard/pilkades/{pemilih,tempatkan,daftar,cetak,undangan,hadir,hasil}/page.js
+components/dashboard/DashboardShell.jsx, components/pilkades/PanduanLangkah.jsx

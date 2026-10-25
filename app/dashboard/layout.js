@@ -3,6 +3,9 @@ import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import DashboardShell from "@/components/dashboard/DashboardShell";
 import { ambilPemberitahuanLayanan } from "@/lib/pemberitahuanLayanan";
+import { bisaKelolaPilkades } from "@/lib/roles";
+import { ambilPeriode } from "@/lib/pilkades";
+import { ambilKunciPilkades } from "@/lib/pilkadesKunci";
 import { logout } from "./actions";
 
 export default async function DashboardLayout({ children }) {
@@ -52,8 +55,15 @@ export default async function DashboardLayout({ children }) {
     tampil: 0,
   });
 
+  // Tahap Pilkades yang masih terkunci -> ikon gembok di menu samping.
+  let kunciPilkades = {};
+  if (bisaKelolaPilkades(profile?.role)) {
+    kunciPilkades = await ambilKunciPilkades(supabase, await ambilPeriode(supabase));
+  }
+
   return (
     <DashboardShell
+      kunciPilkades={kunciPilkades}
       jumlahPendaftaran={jumlahPendaftaran ?? 0}
       jumlahDataKurang={
         profile?.role === "bpd" || profile?.role === "kepala_desa" ? 0 : (jumlahDataKurang ?? 0)
