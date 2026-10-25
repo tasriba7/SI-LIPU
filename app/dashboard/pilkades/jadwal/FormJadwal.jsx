@@ -103,7 +103,7 @@ export default function FormJadwal({ periodeId, awal, tanggalPemungutan, adminTa
               {pemungutan ? (
                 <p className="mt-3 rounded-lg bg-sky-50 px-3 py-2 text-sm text-slate-800">
                   📅 <b>{tanggalPemungutan ? formatRentang(tanggalPemungutan) : "Tanggal belum diisi"}</b> — tanggal hari pemungutan diatur Administrator di menu <b>Periode Pilkades</b>
-                  {adminTautan && <> (<a href="/dashboard/pilkades/periode" className="font-bold text-sky-800 underline">buka</a>)</>}.
+                  {adminTautan && <> (<a href="/dashboard/pilkades/pengaturan/periode" className="font-bold text-sky-800 underline">buka</a>)</>}.
                 </p>
               ) : (
                 <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.4fr]">

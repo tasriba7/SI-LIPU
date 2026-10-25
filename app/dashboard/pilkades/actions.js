@@ -242,7 +242,7 @@ export async function simpanPanitia(formData) {
   const supabase = await createClient();
   const cek = await pastikanKelolaPilkades(supabase);
   if (cek.error) return;
-  const kembali = "/dashboard/pilkades/panitia";
+  const kembali = "/dashboard/pilkades/pengaturan/panitia";
   const periodeId = String(formData.get("periode_id") ?? "");
   const jabatan = String(formData.get("jabatan") ?? "");
   const nama = String(formData.get("nama") ?? "").trim().replace(/\s+/g, " ").slice(0, 100);
@@ -271,7 +271,7 @@ export async function hapusPanitia(formData) {
   if (!adalahUuid(id)) return;
   const { error } = await supabase.rpc("pilkades_hapus_panitia", { p_id: id });
   revalidatePath("/dashboard/pilkades", "layout");
-  redirect(`/dashboard/pilkades/panitia?hasil=${error ? "gagal" : "hapus"}`);
+  redirect(`/dashboard/pilkades/pengaturan/panitia?hasil=${error ? "gagal" : "hapus"}`);
 }
 
 /* =====================================================================
@@ -365,7 +365,7 @@ function alamatHadir(formData, tambahan = {}) {
     if (v) p.set(k, v);
   }
   for (const [k, v] of Object.entries(tambahan)) p.set(k, String(v));
-  return `/dashboard/pilkades/hadir?${p.toString()}`;
+  return `/dashboard/pilkades/hari-h/hadir?${p.toString()}`;
 }
 
 export async function catatHadir(formData) {
@@ -416,7 +416,7 @@ export async function batalHadir(formData) {
  * Penulisan hanya lewat fungsi database (migrasi 0060) dan tercatat di Riwayat.
  * ===================================================================== */
 
-const ALAMAT_HASIL = "/dashboard/pilkades/hasil";
+const ALAMAT_HASIL = "/dashboard/pilkades/hari-h/hasil";
 
 /** Simpan rekap satu TPS: suara tiap calon (field "suara_<id calon>") + suara tidak sah. */
 export async function simpanSuaraTps(formData) {
@@ -509,7 +509,7 @@ export async function simpanLogoPanitia(formData) {
   const supabase = await createClient();
   const cek = await pastikanKelolaPilkades(supabase);
   if (cek.error) return;
-  const kembali = "/dashboard/pilkades/logo";
+  const kembali = "/dashboard/pilkades/pengaturan/logo";
   const periodeId = String(formData.get("periode_id") ?? "");
   if (!adalahUuid(periodeId)) redirect(`${kembali}?hasil=gagal`);
 

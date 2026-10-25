@@ -11,7 +11,7 @@ export default async function UndanganPage() {
   const supabase = await createClient();
   const periode = await ambilPeriode(supabase);
   if (!periode) {
-    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/periode" label="Buka Periode Pilkades" />;
+    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/pengaturan/periode" label="Buka Periode Pilkades" />;
   }
 
   // Gerbang urutan kerja: tahap ini terkunci sampai pekerjaan sebelumnya selesai.
@@ -50,12 +50,12 @@ export default async function UndanganPage() {
           !logo && {
             jenis: "perhatian",
             judul: "Logo panitia belum diunggah",
-            isi: (<>Surat dicetak tanpa logo. <Link href="/dashboard/pilkades/logo" className="font-bold underline">Unggah logo →</Link></>),
+            isi: (<>Surat dicetak tanpa logo. <Link href="/dashboard/pilkades/pengaturan/logo" className="font-bold underline">Unggah logo →</Link></>),
           },
           !susunan.ketua && {
             jenis: "perhatian",
             judul: "Nama Ketua belum diisi",
-            isi: (<>Kolom tanda tangan dicetak kosong. <Link href="/dashboard/pilkades/panitia" className="font-bold underline">Isi Susunan Panitia →</Link></>),
+            isi: (<>Kolom tanda tangan dicetak kosong. <Link href="/dashboard/pilkades/pengaturan/panitia" className="font-bold underline">Isi Susunan Panitia →</Link></>),
           },
           !periode.tanggal_pemungutan && {
             jenis: "perhatian",

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
-import { ambilPeriode, ambilLangkah, formatTanggal } from "@/lib/pilkades";
+import { ambilPeriode, ambilLangkah, ambilSusunanPanitia, formatTanggal } from "@/lib/pilkades";
 import { ambilJadwalLengkap } from "@/lib/pilkadesJadwal";
 import { hitungKunci } from "@/lib/pilkadesKunci";
 import { KartuProgres, GarisWaktu } from "@/components/pilkades/GarisWaktu";
@@ -34,16 +34,17 @@ function fasePasca(data) {
   }
   if (!data.hasil) {
     return {
-      judul: "Hari pemungutan: daftar hadir & hasil suara",
-      teks: "Catat pemilih yang hadir di TPS, lalu masukkan rekap suara tiap TPS dan tetapkan calon terpilih.",
-      href: "/dashboard/pilkades/hadir",
-      tombol: "Buka Daftar Hadir",
+      judul: "Hari pemungutan: undangan, daftar hadir & hasil suara",
+      teks: "Cetak dan bagikan surat undangan ke pemilih. Pada hari pemungutan, catat pemilih yang hadir di TPS, lalu masukkan rekap suara tiap TPS dan tetapkan calon terpilih.",
+      tautanLain: { href: "/dashboard/pilkades/undangan", label: "Cetak surat undangan" },
+      href: "/dashboard/pilkades/hari-h/hadir",
+      tombol: "Buka Hari Pemungutan",
     };
   }
   return {
     judul: "Cetak berita acara hasil",
     teks: "Calon terpilih sudah ditetapkan. Berita acara bisa dicetak dari halaman Hasil Suara.",
-    href: "/dashboard/pilkades/hasil",
+    href: "/dashboard/pilkades/hari-h/hasil",
     tombol: "Buka Hasil Suara & Berita Acara",
   };
 }
@@ -58,7 +59,7 @@ export default async function BerandaPilkades() {
         <KosongPandu
           judul="Belum ada periode Pilkades"
           teks="Administrator perlu membuat periode pemilihan lebih dulu, misalnya “Pilkades 2026”."
-          href="/dashboard/pilkades/periode"
+          href="/dashboard/pilkades/pengaturan/periode"
           label="Buka Periode Pilkades"
         />
       </div>
@@ -67,6 +68,8 @@ export default async function BerandaPilkades() {
 
   const s = await ambilLangkah(supabase, periode);
   const j = await ambilJadwalLengkap(supabase, periode, { arsip: s.arsip });
+  const susunan = await ambilSusunanPanitia(supabase, periode.id);
+  const ttdKosong = ["ketua", "sekretaris"].filter((k) => !susunan[k]);
   const { role } = await ambilRole(supabase);
   const bisaUbah = bisaUbahPilkades(role);
   const sisa = sisaHari(j.ringkas.hMin);
@@ -105,6 +108,18 @@ export default async function BerandaPilkades() {
         </div>
       )}
 
+      {/* Pengingat: nama penandatangan dokumen */}
+      {ttdKosong.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-amber-300 bg-amber-50 p-4">
+          <p className="min-w-0 flex-1 basis-64 text-sm text-slate-800">
+            <b className="text-amber-900">Susunan panitia belum lengkap.</b>{" "}
+            Nama {ttdKosong.map((k) => (k === "ketua" ? "Ketua" : "Sekretaris")).join(" dan ")} dipakai di kolom tanda tangan semua dokumen cetak.
+            {bisaUbah ? " Isi sekarang agar dokumen tidak dicetak dengan kolom kosong." : " Akan diisi oleh Panitia Pilkades."}
+          </p>
+          {bisaUbah && <Link href="/dashboard/pilkades/pengaturan/panitia" className={tombol.sekunder}>Isi susunan panitia</Link>}
+        </div>
+      )}
+
       {/* Langkah berikutnya */}
       <div className="rounded-2xl bg-gradient-to-r from-sky-600 to-teal-500 p-6 text-white shadow-md">
         {s.berikutnya ? (
@@ -135,8 +150,8 @@ export default async function BerandaPilkades() {
                 {pasca.tombol}
                 <IconArrowRight className="h-5 w-5" />
               </Link>
-              <Link href="/dashboard/pilkades/cetak" className="text-sm font-bold text-white underline">
-                Cetak daftar pemilih
+              <Link href={pasca.tautanLain?.href ?? "/dashboard/pilkades/cetak"} className="text-sm font-bold text-white underline">
+                {pasca.tautanLain?.label ?? "Cetak daftar pemilih"}
               </Link>
             </div>
           </>

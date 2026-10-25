@@ -26,7 +26,7 @@ export default async function CetakBeritaAcara() {
     ambilSusunanPanitia(supabase, periode.id),
     ambilLogoPanitia(supabase, periode.id),
   ]);
-  if (rekap.error || !rekap.calon.length) redirect("/dashboard/pilkades/hasil");
+  if (rekap.error || !rekap.calon.length) redirect("/dashboard/pilkades/hari-h/hasil");
   const { calon, tps, total, hasil } = rekap;
   const resmi = !!hasil;
   const terpilih = hasil ? calon.find((c) => c.id === hasil.calon_id) : null;

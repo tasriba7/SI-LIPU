@@ -43,7 +43,7 @@ export default async function PemilihPage({ searchParams }) {
   const { role } = await ambilRole(supabase);
   const bisaUbah = bisaUbahPilkades(role);
   if (!periode) {
-    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/periode" label="Buka Periode Pilkades" />;
+    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/pengaturan/periode" label="Buka Periode Pilkades" />;
   }
 
   // Gerbang urutan kerja: tahap ini terkunci sampai pekerjaan sebelumnya selesai.

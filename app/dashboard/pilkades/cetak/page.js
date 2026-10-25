@@ -15,7 +15,7 @@ export default async function PilihanCetak() {
   const supabase = await createClient();
   const periode = await ambilPeriode(supabase);
   if (!periode) {
-    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/periode" label="Buka Periode Pilkades" />;
+    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/pengaturan/periode" label="Buka Periode Pilkades" />;
   }
 
   // Gerbang urutan kerja: tahap ini terkunci sampai pekerjaan sebelumnya selesai.
@@ -53,7 +53,7 @@ export default async function PilihanCetak() {
             isi: (
               <>
                 Nama {ttdKosong.map((p) => p.label).join(" dan ")} belum diisi, jadi kolomnya dicetak kosong.{" "}
-                <Link href="/dashboard/pilkades/panitia" className="font-bold underline">Isi Susunan Panitia →</Link>
+                <Link href="/dashboard/pilkades/pengaturan/panitia" className="font-bold underline">Isi Susunan Panitia →</Link>
               </>
             ),
           },

@@ -50,7 +50,7 @@ export default async function CetakDaftarHadir({ searchParams }) {
   if (!periode) redirect("/dashboard/pilkades");
 
   const dpt = await ambilDptTerbaru(supabase, periode.id);
-  if (!dpt.head) redirect("/dashboard/pilkades/hadir");
+  if (!dpt.head) redirect("/dashboard/pilkades/hari-h/hadir");
 
   const [{ data: hadirList }, desa, susunan, logo] = await Promise.all([
     ambilHadir(supabase, periode.id),
@@ -82,7 +82,7 @@ export default async function CetakDaftarHadir({ searchParams }) {
     ...Array.from({ length: tambahan }, () => ({ nama: null, nik: null, dusun: null, rt: null, rw: null })),
   ].map((r, i) => ({ ...r, no: i + 1 }));
 
-  if (!semua.length) redirect("/dashboard/pilkades/hadir");
+  if (!semua.length) redirect("/dashboard/pilkades/hari-h/hadir");
 
   const sasaranTps = fTps || "Semua TPS";
   await supabase.rpc("pilkades_catat", {

@@ -23,7 +23,7 @@ export default async function JadwalPage({ searchParams }) {
   const { role } = await ambilRole(supabase);
   const bisaUbah = bisaUbahPilkades(role);
   if (!periode) {
-    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/periode" label="Buka Periode Pilkades" />;
+    return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/pengaturan/periode" label="Buka Periode Pilkades" />;
   }
 
   const j = await ambilJadwalLengkap(supabase, periode);

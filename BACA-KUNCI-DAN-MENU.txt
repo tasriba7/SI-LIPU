@@ -1,0 +1,46 @@
+Pilkades: gembok tahapan + penggabungan menu (16 menu -> 13)
+Paket KUMULATIF: sudah termasuk paket "gembok tahapan" sebelumnya. Aman ditimpa.
+TIDAK ada migrasi SQL dan TIDAK ada paket baru.
+
+CARA PASANG
+1. Ekstrak zip, salin folder app, components, lib ke repo. Pilih "Timpa / Replace".
+2. npm run dev, login sebagai Panitia dan Administrator, buka /dashboard/pilkades.
+Folder lama (panitia, logo, periode, hadir, hasil) TIDAK perlu dihapus: kini hanya berisi
+pengalihan ke alamat baru, jadi tautan lama yang tersimpan/tercetak tetap jalan.
+
+SUSUNAN MENU BARU (grup Pilkades)
+  Mulai di Sini | Jadwal Tahapan
+  PERSIAPAN ........ Pengaturan Panitia  (tab: Susunan Panitia | Logo | Periode)
+  DAFTAR PEMILIH ... 1 Ambil Data | 2 Periksa | 3 Atur TPS | 4 Tempatkan | 5 Tetapkan DPS & DPT | 6 Cetak
+  CALON & HARI PEMUNGUTAN
+                     Calon Kepala Desa | Surat Undangan Memilih | Hari Pemungutan (tab: Daftar Hadir | Hasil Suara)
+  ARSIP ............ Riwayat Aktivitas
+
+ALAMAT BARU
+  /dashboard/pilkades/pengaturan/{panitia,logo,periode}   (/pengaturan: Admin -> Periode, Panitia -> Susunan)
+  /dashboard/pilkades/hari-h/{hadir,hasil}                (/hari-h -> Daftar Hadir)
+Isi tiap halaman, hak akses (Admin hanya melihat, Panitia mengubah), pesan hasil, dan filter TIDAK berubah.
+
+GEMBOK (lihat lib/pilkadesKunci.js, tabel ATURAN)
+  Terkunci sampai syarat terpenuhi: 2 Periksa, 4 Tempatkan, 5 Tetapkan, 6 Cetak, Surat Undangan,
+  Hari Pemungutan (terbuka setelah DPT ditetapkan), tab Hasil Suara (DPT + ada calon "Ditetapkan").
+  Tidak pernah dikunci: Mulai di Sini, Jadwal, Pengaturan Panitia, 1 Ambil Data, 3 Atur TPS, Calon, Riwayat.
+  Klik menu/tab terkunci -> jendela pesan: alasan, daftar syarat, tombol ke pekerjaan yang harus dulu.
+
+BERANDA
+  - Pengingat bila nama Ketua/Sekretaris belum diisi (dipakai di kolom tanda tangan semua dokumen).
+  - "Langkah berikutnya" setelah calon ditetapkan kini menyebut Surat Undangan.
+
+FILE BARU
+  lib/pilkadesKunci.js
+  components/pilkades/{IsiKunci,TahapTerkunci,TombolTerkunci,TabHalaman}.jsx
+  app/dashboard/pilkades/pengaturan/{layout.js,page.js}, app/dashboard/pilkades/hari-h/{layout.js,page.js}
+DIPINDAH (isi sama, impor ../actions -> alias @/)
+  pengaturan/{panitia,logo,periode}/page.js, hari-h/{hadir,hasil}/page.js
+DIGANTI JADI PENGALIHAN
+  app/dashboard/pilkades/{panitia,logo,periode,hadir,hasil}/page.js
+DITIMPA
+  app/dashboard/layout.js, components/dashboard/DashboardShell.jsx, components/pilkades/PanduanLangkah.jsx,
+  lib/menuDashboard.js, lib/pilkadesJadwal.js, app/dashboard/pilkades/{page,actions}.js,
+  app/dashboard/pilkades/{ambil,pemilih,tps,tempatkan,daftar,cetak,undangan,calon,jadwal}/*,
+  app/cetak/pilkades/{hadir,berita-acara}/page.js

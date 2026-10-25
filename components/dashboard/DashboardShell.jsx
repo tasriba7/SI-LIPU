@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
@@ -211,7 +211,9 @@ export default function DashboardShell({
 
                 {terbuka && (
                   <ul className="mt-1 space-y-0.5">
-                    {g.item.map(({ nama, icon: Icon, href }) => {
+                    {g.item.map((butir) => {
+                      const { nama, icon: Icon, href, bagian } = butir;
+                      const baris = (() => {
                       if (!href) {
                         return (
                           <li key={nama}>
@@ -271,6 +273,20 @@ export default function DashboardShell({
                             )}
                           </Link>
                         </li>
+                      );
+                      })();
+                      return (
+                        <Fragment key={nama}>
+                          {bagian && (
+                            <li
+                              role="presentation"
+                              className={`px-3 pb-1 pt-3 text-[10px] font-bold uppercase tracking-wider ${modePilkades ? "text-sky-300" : "text-white/30"}`}
+                            >
+                              {bagian}
+                            </li>
+                          )}
+                          {baris}
+                        </Fragment>
                       );
                     })}
                   </ul>
