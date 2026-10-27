@@ -15,7 +15,10 @@ export const metadata = { title: "Jadwal Tahapan — Pilkades" };
 
 const PESAN_HASIL = {
   ok: (sp) => ["sukses", "Jadwal tersimpan", `${sp.n} tahapan tersimpan. Progres dan garis waktu di beranda ikut diperbarui.`],
-  reset: () => ["sukses", "Tahapan sudah direset", "Jadwal kembali ke 10 tahapan standar dan semua tanggal dikosongkan. Data pemilih, DPS/DPT, calon, dan hasil suara tidak berubah."],
+  reset: (sp) =>
+    sp.mode === "semua"
+      ? ["sukses", "Semua tahapan sudah direset", "Jadwal kembali ke 10 tahapan standar dan semua tanggal dikosongkan. Data pemilih, DPS/DPT, calon, dan hasil suara tidak berubah."]
+      : ["sukses", "Tahapan terpilih sudah direset", "Tanggal dan catatan tahapan yang dicentang sudah dikosongkan. Nama dan urutan tahapan tidak berubah."],
 };
 
 export default async function JadwalPage({ searchParams }) {
@@ -67,7 +70,7 @@ export default async function JadwalPage({ searchParams }) {
         </Kartu>
       )}
 
-      {bisaUbah && <TombolResetTahapan periodeId={periode.id} />}
+      {bisaUbah && <TombolResetTahapan periodeId={periode.id} tahap={awal} tersimpan={j.tersimpan} />}
 
       <Kartu>
         <h2 className="text-base font-bold text-sky-950">Cetak jadwal tahapan</h2>
