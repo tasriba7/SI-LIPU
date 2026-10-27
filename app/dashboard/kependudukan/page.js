@@ -118,7 +118,7 @@ export default async function KependudukanPage({ searchParams }) {
     let q = supabase
       .from("warga_kelengkapan")
       .select(
-        "id, nik, no_kk, nama_lengkap, jenis_kelamin, dusun, rt, rw, tanggal_lahir, no_hp, status_dalam_kk, dibuat_oleh_nama, dibuat_oleh_role, jumlah_kosong, kolom_kosong",
+        "id, nik, no_kk, nama_lengkap, jenis_kelamin, dusun, rt, rw, tanggal_lahir, pendidikan, no_hp, status_dalam_kk, dibuat_oleh_nama, dibuat_oleh_role, jumlah_kosong, kolom_kosong",
         { count: "exact" }
       )
       .eq("status_kependudukan", "aktif") // yang meninggal/pindah ada di Mutasi Penduduk
@@ -346,13 +346,14 @@ export default async function KependudukanPage({ searchParams }) {
       {/* Tabel — dirapatkan supaya muat tanpa digeser di layar laptop */}
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="max-h-[72vh] min-h-[320px] overflow-auto">
-          <table className="w-full min-w-[820px] border-separate border-spacing-0 text-[12.5px] leading-snug">
+          <table className="w-full min-w-[980px] border-separate border-spacing-0 text-[12.5px] leading-snug">
             <thead>
               <tr className="text-left text-[11px] font-semibold uppercase tracking-wide text-white">
                 {[
                   ["No", "w-10 text-center", ""],
                   ["Nama / NIK", "", ""],
                   ["Tgl. Lahir", "", ""],
+                  ["Pendidikan", "", ""],
                   ["Status KK", "", ""],
                   ["Wilayah", "", ""],
                   ["No. HP", "", "hidden 2xl:table-cell"],
@@ -406,6 +407,15 @@ export default async function KependudukanPage({ searchParams }) {
                   </td>
                   <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2.5 tabular-nums">
                     {formatTanggal(w.tanggal_lahir)}
+                  </td>
+                  <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2.5">
+                    {w.pendidikan ? (
+                      <span className="block max-w-[170px] truncate" title={w.pendidikan}>
+                        {w.pendidikan}
+                      </span>
+                    ) : (
+                      <span className="text-slate-300">-</span>
+                    )}
                   </td>
                   <td className="whitespace-nowrap border-b border-slate-100 px-3 py-2.5">
                     {w.status_dalam_kk ? (
@@ -489,7 +499,7 @@ export default async function KependudukanPage({ searchParams }) {
               ))}
               {daftar.length === 0 && (
                 <tr>
-                  <td colSpan={9} className="px-4 py-16 text-center">
+                  <td colSpan={10} className="px-4 py-16 text-center">
                     <div className="mx-auto flex max-w-xs flex-col items-center gap-2 text-slate-400">
                       <IconUsers className="h-8 w-8" />
                       <p className="text-sm">
