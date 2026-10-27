@@ -21,6 +21,7 @@ const PESAN_HASIL = {
   nomor_kembar: ["perhatian", "Nomor urut sudah dipakai", "Setiap calon dalam satu periode harus punya nomor urut berbeda."],
   terkunci: ["perhatian", "Calon yang sudah ditetapkan tidak bisa dihapus", "Ubah statusnya lebih dulu bila memang ada kesalahan, lalu hapus."],
   terkunci_suara: ["perhatian", "Calon ini sudah punya data suara", "Status dan nomor urut calon yang sudah punya suara tidak bisa diubah, dan calonnya tidak bisa dihapus."],
+  belum_waktunya: (sp) => ["perhatian", "Belum waktunya menetapkan calon", sp.pesan || "Tanggal tahap penetapan calon belum tiba. Lihat menu Jadwal Tahapan."],
   gagal: ["bahaya", "Gagal menyimpan", COBA_LAGI],
 };
 

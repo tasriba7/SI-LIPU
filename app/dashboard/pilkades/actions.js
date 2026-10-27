@@ -10,6 +10,7 @@ import {
   BUCKET_LOGO_PILKADES, EKSTENSI_LOGO, MAKS_LOGO_MB, USIA_MINIMUM_PEMILIH, MAKS_CALON, MIN_CALON,
 } from "@/lib/pilkades";
 import { JENIS_OTOMATIS, MAKS_TAHAPAN } from "@/lib/pilkadesJadwal";
+import { tundaSebelumJadwal } from "@/lib/pilkadesTanggal";
 
 // Semua action di sini memakai sesi login pemanggil (RLS tetap berlaku),
 // bukan kunci service_role. Cek role di server + RLS di database.
@@ -197,6 +198,10 @@ export async function tetapkanDaftar(prevState, formData) {
     return { error: "Centang pernyataan bahwa daftar tidak bisa diubah setelah ditetapkan." };
   }
 
+  // Penjaga tanggal: DPS/DPT baru bisa ditetapkan mulai tanggal tahapnya (Jadwal Tahapan).
+  const tunda = await tundaSebelumJadwal(supabase, periodeId, jenis === "DPS" ? "dps" : "dpt");
+  if (tunda) return { error: tunda.pesan };
+
   const { data, error } = await supabase.rpc("pilkades_tetapkan_daftar", {
     p_periode: periodeId,
     p_jenis: jenis,
@@ -371,6 +376,18 @@ export async function simpanCalon(formData) {
     if (id) q = q.neq("id", id);
     const { count } = await q;
     if ((count ?? 0) >= MAKS_CALON) redirect(`${kembali}?hasil=maks_calon`);
+
+    // Penjaga tanggal: calon baru bisa DITETAPKAN mulai tanggal tahap "Penetapan Calon".
+    // Calon yang sudah berstatus ditetapkan boleh disunting (mis. ganti nama) kapan saja.
+    let sudahDitetapkan = false;
+    if (id) {
+      const { data: lama } = await supabase.from("pilkades_calon").select("status").eq("id", id).eq("periode_id", periodeId).maybeSingle();
+      sudahDitetapkan = lama?.status === "ditetapkan";
+    }
+    if (!sudahDitetapkan) {
+      const tunda = await tundaSebelumJadwal(supabase, periodeId, "calon");
+      if (tunda) redirect(`${kembali}?hasil=belum_waktunya&pesan=${encodeURIComponent(tunda.pesan)}`);
+    }
   }
 
   const data = { nama, status, nomor_urut: nomor, alasan, visi_misi: visiMisi };
@@ -456,6 +473,10 @@ export async function simpanSuaraTps(formData) {
   const tidakSah = angka(formData.get("tidak_sah"));
   if (tidakSah === null) redirect(`${ALAMAT_HASIL}?hasil=gagal&tps=${tpsId}&pesan=${encodeURIComponent("Isi suara tidak sah dengan angka bulat 0 atau lebih.")}`);
 
+  // Penjaga tanggal: rekap suara baru bisa dicatat mulai hari pemungutan (menu Periode).
+  const tunda = await tundaSebelumJadwal(supabase, periodeId, "pemungutan");
+  if (tunda) redirect(`${ALAMAT_HASIL}?hasil=gagal&tps=${tpsId}&pesan=${encodeURIComponent(tunda.pesan)}`);
+
   const { error } = await supabase.rpc("pilkades_simpan_suara", {
     p_periode: periodeId, p_tps: tpsId, p_suara: suara, p_tidak_sah: tidakSah, p_hadir: hadir,
   });
@@ -487,6 +508,8 @@ export async function simpanSuaraDusun(formData) {
     (data[dusun] ??= {})[m[2]] = parseInt(teks, 10);
   }
   if (!Object.keys(data).length) redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent("Isi minimal satu angka suara.")}`);
+  const tunda = await tundaSebelumJadwal(supabase, periodeId, "pemungutan");
+  if (tunda) redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent(tunda.pesan)}`);
   const { error } = await supabase.rpc("pilkades_simpan_suara_dusun", { p_periode: periodeId, p_data: data });
   revalidatePath("/dashboard/pilkades", "layout");
   if (error) {
@@ -517,6 +540,10 @@ export async function tetapkanTerpilih(formData) {
   if ((jumlahCalon ?? 0) < MIN_CALON) {
     redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent("Calon terpilih baru bisa ditetapkan bila ada paling sedikit 2 calon yang ditetapkan. Hubungi Panitia Kabupaten bila calon tinggal satu.")}`);
   }
+  // Penjaga tanggal: calon terpilih baru bisa ditetapkan mulai tanggal tahap "Penetapan Calon Terpilih".
+  const tunda = await tundaSebelumJadwal(supabase, periodeId, "hasil");
+  if (tunda) redirect(`${ALAMAT_HASIL}?hasil=gagal&pesan=${encodeURIComponent(tunda.pesan)}`);
+
   const { error } = await supabase.rpc("pilkades_tetapkan_terpilih", {
     p_periode: periodeId, p_tanggal: tanggal, p_nomor: nomor, p_catatan: catatan,
   });

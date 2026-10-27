@@ -1,5 +1,6 @@
 import TahapTerkunci from "@/components/pilkades/TahapTerkunci";
 import { kunciHalaman } from "@/lib/pilkadesKunci";
+import { tundaSebelumJadwal } from "@/lib/pilkadesTanggal";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
@@ -38,6 +39,9 @@ export default async function HasilPage({ searchParams }) {
   // Gerbang urutan kerja: tahap ini terkunci sampai pekerjaan sebelumnya selesai.
   const kunci = await kunciHalaman(supabase, periode, "/dashboard/pilkades/hari-h/hasil");
   if (kunci) return <TahapTerkunci kunci={kunci} />;
+
+  // Penjaga tanggal: calon terpilih baru bisa ditetapkan mulai tanggal tahap "Penetapan Calon Terpilih".
+  const tundaTerpilih = await tundaSebelumJadwal(supabase, periode.id, "hasil", periode.tanggal_pemungutan ?? null);
 
   const rekap = await ambilRekapSuara(supabase, periode.id);
   const { calon, tps, total, hasil } = rekap;
@@ -228,7 +232,13 @@ export default async function HasilPage({ searchParams }) {
                 {total.perCalon[pemenang.id]} dari {total.sah} suara sah. Aplikasi menetapkan berdasarkan suara terbanyak; bila aturan daerah Anda berbeda, jangan gunakan tombol ini.
               </Pesan>
             )}
-            {lengkap && calonMenang && bisaUbah && (
+            {lengkap && calonMenang && bisaUbah && tundaTerpilih && (
+              <Pesan jenis="perhatian" judul="Calon terpilih belum bisa ditetapkan">
+                {tundaTerpilih.pesan}{" "}
+                <Link href="/dashboard/pilkades/jadwal" className="font-bold underline">Lihat Jadwal Tahapan →</Link>
+              </Pesan>
+            )}
+            {lengkap && calonMenang && bisaUbah && !tundaTerpilih && (
               <form action={tetapkanTerpilih} className="grid gap-4 sm:grid-cols-2">
                 <input type="hidden" name="periode_id" value={periode.id} />
                 <label className={labelKolom}>

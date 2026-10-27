@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
+import { ambilBatasTahap, hitungTertunda } from "@/lib/pilkadesTanggal";
 import { ambilPeriode, ambilLangkah, formatTanggal, JENIS_DAFTAR_LABEL } from "@/lib/pilkades";
 import FormTetapkan from "./FormTetapkan";
 import { DaftarLangkah } from "@/components/pilkades/PanduanLangkah";
@@ -36,13 +37,17 @@ export default async function DaftarPage() {
 
   // DPS terkunci sampai syarat terpenuhi; DPT terkunci sampai ada DPS.
   // (Ingin melonggarkan? Ubah `s.alasanTetapkan` di bawah menjadi `null` untuk DPS.)
+  // Penjaga tanggal: DPS/DPT baru bisa ditetapkan mulai tanggal tahapnya (Jadwal Tahapan).
+  const tertunda = hitungTertunda(await ambilBatasTahap(supabase, periode.id, periode.tanggal_pemungutan ?? null));
+  const tautanJadwal = { href: "/dashboard/pilkades/jadwal", label: "Lihat Jadwal Tahapan" };
   const alasanDps = s.alasanTetapkan;
+  const alasanDpsFinal = alasanDps ?? tertunda.dps?.pesan ?? null;
   const tautanDps = s.memenuhi === 0
     ? { href: "/dashboard/pilkades/pemilih", label: "Ke Langkah 2: Periksa Pemilih" }
     : s.jumlahTps === 0
       ? { href: "/dashboard/pilkades/tps", label: "Ke Langkah 3: Atur TPS" }
       : { href: "/dashboard/pilkades/tempatkan", label: "Ke Langkah 4: Tempatkan Pemilih" };
-  const alasanDpt = alasanDps ?? (s.adaDps ? null : "DPT hanya bisa ditetapkan setelah DPS ditetapkan. Tetapkan DPS dulu.");
+  const alasanDpt = alasanDps ?? (s.adaDps ? null : "DPT hanya bisa ditetapkan setelah DPS ditetapkan. Tetapkan DPS dulu.") ?? tertunda.dpt?.pesan ?? null;
 
   const syarat = [
     [s.memenuhi > 0, `${s.memenuhi} pemilih berstatus “Memenuhi syarat”`, "/dashboard/pilkades/pemilih"],
@@ -89,13 +94,13 @@ export default async function DaftarPage() {
       )}
       {bisaUbah && !s.adaDpt && (
         <div className="grid gap-4 md:grid-cols-2">
-          <FormTetapkan periodeId={periode.id} jenis="DPS" jumlah={s.memenuhi} nonaktifAlasan={alasanDps} tautan={tautanDps} />
+          <FormTetapkan periodeId={periode.id} jenis="DPS" jumlah={s.memenuhi} nonaktifAlasan={alasanDpsFinal} tautan={alasanDps ? tautanDps : tautanJadwal} />
           <FormTetapkan
             periodeId={periode.id}
             jenis="DPT"
             jumlah={s.memenuhi}
             nonaktifAlasan={alasanDpt}
-            tautan={alasanDps ? tautanDps : s.adaDps ? null : { href: "#", label: "Tetapkan DPS di sebelah kiri dulu" }}
+            tautan={alasanDps ? tautanDps : s.adaDps ? (tertunda.dpt ? tautanJadwal : null) : { href: "#", label: "Tetapkan DPS di sebelah kiri dulu" }}
           />
         </div>
       )}
