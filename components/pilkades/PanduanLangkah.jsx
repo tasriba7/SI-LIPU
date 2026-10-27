@@ -129,11 +129,29 @@ export function DaftarLangkah({ langkah, aktif, varian = "ringkas", kunciPeta = 
   );
 }
 
+/**
+ * Bilah ringkas bila daftar pemilih sudah final (DPT ditetapkan): menggantikan 6 kotak langkah
+ * dan pesan "terkunci" yang berulang di tiap halaman. `hanyaLihat` = halaman ini tidak bisa diubah lagi.
+ */
+export function BilahSelesai({ hanyaLihat = true }) {
+  return (
+    <div role="status" className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-lg border-l-4 border-emerald-500 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-950">
+      <p className="min-w-0 flex-1 basis-72">
+        <b>✓ Penyusunan daftar pemilih sudah selesai.</b>
+        {hanyaLihat && " DPT sudah ditetapkan, jadi halaman ini hanya untuk dilihat. Warga yang terlewat dicatat lewat Pemilih Tambahan."}
+      </p>
+      <Link href="/dashboard/pilkades" className="font-bold underline">Kembali ke Mulai di Sini</Link>
+    </div>
+  );
+}
+
 /** Bilah langkah untuk ditaruh di atas setiap halaman Pilkades. */
 export default async function PanduanLangkah({ aktif }) {
   const supabase = await createClient();
   const periode = await ambilPeriode(supabase);
   if (!periode) return null;
   const s = await ambilLangkah(supabase, periode);
+  // Daftar pemilih sudah final: tidak perlu menampilkan 6 langkah lagi.
+  if (s.adaDpt) return <BilahSelesai hanyaLihat={aktif !== "cetak"} />;
   return <DaftarLangkah langkah={s.langkah} aktif={aktif} kunciPeta={hitungKunci(s)} />;
 }

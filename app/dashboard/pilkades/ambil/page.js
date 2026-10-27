@@ -5,7 +5,7 @@ import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode, dptTerkunci } from "@/lib/pilkades";
 import { ambilCalonPemilih, sinkronPenduduk } from "../actions";
 import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
-import { JudulHalaman, Kartu, KosongPandu, Catatan, tombol } from "@/components/pilkades/UI";
+import { JudulHalaman, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
 import PesanSekali from "@/components/pilkades/PesanSekali";
 import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
@@ -41,13 +41,10 @@ export default async function AmbilPage({ searchParams }) {
       <JudulHalaman
         langkah={1}
         judul="Ambil Data Warga"
-        penjelasan="Salin data warga yang sudah ada di SI-LIPU menjadi daftar calon pemilih. Anda tidak perlu mengetik ulang. Data warga yang asli tidak berubah."
+        penjelasan={terkunciDpt ? "Calon pemilih yang diambil dari data warga." : "Salin data warga yang sudah ada di SI-LIPU menjadi daftar calon pemilih. Anda tidak perlu mengetik ulang. Data warga yang asli tidak berubah."}
       />
 
       <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} bersihkan={["hasil", "n", "ta", "bd"]} />
-      {terkunciDpt && (
-        <Catatan butir={[{ jenis: "info", judul: "DPT sudah ditetapkan, halaman ini terkunci", isi: "Daftar pemilih dan TPS tidak bisa diubah lagi. Warga yang terlewat dicatat lewat menu Pemilih Tambahan." }]} />
-      )}
 
       {total === 0 ? (
         <KosongPandu judul="Belum ada calon pemilih" teks="Klik tombol di bawah untuk mengambil data warga desa.">
@@ -61,10 +58,13 @@ export default async function AmbilPage({ searchParams }) {
       ) : (
         <Kartu className="space-y-4">
           <p className="text-lg font-bold text-emerald-800">✓ Sudah ada {total} calon pemilih</p>
+          {!terkunciDpt && (
           <p className="text-sm text-slate-700">
             Ada warga baru yang belum masuk? Klik “Tambah warga baru”. Nama yang sudah ada tidak akan dobel.
             Bila ada warga yang meninggal, pindah, atau baru datang, klik “Samakan dengan data penduduk”: yang meninggal/pindah ditandai “Tidak memenuhi syarat”, dan yang datang kurang dari 6 bulan sebelum hari pemungutan ditandai “Perlu dicek”.
           </p>
+          )}
+          {!terkunciDpt && (
           <div className="flex flex-wrap gap-3">
             <Link href="/dashboard/pilkades/pemilih" className={tombol.utama}>Lanjut ke Langkah 2: Periksa Pemilih</Link>
             {bisaUbah && (
@@ -80,6 +80,7 @@ export default async function AmbilPage({ searchParams }) {
               </form>
             )}
           </div>
+          )}
         </Kartu>
       )}
     </div>

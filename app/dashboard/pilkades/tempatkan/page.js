@@ -9,7 +9,7 @@ import { masukkanKeTps } from "../actions";
 import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
 import TabelTempatkan from "./TabelTempatkan";
-import { JudulHalaman, Kartu, KosongPandu, Catatan, tombol, kolomKecil } from "@/components/pilkades/UI";
+import { JudulHalaman, Kartu, KosongPandu, tombol, kolomKecil } from "@/components/pilkades/UI";
 import PesanSekali from "@/components/pilkades/PesanSekali";
 import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
@@ -80,7 +80,7 @@ export default async function TempatkanPage({ searchParams }) {
 
   const cari = (sp.cari ?? "").toString().toLowerCase();
   const fDusun = sp.dusun ?? "";
-  const fTampil = sp.tampil ?? "belum";
+  const fTampil = sp.tampil ?? (terkunciDpt ? "semua" : "belum");
   const hasil = layak.filter(
     (r) =>
       (!cari || r.nama_lengkap.toLowerCase().includes(cari)) &&
@@ -112,13 +112,10 @@ export default async function TempatkanPage({ searchParams }) {
       <JudulHalaman
         langkah={4}
         judul="Tempatkan Pemilih ke TPS"
-        penjelasan="Tentukan tiap pemilih mencoblos di TPS mana. Hanya warga yang berstatus “Memenuhi syarat” yang tampil di sini. Anda bisa memasukkan banyak orang sekaligus."
+        penjelasan={terkunciDpt ? "Pembagian pemilih ke tiap TPS." : "Tentukan tiap pemilih mencoblos di TPS mana. Hanya warga yang berstatus “Memenuhi syarat” yang tampil di sini. Anda bisa memasukkan banyak orang sekaligus."}
       />
 
       <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} bersihkan={["hasil", "n", "tps"]} />
-      {terkunciDpt && (
-        <Catatan butir={[{ jenis: "info", judul: "DPT sudah ditetapkan, halaman ini terkunci", isi: "Daftar pemilih dan TPS tidak bisa diubah lagi. Warga yang terlewat dicatat lewat menu Pemilih Tambahan." }]} />
-      )}
 
       {/* Ringkasan per TPS */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -129,11 +126,13 @@ export default async function TempatkanPage({ searchParams }) {
             <p className="text-sm text-slate-600">pemilih</p>
           </div>
         ))}
+        {!terkunciDpt && (
         <div className={`rounded-xl border p-4 ${belumTps.length ? "border-amber-300 bg-amber-50" : "border-emerald-300 bg-emerald-50"}`}>
           <p className="text-sm font-semibold text-slate-800">Belum punya TPS</p>
           <p className={`text-2xl font-extrabold ${belumTps.length ? "text-amber-700" : "text-emerald-700"}`}>{belumTps.length}</p>
           <p className="text-sm text-slate-600">{belumTps.length ? "perlu ditempatkan" : "semua beres ✓"}</p>
         </div>
+        )}
       </div>
 
       {/* Jalan pintas */}
@@ -171,8 +170,8 @@ export default async function TempatkanPage({ searchParams }) {
 
       {/* Pilih manual */}
       <Kartu>
-        <h2 className="text-base font-bold text-sky-950">Atau pilih nama satu per satu</h2>
-        <form className="mt-3 flex flex-wrap items-end gap-3">
+        {!terkunciDpt && <h2 className="text-base font-bold text-sky-950">Atau pilih nama satu per satu</h2>}
+        <form className={`${terkunciDpt ? "" : "mt-3 "}flex flex-wrap items-end gap-3`}>
           <label className="flex-1 basis-48 text-sm font-semibold text-slate-800">
             Cari nama
             <input name="cari" defaultValue={sp.cari ?? ""} placeholder="Ketik nama…" className={`${kolomKecil} mt-1 block w-full`} />
@@ -206,7 +205,7 @@ export default async function TempatkanPage({ searchParams }) {
         </span>
       </div>
 
-      {belumTps.length === 0 && (
+      {belumTps.length === 0 && !terkunciDpt && (
         <div className="flex justify-end">
           <Link href="/dashboard/pilkades/daftar" className={tombol.utama}>Lanjut ke Langkah 5: Tetapkan DPS & DPT →</Link>
         </div>

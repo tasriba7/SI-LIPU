@@ -109,20 +109,18 @@ export default async function PemilihPage({ searchParams }) {
       <JudulHalaman
         langkah={2}
         judul="Periksa Pemilih"
-        penjelasan="Tentukan siapa yang berhak memilih. Pilih “Memenuhi syarat” bagi yang berhak. Aturan syarat mengikuti Pilkades daerah dan ditentukan panitia."
+        penjelasan={terkunciDpt ? "Status pemeriksaan tiap calon pemilih." : "Tentukan siapa yang berhak memilih. Pilih “Memenuhi syarat” bagi yang berhak. Aturan syarat mengikuti Pilkades daerah dan ditentukan panitia."}
       />
 
       <PesanSekali pesan={pesanFilterUsia(sp)} bersihkan={["filter", "m", "t", "p", "b"]} />
-      {terkunciDpt && (
-        <Catatan butir={[{ jenis: "info", judul: "DPT sudah ditetapkan, halaman ini terkunci", isi: "Daftar pemilih dan TPS tidak bisa diubah lagi. Warga yang terlewat dicatat lewat menu Pemilih Tambahan." }]} />
-      )}
       <Catatan
         butir={[
           error && { jenis: "bahaya", judul: "Daftar gagal dimuat", isi: `Muat ulang halaman ini.${teknis(role, "0051")}` },
         ]}
       />
 
-      {/* Cara cepat: saring usia */}
+      {/* Cara cepat: saring usia (disembunyikan setelah DPT ditetapkan) */}
+      {!terkunciDpt && (
       <details open={!!pratinjau} className="group rounded-xl border border-sky-100 bg-white shadow-sm">
         <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5">
           <span>
@@ -193,6 +191,7 @@ export default async function PemilihPage({ searchParams }) {
           )}
         </div>
       </details>
+      )}
 
       {/* Cari & tampilkan */}
       <Kartu>
@@ -288,9 +287,11 @@ export default async function PemilihPage({ searchParams }) {
         </span>
       </div>
 
-      <div className="flex justify-end">
-        <Link href="/dashboard/pilkades/tps" className={tombol.utama}>Lanjut ke Langkah 3: Atur TPS →</Link>
-      </div>
+      {!terkunciDpt && (
+        <div className="flex justify-end">
+          <Link href="/dashboard/pilkades/tps" className={tombol.utama}>Lanjut ke Langkah 3: Atur TPS →</Link>
+        </div>
+      )}
     </div>
   );
 }

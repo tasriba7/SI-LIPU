@@ -75,6 +75,7 @@ export default async function BerandaPilkades() {
   const sisa = sisaHari(j.ringkas.hMin);
   const langkahSelesai = s.langkah.filter((l) => l.status === "selesai").length;
   const pasca = s.berikutnya ? null : fasePasca(j.data);
+  const daftarFinal = !s.berikutnya && s.adaDpt; // seluruh langkah daftar pemilih sudah selesai
   const dps = s.arsip.find((a) => a.jenis === "DPS");
   const dpt = s.arsip.find((a) => a.jenis === "DPT");
 
@@ -169,16 +170,30 @@ export default async function BerandaPilkades() {
         <GarisWaktu tahap={j.tahap} />
       </section>
 
-      {/* 6 langkah */}
-      <section>
-        <h2 className="mb-1 text-lg font-bold text-sky-950">Urutan kerja panitia: menyiapkan daftar pemilih</h2>
-        <p className="mb-3 text-sm text-slate-600">
-          <b className="text-emerald-700">{langkahSelesai}</b> dari {s.langkah.length} langkah selesai. Ini rincian tahap “Penyusunan Daftar Pemilih” sampai “Penetapan DPT” pada jadwal di atas; tahap calon, hari pemungutan, dan hasil suara dihitung di progres pelaksanaan.
-        </p>
-        <DaftarLangkah langkah={s.langkah} varian="lengkap" kunciPeta={hitungKunci(s)} />
-      </section>
+      {/* 6 langkah: diringkas bila semuanya sudah selesai */}
+      {daftarFinal ? (
+        <details className="group rounded-xl border border-emerald-200 bg-emerald-50">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm">
+            <span className="font-bold text-emerald-900">✓ Penyusunan daftar pemilih selesai ({s.langkah.length} dari {s.langkah.length} langkah)</span>
+            <span className="font-bold text-emerald-800 underline group-open:hidden">Lihat rincian</span>
+            <span className="hidden font-bold text-emerald-800 underline group-open:inline">Tutup</span>
+          </summary>
+          <div className="border-t border-emerald-200 bg-white p-4">
+            <DaftarLangkah langkah={s.langkah} varian="lengkap" kunciPeta={hitungKunci(s)} />
+          </div>
+        </details>
+      ) : (
+        <section>
+          <h2 className="mb-1 text-lg font-bold text-sky-950">Urutan kerja panitia: menyiapkan daftar pemilih</h2>
+          <p className="mb-3 text-sm text-slate-600">
+            <b className="text-emerald-700">{langkahSelesai}</b> dari {s.langkah.length} langkah selesai. Ini rincian tahap “Penyusunan Daftar Pemilih” sampai “Penetapan DPT” pada jadwal di atas; tahap calon, hari pemungutan, dan hasil suara dihitung di progres pelaksanaan.
+          </p>
+          <DaftarLangkah langkah={s.langkah} varian="lengkap" kunciPeta={hitungKunci(s)} />
+        </section>
+      )}
 
-      {/* Angka ringkas */}
+      {/* Angka ringkas: disembunyikan setelah DPT ditetapkan (angkanya sudah tidak perlu dikerjakan) */}
+      {!s.adaDpt && (
       <section>
         <h2 className="mb-3 text-lg font-bold text-sky-950">Keadaan saat ini</h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
@@ -199,6 +214,7 @@ export default async function BerandaPilkades() {
           })}
         </div>
       </section>
+      )}
 
       {/* DPS & DPT */}
       <section className="grid gap-3 md:grid-cols-2">
@@ -225,6 +241,7 @@ export default async function BerandaPilkades() {
         ))}
       </section>
 
+      {!s.adaDpt && (
       <Kartu className="bg-sky-50">
         <p className="text-base font-bold text-sky-950">Arti singkatan</p>
         <ul className="mt-2 space-y-1 text-sm text-slate-800">
@@ -233,6 +250,7 @@ export default async function BerandaPilkades() {
           <li><b>DPT</b> — Daftar Pemilih Tetap, daftar final setelah tanggapan warga diperiksa.</li>
         </ul>
       </Kartu>
+      )}
     </div>
   );
 }

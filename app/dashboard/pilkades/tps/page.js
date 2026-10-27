@@ -6,7 +6,7 @@ import { ambilPeriode, dptTerkunci } from "@/lib/pilkades";
 import { tambahTps, hapusTps } from "../actions";
 import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
-import { JudulHalaman, Kartu, KosongPandu, Catatan, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
+import { JudulHalaman, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
 import PesanSekali from "@/components/pilkades/PesanSekali";
 import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
@@ -55,13 +55,10 @@ export default async function TpsPage({ searchParams }) {
       <JudulHalaman
         langkah={3}
         judul="Atur TPS"
-        penjelasan="TPS adalah tempat pemungutan suara, yaitu tempat warga mencoblos. Tambahkan semua TPS yang akan dipakai di desa ini."
+        penjelasan={terkunciDpt ? "Daftar TPS dan jumlah pemilih di tiap TPS." : "TPS adalah tempat pemungutan suara, yaitu tempat warga mencoblos. Tambahkan semua TPS yang akan dipakai di desa ini."}
       />
 
       <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
-      {terkunciDpt && (
-        <Catatan butir={[{ jenis: "info", judul: "DPT sudah ditetapkan, halaman ini terkunci", isi: "Daftar pemilih dan TPS tidak bisa diubah lagi. Warga yang terlewat dicatat lewat menu Pemilih Tambahan." }]} />
-      )}
 
       {bisaUbah && (
         <Kartu>

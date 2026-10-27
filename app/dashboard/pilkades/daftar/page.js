@@ -7,8 +7,8 @@ import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilBatasTahap, hitungTertunda } from "@/lib/pilkadesTanggal";
 import { ambilPeriode, ambilLangkah, formatTanggal, JENIS_DAFTAR_LABEL } from "@/lib/pilkades";
 import FormTetapkan from "./FormTetapkan";
-import { DaftarLangkah } from "@/components/pilkades/PanduanLangkah";
-import { JudulHalaman, Kartu, KosongPandu, Catatan, tombol } from "@/components/pilkades/UI";
+import { DaftarLangkah, BilahSelesai } from "@/components/pilkades/PanduanLangkah";
+import { JudulHalaman, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
 
 export const metadata = { title: "Tetapkan DPS & DPT" };
 
@@ -57,13 +57,14 @@ export default async function DaftarPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <DaftarLangkah langkah={s.langkah} aktif="tetapkan" />
+      {s.adaDpt ? <BilahSelesai /> : <DaftarLangkah langkah={s.langkah} aktif="tetapkan" />}
       <JudulHalaman
         langkah={5}
         judul={`Tetapkan DPS lalu DPT — ${periode.nama}`}
-        penjelasan="Menetapkan berarti menyalin pemilih yang “Memenuhi syarat” menjadi daftar resmi yang disimpan tetap. Urutannya: DPS dulu, lalu DPT."
+        penjelasan={s.adaDpt ? "Daftar resmi yang sudah ditetapkan dan tersimpan tetap." : "Menetapkan berarti menyalin pemilih yang “Memenuhi syarat” menjadi daftar resmi yang disimpan tetap. Urutannya: DPS dulu, lalu DPT."}
       />
 
+      {!s.adaDpt && (
       <Kartu>
         <h2 className="text-base font-bold text-sky-950">Periksa dulu sebelum menetapkan</h2>
         <ul className="mt-2 space-y-2">
@@ -88,10 +89,8 @@ export default async function DaftarPage() {
           )}
         </ul>
       </Kartu>
-
-      {s.adaDpt && (
-        <Catatan butir={[{ jenis: "info", judul: "DPT sudah ditetapkan dan terkunci", isi: "DPS dan DPT tidak bisa ditetapkan ulang. Warga yang terlewat dicatat lewat menu Pemilih Tambahan; DPT resmi tidak berubah." }]} />
       )}
+
       {bisaUbah && !s.adaDpt && (
         <div className="grid gap-4 md:grid-cols-2">
           <FormTetapkan periodeId={periode.id} jenis="DPS" jumlah={s.memenuhi} nonaktifAlasan={alasanDpsFinal} tautan={alasanDps ? tautanDps : tautanJadwal} />
@@ -130,7 +129,7 @@ export default async function DaftarPage() {
         </ul>
       </section>
 
-      {s.adaDps && (
+      {s.adaDps && !s.adaDpt && (
         <div className="flex justify-end">
           <Link href="/dashboard/pilkades/cetak" className={tombol.utama}>Lanjut ke Langkah 6: Cetak Daftar →</Link>
         </div>

@@ -33,6 +33,7 @@ export default async function PilihanCetak() {
   ]);
   const dusunList = [...new Set((pemilih ?? []).map((r) => r.dusun).filter(Boolean))].sort();
   const adaArsip = (arsip ?? []).length > 0;
+  const adaDpt = (arsip ?? []).some((a) => a.jenis === "DPT");
   const susunan = await ambilSusunanPanitia(supabase, periode.id);
   const ttdKosong = susunPenandatangan("daftar_pemilih", susunan).filter((p) => !p.nama);
 
@@ -65,7 +66,7 @@ export default async function PilihanCetak() {
           <label className={labelKolom}>
             Daftar mana yang dicetak?
             <select name="daftar" className={`${kolom} mt-1 font-normal`} defaultValue={arsip?.[0]?.id ?? ""}>
-              <option value="">Draf terkini (data yang sedang dikerjakan)</option>
+              {!adaDpt && <option value="">Draf terkini (data yang sedang dikerjakan)</option>}
               {(arsip ?? []).map((a) => (
                 <option key={a.id} value={a.id}>
                   {JENIS_DAFTAR_LABEL[a.jenis]} versi {a.versi} (ditetapkan {formatTanggal(a.tanggal_penetapan)})
@@ -90,13 +91,17 @@ export default async function PilihanCetak() {
               </select>
             </label>
           </div>
-          <label className={labelKolom}>
-            Status pemilih <span className="font-normal text-slate-600">(hanya untuk draf; daftar resmi selalu berisi yang memenuhi syarat)</span>
-            <select name="status" className={`${kolom} mt-1 font-normal`} defaultValue="memenuhi_syarat">
-              {Object.entries(STATUS_VERIFIKASI).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-              <option value="semua">Semua status</option>
-            </select>
-          </label>
+          {adaDpt ? (
+            <input type="hidden" name="status" value="memenuhi_syarat" />
+          ) : (
+            <label className={labelKolom}>
+              Status pemilih <span className="font-normal text-slate-600">(hanya untuk draf; daftar resmi selalu berisi yang memenuhi syarat)</span>
+              <select name="status" className={`${kolom} mt-1 font-normal`} defaultValue="memenuhi_syarat">
+                {Object.entries(STATUS_VERIFIKASI).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+                <option value="semua">Semua status</option>
+              </select>
+            </label>
+          )}
           <label className="flex items-start gap-3 rounded-xl bg-sky-50 p-4 text-sm text-slate-900">
             <input type="checkbox" name="nik" value="1" className="mt-1 h-5 w-5" />
             <span>
@@ -112,14 +117,22 @@ export default async function PilihanCetak() {
         <p className="font-bold text-sky-950">Catatan cetak</p>
         <ul className="list-disc space-y-1 pl-5">
           <li>
-            Cetakan dari <b>“Draf terkini”</b> diberi tanda air DRAF. Cetakan dari <b>DPS atau DPT</b> yang sudah ditetapkan adalah daftar resmi.
-            {!adaArsip && " Saat ini belum ada DPS/DPT yang ditetapkan, jadi hanya draf yang bisa dicetak."}
+            {adaDpt ? (
+              <>Cetakan dari <b>DPS atau DPT</b> yang sudah ditetapkan adalah daftar resmi.</>
+            ) : (
+              <>
+                Cetakan dari <b>“Draf terkini”</b> diberi tanda air DRAF. Cetakan dari <b>DPS atau DPT</b> yang sudah ditetapkan adalah daftar resmi.
+                {!adaArsip && " Saat ini belum ada DPS/DPT yang ditetapkan, jadi hanya draf yang bisa dicetak."}
+              </>
+            )}
           </li>
           <li>Kertas F4 lanskap (330 × 215 mm), dua kolom berdampingan, margin 6 mm.</li>
-          <li>
-            Berikutnya: cetak surat undangan untuk tiap pemilih di DPT.{" "}
-            <Link href="/dashboard/pilkades/undangan" className="font-bold text-sky-700 underline">Buka Surat Undangan →</Link>
-          </li>
+          {adaDpt && (
+            <li>
+              Berikutnya: cetak surat undangan untuk tiap pemilih di DPT.{" "}
+              <Link href="/dashboard/pilkades/undangan" className="font-bold text-sky-700 underline">Buka Surat Undangan →</Link>
+            </li>
+          )}
         </ul>
       </Kartu>
     </div>
