@@ -9,11 +9,13 @@ import PesanSekali from "@/components/pilkades/PesanSekali";
 import { GarisWaktu } from "@/components/pilkades/GarisWaktu";
 import { JudulHalaman, Catatan, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
 import FormJadwal from "./FormJadwal";
+import TombolResetTahapan from "./TombolResetTahapan";
 
 export const metadata = { title: "Jadwal Tahapan — Pilkades" };
 
 const PESAN_HASIL = {
   ok: (sp) => ["sukses", "Jadwal tersimpan", `${sp.n} tahapan tersimpan. Progres dan garis waktu di beranda ikut diperbarui.`],
+  reset: () => ["sukses", "Tahapan sudah direset", "Jadwal kembali ke 10 tahapan standar dan semua tanggal dikosongkan. Data pemilih, DPS/DPT, calon, dan hasil suara tidak berubah."],
 };
 
 export default async function JadwalPage({ searchParams }) {
@@ -64,6 +66,8 @@ export default async function JadwalPage({ searchParams }) {
           <GarisWaktu tahap={j.tahap} />
         </Kartu>
       )}
+
+      {bisaUbah && <TombolResetTahapan periodeId={periode.id} />}
 
       <Kartu>
         <h2 className="text-base font-bold text-sky-950">Cetak jadwal tahapan</h2>
