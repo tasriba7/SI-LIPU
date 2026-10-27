@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { pastikanBisaMenulis } from "@/lib/akses";
 import { ambilDaftarDusun, periksaDusun } from "@/lib/wilayah";
+import { normalisasiIsianImport } from "@/lib/normalisasiIsian";
 
 export async function tambahWarga(prevState, formData) {
   const nik = formData.get("nik")?.trim();
@@ -341,6 +342,13 @@ function bersihkanBarisImport(raw, nomorBaris) {
       };
     }
     baris.jenis_kelamin = jk;
+  }
+
+  // Seragamkan agama, status kawin, status dalam KK, pendidikan, dan pekerjaan
+  // ("nikah" / "Nikah" / "NIKAH" -> "Kawin") supaya statistik tidak terpecah.
+  const isian = normalisasiIsianImport(baris);
+  if (isian.error) {
+    return { error: `Baris ${nomorBaris}: ${isian.error}` };
   }
 
   return { data: baris };
