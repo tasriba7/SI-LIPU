@@ -9,7 +9,7 @@ import {
   STATUS_VERIFIKASI, STATUS_CALON, JABATAN_PANITIA, ambilDaftarPemilih,
   BUCKET_LOGO_PILKADES, EKSTENSI_LOGO, MAKS_LOGO_MB, USIA_MINIMUM_PEMILIH, MAKS_CALON, MIN_CALON,
 } from "@/lib/pilkades";
-import { JENIS_OTOMATIS, MAKS_TAHAPAN } from "@/lib/pilkadesJadwal";
+import { JENIS_OTOMATIS, MAKS_TAHAPAN, TAHAPAN_STANDAR } from "@/lib/pilkadesJadwal";
 import { tundaSebelumJadwal } from "@/lib/pilkadesTanggal";
 
 // Semua action di sini memakai sesi login pemanggil (RLS tetap berlaku),
@@ -679,4 +679,38 @@ export async function simpanJadwal(_state, formData) {
   }
   revalidatePath("/dashboard/pilkades", "layout");
   redirect(`/dashboard/pilkades/jadwal?hasil=ok&n=${data.length}`);
+}
+
+/**
+ * RESET TAHAPAN: kembalikan jadwal periode ke 10 tahapan standar dengan tanggal KOSONG
+ * dan simpan langsung. Berbeda dari "Kembalikan ke daftar standar" di formulir (yang hanya
+ * mengubah layar), tombol ini benar-benar menyimpan. Hanya jadwal yang direset; data DPS/DPT,
+ * calon, hasil suara, dan TPS TIDAK tersentuh. Memakai fungsi database yang sama
+ * (pilkades_simpan_jadwal), jadi tetap tercatat di Riwayat Aktivitas.
+ */
+export async function resetTahapan(_state, formData) {
+  const supabase = await createClient();
+  const cek = await pastikanKelolaPilkades(supabase);
+  if (cek.error) return { error: "Hanya Panitia Pilkades yang dapat mereset tahapan." };
+  const periodeId = String(formData.get("periode_id") ?? "");
+  if (!adalahUuid(periodeId)) return { error: "Periode tidak dikenali. Muat ulang halaman ini." };
+  if (String(formData.get("konfirmasi") ?? "") !== "RESET") {
+    return { error: "Ketik RESET (huruf besar) pada kotak konfirmasi untuk melanjutkan." };
+  }
+
+  const data = TAHAPAN_STANDAR.map((r) => ({
+    jenis: r.jenis ?? "",
+    nama: r.nama,
+    arti: r.arti ?? "",
+    mulai: "",
+    selesai: "",
+    catatan: "",
+  }));
+
+  const { error } = await supabase.rpc("pilkades_simpan_jadwal", { p_periode: periodeId, p_data: data });
+  if (error) {
+    return { error: error.code === "P0001" ? error.message : "Tahapan gagal direset. Silakan coba lagi. Bila tetap gagal, hubungi Administrator desa." };
+  }
+  revalidatePath("/dashboard/pilkades", "layout");
+  redirect("/dashboard/pilkades/jadwal?hasil=reset");
 }
