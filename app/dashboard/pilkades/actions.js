@@ -682,11 +682,13 @@ export async function simpanJadwal(_state, formData) {
 }
 
 /**
- * RESET TAHAPAN: kembalikan jadwal periode ke 10 tahapan standar dengan tanggal KOSONG
- * dan simpan langsung. Berbeda dari "Kembalikan ke daftar standar" di formulir (yang hanya
- * mengubah layar), tombol ini benar-benar menyimpan. Hanya jadwal yang direset; data DPS/DPT,
- * calon, hasil suara, dan TPS TIDAK tersentuh. Memakai fungsi database yang sama
- * (pilkades_simpan_jadwal), jadi tetap tercatat di Riwayat Aktivitas.
+ * RESET TAHAPAN (dua mode, keduanya langsung TERSIMPAN):
+ *  - mode "pilihan": tahapan yang dicentang dikosongkan tanggal mulai, tanggal selesai, dan catatannya.
+ *    Nama dan urutan tahapan tidak berubah. Tahap "Pemungutan" tidak punya tanggal sendiri
+ *    (mengikuti menu Periode) sehingga tidak bisa direset di sini.
+ *  - mode "semua": seluruh jadwal kembali ke 10 tahapan standar, tanggal kosong (perlu ketik RESET).
+ * Hanya jadwal yang berubah; data pemilih, TPS, DPS/DPT, calon, dan hasil suara TIDAK tersentuh.
+ * Memakai fungsi database pilkades_simpan_jadwal, jadi tetap tercatat di Riwayat Aktivitas.
  */
 export async function resetTahapan(_state, formData) {
   const supabase = await createClient();
@@ -694,23 +696,52 @@ export async function resetTahapan(_state, formData) {
   if (cek.error) return { error: "Hanya Panitia Pilkades yang dapat mereset tahapan." };
   const periodeId = String(formData.get("periode_id") ?? "");
   if (!adalahUuid(periodeId)) return { error: "Periode tidak dikenali. Muat ulang halaman ini." };
-  if (String(formData.get("konfirmasi") ?? "") !== "RESET") {
-    return { error: "Ketik RESET (huruf besar) pada kotak konfirmasi untuk melanjutkan." };
-  }
+  const mode = String(formData.get("mode") ?? "");
 
-  const data = TAHAPAN_STANDAR.map((r) => ({
-    jenis: r.jenis ?? "",
-    nama: r.nama,
-    arti: r.arti ?? "",
-    mulai: "",
-    selesai: "",
-    catatan: "",
-  }));
+  let data;
+  if (mode === "semua") {
+    if (String(formData.get("konfirmasi") ?? "") !== "RESET") {
+      return { error: "Ketik RESET (huruf besar) pada kotak konfirmasi untuk mereset semua tahapan." };
+    }
+    data = TAHAPAN_STANDAR.map((r) => ({
+      jenis: r.jenis ?? "", nama: r.nama, arti: r.arti ?? "", mulai: "", selesai: "", catatan: "",
+    }));
+  } else if (mode === "pilihan") {
+    const { data: baris, error: errBaca } = await supabase
+      .from("pilkades_jadwal")
+      .select("jenis, nama, arti, mulai, selesai, catatan")
+      .eq("periode_id", periodeId)
+      .order("urutan");
+    if (errBaca) return { error: "Jadwal gagal dibaca. Muat ulang halaman ini lalu coba lagi." };
+    if (!baris || baris.length === 0) {
+      return { error: "Belum ada jadwal yang tersimpan, jadi belum ada yang perlu direset." };
+    }
+    if (Number(formData.get("jumlah")) !== baris.length) {
+      return { error: "Daftar tahapan sudah berubah. Muat ulang halaman ini lalu coba lagi." };
+    }
+    const dipilih = new Set(
+      formData.getAll("pilih").map((v) => Number(v)).filter((n) => Number.isInteger(n) && n >= 0 && n < baris.length),
+    );
+    if (dipilih.size === 0) return { error: "Centang dulu tahapan yang ingin direset." };
+    data = baris.map((r, i) => {
+      const reset = dipilih.has(i) && r.jenis !== "pemungutan";
+      return {
+        jenis: r.jenis ?? "",
+        nama: r.nama,
+        arti: r.arti ?? "",
+        mulai: reset ? "" : (r.mulai ?? ""),
+        selesai: reset ? "" : (r.selesai ?? ""),
+        catatan: reset ? "" : (r.catatan ?? ""),
+      };
+    });
+  } else {
+    return { error: "Pilihan reset tidak dikenali. Muat ulang halaman ini." };
+  }
 
   const { error } = await supabase.rpc("pilkades_simpan_jadwal", { p_periode: periodeId, p_data: data });
   if (error) {
     return { error: error.code === "P0001" ? error.message : "Tahapan gagal direset. Silakan coba lagi. Bila tetap gagal, hubungi Administrator desa." };
   }
   revalidatePath("/dashboard/pilkades", "layout");
-  redirect("/dashboard/pilkades/jadwal?hasil=reset");
+  redirect(`/dashboard/pilkades/jadwal?hasil=reset&mode=${mode}`);
 }
