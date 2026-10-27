@@ -76,6 +76,9 @@ export default async function CetakPilkades({ searchParams }) {
   const per = BARIS_PER_KOLOM * KOLOM_PER_HALAMAN;
   const jumlahHal = Math.max(1, Math.ceil(baris.length / per));
   const halaman = Array.from({ length: jumlahHal }, (_, i) => baris.slice(i * per, (i + 1) * per));
+  // Kolom "No" dilebarkan bila nomor urut sudah 4 digit (1000 ke atas), kalau tidak
+  // nomornya terpotong jadi "11…" di hasil cetak.
+  const lebarNo = String(baris.length).length >= 4 ? "8%" : "6%";
 
   const cetakPada = new Date().toLocaleString("id-ID", { dateStyle: "long", timeStyle: "short", timeZone: "Asia/Makassar" });
   const namaDesa = `${desa.jenis_wilayah ?? "Desa"} ${desa.nama_desa ?? ""}`.trim();
@@ -96,7 +99,7 @@ export default async function CetakPilkades({ searchParams }) {
     <table className="tbl">
       <thead>
         <tr>
-          <th style={{ width: "6%" }}>No</th>
+          <th style={{ width: lebarNo }}>No</th>
           <th>Nama</th>
           {tampilNik && <th style={{ width: "22%" }}>NIK</th>}
           <th style={{ width: "5%" }}>L/P</th>
@@ -126,7 +129,7 @@ export default async function CetakPilkades({ searchParams }) {
       <style>{`
         @page { size: 330mm 215mm; margin: 5mm; }
         html, body { background: #fff; }
-        .hal { position: relative; page-break-after: always; break-after: page; font-family: Arial, sans-serif; color: #000; padding: 0; }
+        .hal { position: relative; page-break-after: always; break-after: page; font-family: Arial, sans-serif; color: #000; padding: 0; line-height: 1.2; }
         .hal:last-child { page-break-after: auto; break-after: auto; }
         .kop { position: relative; text-align: center; line-height: 1.25; margin-bottom: 3mm; }
         .kop .logo-kop { position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 15mm; max-width: 22mm; object-fit: contain; }
@@ -134,9 +137,12 @@ export default async function CetakPilkades({ searchParams }) {
         .kop p { font-size: 9.5pt; margin: 0; }
         .kolom { display: grid; grid-template-columns: 1fr 1fr; gap: 6mm; }
         .tbl { width: 100%; border-collapse: collapse; font-size: 9pt; table-layout: fixed; }
-        .tbl th, .tbl td { border: 0.4mm solid #000; padding: 0.4mm 1.2mm; height: 4.6mm; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+        /* line-height sengaja ditetapkan: tanpa ini baris ikut line-height 1.5 dari Tailwind,
+           tinggi baris membengkak (4,6 mm jadi 5,8 mm), lalu footer terdorong ke halaman
+           baru sehingga setiap halaman data diikuti halaman kosong berisi footer saja. */
+        .tbl th, .tbl td { border: 0.4mm solid #000; padding: 0 1.2mm; height: 4.6mm; line-height: 1.15; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
         .tbl th { background: #e5e7eb; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        .kaki { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 3mm; font-size: 8.5pt; }
+        .kaki { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 3mm; font-size: 8.5pt; break-inside: avoid; page-break-inside: avoid; }
         .ttd-grup { text-align: center; }
         .ttd-tempat { margin-bottom: 0.5mm; }
         .ttd-judul { font-weight: 700; margin-bottom: 0.5mm; }
