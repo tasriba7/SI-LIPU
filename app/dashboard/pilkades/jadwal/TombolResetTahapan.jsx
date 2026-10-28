@@ -17,10 +17,11 @@ function Kirim({ mode, children, disabled, className, onClick }) {
 
 /**
  * Reset tahapan: centang tahapan yang ingin dikosongkan tanggal & catatannya,
- * atau reset SEMUA tahapan ke daftar standar (perlu mengetik RESET).
+ * atau reset SEMUA: membersihkan seluruh data periode (perlu mengetik RESET).
  * `tahap` = daftar tahapan yang ditampilkan di Jadwal Tahapan (urutan sama dengan database).
+ * `ringkas` = jumlah data yang akan terhapus pada reset semua (untuk ditampilkan sebelum konfirmasi).
  */
-export default function TombolResetTahapan({ periodeId, tahap, tersimpan }) {
+export default function TombolResetTahapan({ periodeId, tahap, tersimpan, ringkas = {} }) {
   const [state, formAction] = useActionState(resetTahapan, {});
   const [buka, setBuka] = useState(false);
   const [dipilih, setDipilih] = useState(() => new Set());
@@ -38,6 +39,23 @@ export default function TombolResetTahapan({ periodeId, tahap, tersimpan }) {
   const pilihSemua = () => setDipilih(semuaTerpilih ? new Set() : new Set(bisaDipilih.map(({ i }) => i)));
   const tutup = () => { setBuka(false); setDipilih(new Set()); setBukaSemua(false); setTeks(""); };
 
+  const daftarHapus = [
+    [ringkas.pemilih, "calon pemilih / daftar pemilih"],
+    [ringkas.tps, "TPS beserta penempatan pemilih"],
+    [ringkas.arsip, "arsip DPS/DPT (semua versi)"],
+    [ringkas.tambahan, "pemilih tambahan"],
+    [ringkas.hadir, "catatan daftar hadir"],
+    [ringkas.calon, "calon"],
+    [ringkas.rekapTps, "rekap suara TPS"],
+    [ringkas.hasil, "penetapan calon terpilih"],
+    [ringkas.panitia, "pengurus susunan panitia"],
+    [ringkas.logo, "logo panitia"],
+  ].filter(([n]) => Number(n) > 0);
+
+  const konfirmasiSemua = (e) => {
+    if (!window.confirm("Hapus SEMUA data Pilkades pada periode ini? Tindakan ini tidak bisa dibatalkan.")) e.preventDefault();
+  };
+
   const konfirmasiPilihan = (e) => {
     if (!window.confirm(`Reset ${dipilih.size} tahapan terpilih? Tanggal dan catatannya akan dikosongkan dan langsung tersimpan.`)) e.preventDefault();
   };
@@ -46,8 +64,8 @@ export default function TombolResetTahapan({ periodeId, tahap, tersimpan }) {
     <Kartu>
       <h2 className="text-base font-bold text-sky-950">Reset tahapan</h2>
       <p className="mt-1 text-sm text-slate-700">
-        Centang tahapan yang ingin direset (tanggal dan catatannya dikosongkan), atau reset semua tahapan ke daftar standar.
-        Data pemilih, TPS, DPS/DPT, calon, dan hasil suara <b>tidak</b> ikut terhapus.
+        Centang tahapan yang ingin direset (hanya tanggal dan catatannya yang dikosongkan, data lain tidak berubah),
+        atau <b>reset semua</b> untuk membersihkan seluruh data periode ini seperti belum pernah dipakai.
       </p>
 
       {!buka ? (
@@ -107,23 +125,39 @@ export default function TombolResetTahapan({ periodeId, tahap, tersimpan }) {
               Reset {dipilih.size > 0 ? `${dipilih.size} tahapan terpilih` : "tahapan terpilih"}
             </Kirim>
             <button type="button" onClick={() => setBukaSemua((v) => !v)} className={tombol.sekunder}>
-              Reset semua tahapan...
+              Reset semua (hapus semua data)...
             </button>
             <button type="button" onClick={tutup} className="text-sm font-semibold text-slate-700 underline">Batal</button>
           </div>
 
           {bukaSemua && (
             <div className="space-y-3 rounded-lg border border-red-300 bg-white p-3">
-              <p className="text-sm text-red-950">
-                <b>Reset semua</b> mengembalikan seluruh tahapan ke 10 tahapan standar dan mengosongkan semua tanggal.
-                Nama, urutan, dan catatan yang sudah Anda ubah akan hilang.
+              <p className="text-sm font-bold text-red-950">
+                Reset semua menghapus seluruh data Pilkades pada periode ini dan tidak bisa dibatalkan.
+              </p>
+              {daftarHapus.length > 0 ? (
+                <div className="text-sm text-red-950">
+                  <p>Yang akan dihapus:</p>
+                  <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                    {daftarHapus.map(([n, label]) => (
+                      <li key={label}>{label === "logo panitia" || label === "penetapan calon terpilih" ? label : `${n} ${label}`}</li>
+                    ))}
+                    <li>jadwal tahapan (kembali ke 10 tahapan standar, tanggal kosong)</li>
+                  </ul>
+                </div>
+              ) : (
+                <p className="text-sm text-red-950">Yang akan dihapus: jadwal tahapan (kembali ke 10 tahapan standar, tanggal kosong).</p>
+              )}
+              <p className="text-sm text-slate-800">
+                Yang tetap ada: periode ini (nama, tanggal pemungutan, status aktif), data penduduk/warga, dan Riwayat Aktivitas
+                (reset ini ikut dicatat di sana).
               </p>
               <label className="block text-sm font-semibold text-red-950">
                 Ketik <span className="font-mono">RESET</span> untuk melanjutkan
                 <input name="konfirmasi" value={teks} onChange={(e) => setTeks(e.target.value)} autoComplete="off" className={`${kolomKecil} mt-1 block w-full max-w-xs font-mono`} />
               </label>
-              <Kirim mode="semua" disabled={teks !== "RESET"} className={`${tombol.bahaya} disabled:cursor-not-allowed disabled:opacity-40`}>
-                Ya, reset semua tahapan
+              <Kirim mode="semua" onClick={konfirmasiSemua} disabled={teks !== "RESET"} className={`${tombol.bahaya} disabled:cursor-not-allowed disabled:opacity-40`}>
+                Ya, hapus semua data periode ini
               </Kirim>
             </div>
           )}
