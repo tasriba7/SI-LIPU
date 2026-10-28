@@ -8,6 +8,7 @@ import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
 import { JudulHalaman, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
 import PesanSekali from "@/components/pilkades/PesanSekali";
 import TombolAmbilWarga from "@/components/pilkades/TombolAmbilWarga";
+import AnimasiAmbilWarga from "@/components/pilkades/AnimasiAmbilWarga";
 import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Ambil Data Warga" };
@@ -16,6 +17,7 @@ const PESAN_HASIL = {
   ok: (sp) => ["sukses", "Berhasil", `${sp.n !== undefined ? `${sp.n} calon pemilih baru ditambahkan.` : "Data warga berhasil diambil."}${sp.ta !== undefined ? ` ${sp.ta} meninggal/pindah ditandai tidak memenuhi syarat, ${sp.bd ?? 0} baru datang (kurang dari 6 bulan) ditandai perlu dicek.` : ""}`],
   sinkron: (sp) => ["sukses", "Sudah disamakan dengan data penduduk", `${sp.ta ?? 0} pemilih yang sudah meninggal/pindah ditandai “Tidak memenuhi syarat”; ${sp.bd ?? 0} yang baru datang (kurang dari 6 bulan) ditandai “Perlu dicek”. Keputusan manual lain tidak diubah.`],
   terkunci: ["perhatian", "DPT sudah ditetapkan", "Daftar pemilih sudah terkunci, jadi data warga tidak bisa diambil atau disamakan lagi. Gunakan menu Pemilih Tambahan."],
+  ditolak: ["bahaya", "Tidak diizinkan", "Akun Anda belum berwenang mengambil data warga. Hanya Panitia Pilkades yang bisa."],
   gagal: ["bahaya", "Belum berhasil", `Data warga gagal diproses. ${COBA_LAGI}`],
 };
 
@@ -38,6 +40,7 @@ export default async function AmbilPage({ searchParams }) {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
+      <AnimasiAmbilWarga renderId={Date.now()} />
       <PanduanLangkah aktif="ambil" />
       <JudulHalaman
         langkah={1}
@@ -45,7 +48,9 @@ export default async function AmbilPage({ searchParams }) {
         penjelasan={terkunciDpt ? "Calon pemilih yang diambil dari data warga." : "Salin data warga yang sudah ada di SI-LIPU menjadi daftar calon pemilih. Anda tidak perlu mengetik ulang. Data warga yang asli tidak berubah."}
       />
 
-      <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} bersihkan={["hasil", "n", "ta", "bd"]} />
+      <PesanSekali pesan={sp.hasil === "ok" && sp.n === "0" && total === 0
+        ? { jenis: "perhatian", judul: "Tidak ada warga yang terambil", isi: "Tidak ada warga berstatus kependudukan “aktif” di data penduduk. Periksa dulu menu Kependudukan." }
+        : pesanDari(PESAN_HASIL, sp)} bersihkan={["hasil", "n", "ta", "bd"]} />
 
       {total === 0 ? (
         <KosongPandu judul="Belum ada calon pemilih" teks="Klik tombol di bawah untuk mengambil data warga desa.">

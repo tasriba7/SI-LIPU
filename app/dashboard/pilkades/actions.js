@@ -69,24 +69,10 @@ export async function aktifkanPeriode(formData) {
   redirect(`${ALAMAT_PERIODE}?hasil=aktif`);
 }
 
-/** Animasi "Ambil Data Warga" tampil minimal sekian milidetik, walau datanya sedikit. */
-const MIN_ANIMASI_AMBIL_MS = 5000;
-
 export async function ambilCalonPemilih(formData) {
-  const mulai = Date.now();
-  try {
-    await ambilCalonPemilihInti(formData);
-  } finally {
-    // finally tetap jalan saat redirect() melempar, jadi jeda berlaku di semua jalur.
-    const sisa = MIN_ANIMASI_AMBIL_MS - (Date.now() - mulai);
-    if (sisa > 0) await new Promise((r) => setTimeout(r, sisa));
-  }
-}
-
-async function ambilCalonPemilihInti(formData) {
   const supabase = await createClient();
   const cek = await pastikanKelolaPilkades(supabase);
-  if (cek.error) return;
+  if (cek.error) redirect("/dashboard/pilkades/ambil?hasil=ditolak");
   const periodeId = String(formData.get("periode_id") ?? "");
   if (!adalahUuid(periodeId)) return;
   const { data, error } = await supabase.rpc("pilkades_ambil_calon_pemilih", { p_periode: periodeId });
