@@ -17,9 +17,14 @@ const PESAN_HASIL = {
   ok: (sp) => ["sukses", "Jadwal tersimpan", `${sp.n} tahapan tersimpan. Progres dan garis waktu di beranda ikut diperbarui.`],
   reset: (sp) =>
     sp.mode === "semua"
-      ? ["sukses", "Semua tahapan sudah direset", "Jadwal kembali ke 10 tahapan standar dan semua tanggal dikosongkan. Data pemilih, DPS/DPT, calon, dan hasil suara tidak berubah."]
+      ? ["sukses", "Semua data periode ini sudah direset", "Pemilih, TPS, DPS/DPT, calon, rekap suara, susunan panitia, dan jadwal sudah dihapus. Periode dan data penduduk tetap ada."]
       : ["sukses", "Tahapan terpilih sudah direset", "Tanggal dan catatan tahapan yang dicentang sudah dikosongkan. Nama dan urutan tahapan tidak berubah."],
 };
+
+async function hitung(supabase, tabel, periodeId) {
+  const { count } = await supabase.from(tabel).select("*", { count: "exact", head: true }).eq("periode_id", periodeId);
+  return count ?? 0;
+}
 
 export default async function JadwalPage({ searchParams }) {
   const sp = await searchParams;
@@ -34,6 +39,16 @@ export default async function JadwalPage({ searchParams }) {
   const j = await ambilJadwalLengkap(supabase, periode);
   const awal = j.tahap.map((t) => ({ jenis: t.jenis ?? "", nama: t.nama, arti: t.arti, mulai: t.mulai && t.jenis !== "pemungutan" ? t.mulai : "", selesai: t.selesai ?? "", catatan: t.catatan }));
   const urutan = periksaUrutan(j.tahap);
+
+  // Ringkasan data yang akan terhapus pada "Reset semua" (hanya dibutuhkan panitia).
+  let ringkas = {};
+  if (bisaUbah) {
+    const [pemilih, tps, arsip, tambahan, hadir, calon, rekapTps, hasil, panitia, logo] = await Promise.all([
+      "pilkades_pemilih", "pilkades_tps", "pilkades_daftar_tetap", "pilkades_pemilih_tambahan", "pilkades_hadir",
+      "pilkades_calon", "pilkades_suara_tps", "pilkades_hasil", "pilkades_panitia", "pilkades_logo",
+    ].map((t) => hitung(supabase, t, periode.id)));
+    ringkas = { pemilih, tps, arsip, tambahan, hadir, calon, rekapTps, hasil, panitia, logo };
+  }
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
@@ -70,7 +85,7 @@ export default async function JadwalPage({ searchParams }) {
         </Kartu>
       )}
 
-      {bisaUbah && <TombolResetTahapan periodeId={periode.id} tahap={awal} tersimpan={j.tersimpan} />}
+      {bisaUbah && <TombolResetTahapan periodeId={periode.id} tahap={awal} tersimpan={j.tersimpan} ringkas={ringkas} />}
 
       <Kartu>
         <h2 className="text-base font-bold text-sky-950">Cetak jadwal tahapan</h2>
