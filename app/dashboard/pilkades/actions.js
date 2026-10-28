@@ -687,9 +687,10 @@ export async function simpanJadwal(_state, formData) {
  *    Nama dan urutan tahapan tidak berubah. Tahap "Pemungutan" tidak punya tanggal sendiri
  *    (mengikuti menu Periode) sehingga tidak bisa direset di sini. Hanya jadwal yang berubah.
  *  - mode "semua": BERSIHKAN SEMUA data periode (perlu ketik RESET) lewat fungsi database
- *    pilkades_reset_bersih (migrasi 0068): pemilih, TPS, arsip DPS/DPT, pemilih tambahan, daftar hadir,
- *    calon, rekap suara, hasil, susunan panitia, logo, dan jadwal. Periode, data warga, dan Riwayat
- *    Aktivitas tetap ada. Satu transaksi: gagal berarti tidak ada yang terhapus.
+ *    pilkades_reset_bersih (migrasi 0068 + 0069): pemilih, TPS, arsip DPS/DPT, pemilih tambahan, daftar hadir,
+ *    calon, rekap suara, hasil, susunan panitia, logo, dan jadwal. dan Riwayat
+ *    Aktivitas periode itu (migrasi 0069). Periode dan data warga tetap ada. Satu transaksi: gagal berarti
+ *    tidak ada yang terhapus.
  */
 export async function resetTahapan(_state, formData) {
   const supabase = await createClient();
@@ -710,12 +711,13 @@ export async function resetTahapan(_state, formData) {
     if (errReset) {
       if (errReset.code === "P0001") return { error: errReset.message };
       if (errReset.code === "PGRST202" || errReset.code === "42883") {
-        return { error: "Fitur reset total belum dipasang di database. Jalankan migrasi 0068_pilkades_reset_bersih.sql di Supabase SQL Editor, lalu coba lagi." };
+        return { error: "Fitur reset total belum dipasang di database. Jalankan migrasi 0068_pilkades_reset_bersih.sql dan 0069_pilkades_reset_riwayat.sql di Supabase SQL Editor, lalu coba lagi." };
       }
       return { error: "Reset gagal dan tidak ada data yang berubah. Silakan coba lagi. Bila tetap gagal, hubungi Administrator desa." };
     }
     if (logo?.logo_path) await supabase.storage.from(BUCKET_LOGO_PILKADES).remove([logo.logo_path]);
-    revalidatePath("/dashboard/pilkades", "layout");
+    // Menu samping (gembok tahapan) ada di layout /dashboard, jadi segarkan dari sana.
+    revalidatePath("/dashboard", "layout");
     redirect("/dashboard/pilkades/jadwal?hasil=reset&mode=semua");
   }
 
