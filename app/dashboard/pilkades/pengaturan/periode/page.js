@@ -4,10 +4,25 @@ import { isAdminRole } from "@/lib/roles";
 import { formatTanggal } from "@/lib/pilkades";
 import { buatPeriode, aktifkanPeriode, ubahTanggalPemungutan } from "@/app/dashboard/pilkades/actions";
 import { JudulHalaman, Kartu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
+import PesanSekali from "@/components/pilkades/PesanSekali";
+import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Periode Pilkades" };
 
-export default async function PeriodePage() {
+const PESAN_HASIL = {
+  dibuat: (sp) => ["sukses", "Periode dibuat", `${sp.nama ? `“${sp.nama}”` : "Periode"} sudah ditambahkan. Klik “Jadikan aktif” bila periode ini yang sedang dikerjakan.`],
+  aktif: ["sukses", "Periode aktif diganti", "Semua menu Pilkades sekarang menampilkan data periode ini."],
+  tanggal_ok: ["sukses", "Tanggal pemungutan tersimpan", "Jadwal tahapan yang mengikuti tanggal ini ikut berubah."],
+  tanggal_hapus: ["perhatian", "Tanggal pemungutan dikosongkan", "Isi lagi bila tanggalnya sudah pasti. Selama kosong, penjaga tanggal untuk tahap pemungutan tidak berlaku."],
+  nama: ["perhatian", "Nama periode terlalu pendek", "Isi nama periode minimal 3 huruf, misalnya “Pilkades 2026”."],
+  tanggal: ["perhatian", "Tanggal tidak valid", "Pilih tanggal dari kalender, atau kosongkan bila belum diketahui."],
+  izin: ["bahaya", "Tidak diizinkan", "Periode hanya bisa dibuat, diubah, atau diaktifkan oleh Administrator."],
+  migrasi: ["bahaya", "Pembaruan database belum dipasang", "Jalankan migrasi 0070_pilkades_penjaga_tps_dan_aktifkan_periode.sql di Supabase SQL Editor, lalu coba lagi."],
+  gagal: ["bahaya", "Perubahan belum tersimpan", COBA_LAGI],
+};
+
+export default async function PeriodePage({ searchParams }) {
+  const sp = await searchParams;
   const supabase = await createClient();
   const { role } = await ambilRole(supabase);
   const admin = isAdminRole(role);
@@ -23,6 +38,8 @@ export default async function PeriodePage() {
         judul="Periode Pilkades"
         penjelasan={`Setiap pemilihan punya periode sendiri, misalnya “Pilkades 2026”. Hanya satu periode yang aktif.${admin ? "" : " Periode dibuat oleh Administrator."}`}
       />
+
+      <PesanSekali pesan={pesanDari(PESAN_HASIL, sp)} />
 
       {admin && (
         <Kartu>
