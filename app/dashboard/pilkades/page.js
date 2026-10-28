@@ -11,7 +11,7 @@ import { DaftarLangkah } from "@/components/pilkades/PanduanLangkah";
 import { JudulHalaman, KosongPandu, Kartu, tombol } from "@/components/pilkades/UI";
 import { IconArrowRight } from "@/components/icons";
 
-export const metadata = { title: "Mulai di Sini — Pilkades" };
+export const metadata = { title: "Beranda — Pilkades" };
 
 // Sisa hari memakai hitungan WITA yang sama dengan kartu progres (j.ringkas.hMin),
 // bukan jam server, supaya dua angka di halaman ini tidak pernah berbeda.

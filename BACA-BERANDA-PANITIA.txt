@@ -1,0 +1,8 @@
+Menu akun Panitia Pilkades: "Dashboard" + "Mulai di Sini (Panduan)" disatukan jadi "Beranda"
+TIDAK ada migrasi SQL. Timpa 5 file lalu restart npm run dev.
+- Sidebar panitia: tautan teratas kini bernama "Beranda" dan langsung membuka isi panduan (langkah kerja, jadwal, DPS/DPT).
+- Item "Mulai di Sini (Panduan)" dihapus dari grup menu Pilkades untuk panitia.
+- Administrator tetap bisa membuka halaman yang sama lewat item "Beranda Pilkades" di grup Pilkades (menu Dashboard admin tidak berubah).
+- Teks "Kembali ke Mulai di Sini" jadi "Kembali ke Beranda"; judul tab browser jadi "Beranda — Pilkades".
+FILE: lib/menuDashboard.js, components/dashboard/DashboardShell.jsx, app/dashboard/pilkades/page.js,
+components/pilkades/PanduanLangkah.jsx, lib/pilkadesKunci.js (hanya komentar)

@@ -141,7 +141,7 @@ export function BilahSelesai({ hanyaLihat = true }) {
         <b>✓ Penyusunan daftar pemilih sudah selesai.</b>
         {hanyaLihat && " DPT sudah ditetapkan, jadi halaman ini hanya untuk dilihat. Warga yang terlewat dicatat lewat Pemilih Tambahan."}
       </p>
-      <Link href="/dashboard/pilkades" className="font-bold underline">Kembali ke Mulai di Sini</Link>
+      <Link href="/dashboard/pilkades" className="font-bold underline">Kembali ke Beranda</Link>
     </div>
   );
 }

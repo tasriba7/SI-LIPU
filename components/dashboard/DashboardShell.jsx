@@ -172,14 +172,17 @@ export default function DashboardShell({
         </div>
 
         <nav className="flex-1 overflow-y-auto px-3 py-4">
+          {/* Panitia Pilkades: satu pintu masuk "Beranda" (isi panduan langkah kerja), bukan Dashboard + Mulai di Sini. */}
           <Link
-            href="/dashboard"
+            href={isPanitiaPilkades(profile?.role) ? "/dashboard/pilkades" : "/dashboard"}
             className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-              pathname === "/dashboard" ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/10 hover:text-white"
+              (isPanitiaPilkades(profile?.role) ? pathname === "/dashboard/pilkades" : pathname === "/dashboard")
+                ? "bg-white/10 text-white"
+                : "text-white/70 hover:bg-white/10 hover:text-white"
             }`}
           >
             <IconHome className="h-4 w-4" />
-            Dashboard
+            {isPanitiaPilkades(profile?.role) ? "Beranda" : "Dashboard"}
           </Link>
 
           {grup.map((g) => {
