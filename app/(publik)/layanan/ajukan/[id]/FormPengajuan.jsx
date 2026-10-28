@@ -10,7 +10,7 @@ import {
   ajukanLayanan,
 } from "./actions";
 import VerifikasiTempatLahir from "@/components/VerifikasiTempatLahir";
-import { JENIS_PENGADUAN, JENIS_LAINNYA } from "@/lib/jenisPengaduan";
+import { KELOMPOK_PENGADUAN, JENIS_LAINNYA } from "@/lib/jenisPengaduan";
 
 function TombolAksi({ children, pendingText }) {
   const { pending } = useFormStatus();
@@ -468,11 +468,16 @@ export default function FormPengajuan({ jenisLayanan }) {
                   <option value="" disabled>
                     Pilih jenis pengaduan
                   </option>
-                  {JENIS_PENGADUAN.map((j) => (
-                    <option key={j} value={j}>
-                      {j}
-                    </option>
+                  {KELOMPOK_PENGADUAN.map((k) => (
+                    <optgroup key={k.label} label={k.label}>
+                      {k.isi.map((j) => (
+                        <option key={j} value={j}>
+                          {j}
+                        </option>
+                      ))}
+                    </optgroup>
                   ))}
+                  <option value={JENIS_LAINNYA}>{JENIS_LAINNYA}</option>
                 </select>
               </div>
 

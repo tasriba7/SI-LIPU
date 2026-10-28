@@ -1,0 +1,8 @@
+Jenis aduan Pilkades di form pengaduan warga
+TIDAK ada migrasi SQL. Timpa 2 file lalu restart npm run dev:
+  - lib/jenisPengaduan.js
+  - app/(publik)/layanan/ajukan/[id]/FormPengajuan.jsx
+Di dropdown "Jenis pengaduan" kini ada 2 kelompok: "Pelayanan dan lingkungan desa" dan
+"Pemilihan Kepala Desa (Pilkades)" (9 jenis, semuanya berawalan "Pilkades:"), lalu "Lainnya".
+Mengubah daftar: cukup edit JENIS_PENGADUAN_PILKADES di lib/jenisPengaduan.js.
+Jenis baru otomatis ikut dihitung di "Aduan yang Sering Disampaikan" di beranda.
