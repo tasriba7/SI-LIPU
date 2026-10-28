@@ -85,17 +85,17 @@ export default async function JadwalPage({ searchParams }) {
         </Kartu>
       )}
 
-      {bisaUbah && <TombolResetTahapan periodeId={periode.id} tahap={awal} tersimpan={j.tersimpan} ringkas={ringkas} />}
+      {bisaUbah && <TombolResetTahapan key={`${JSON.stringify(awal)}|${sp?.hasil ?? ""}|${sp?.mode ?? ""}`} periodeId={periode.id} tahap={awal} tersimpan={j.tersimpan} ringkas={ringkas} />}
 
       <Kartu>
         <h2 className="text-base font-bold text-sky-950">Cetak jadwal tahapan</h2>
         <p className="mt-1 text-sm text-slate-700">Dicetak di kertas A4 dengan margin kecil, siap ditempel di papan pengumuman.</p>
-        <form action="/cetak/pilkades/jadwal" target="_blank" className="mt-3 flex flex-wrap items-center gap-4">
-          <label className="flex items-center gap-2 text-sm font-semibold text-slate-800">
+        <form action="/cetak/pilkades/jadwal" target="_blank" className="mt-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+          <label className="flex items-center gap-3 py-1 text-sm font-semibold text-slate-800">
             <input type="checkbox" name="status" value="1" className="h-5 w-5" />
             Sertakan kolom status (selesai / berlangsung / akan datang)
           </label>
-          <button className={tombol.sekunder}>Buka Pratinjau Cetak</button>
+          <button type="submit" className={`${tombol.sekunder} w-full sm:w-auto`}>Buka Pratinjau Cetak</button>
         </form>
         {bisaUbah && <p className="mt-2 text-sm text-slate-600">Jadwal yang dicetak adalah jadwal yang sudah disimpan. Simpan dulu bila ada perubahan.</p>}
       </Kartu>

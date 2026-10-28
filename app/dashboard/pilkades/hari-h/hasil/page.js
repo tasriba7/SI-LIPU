@@ -1,3 +1,4 @@
+import TombolKirim from "@/components/pilkades/TombolKirim";
 import TahapTerkunci from "@/components/pilkades/TahapTerkunci";
 import { kunciHalaman } from "@/lib/pilkadesKunci";
 import { tundaSebelumJadwal } from "@/lib/pilkadesTanggal";
@@ -123,7 +124,7 @@ export default async function HasilPage({ searchParams }) {
       <Kartu>
         <h2 className="text-base font-bold text-sky-950">Rekap per TPS</h2>
         <div className="mt-2 overflow-x-auto">
-          <table className="w-full text-left text-sm">
+          <table className="w-full min-w-[30rem] text-left text-sm">
             <thead className="text-sm font-bold text-sky-900">
               <tr>
                 <th className="py-2 pr-4">TPS</th>
@@ -159,8 +160,8 @@ export default async function HasilPage({ searchParams }) {
         <section className="space-y-3">
           <h2 className="text-base font-bold text-sky-950">Isi atau ubah hasil per TPS</h2>
           {tps.map((t) => (
-            <details key={t.id} open={tpsDibuka === t.id} className="rounded-xl border border-sky-100 bg-white p-4 shadow-sm">
-              <summary className="cursor-pointer text-sm font-bold text-sky-900">
+            <details key={t.id} open={tpsDibuka === t.id} className="rounded-xl border border-sky-100 bg-white p-3 shadow-sm sm:p-4">
+              <summary className="cursor-pointer py-1 text-sm font-bold text-sky-900">
                 {t.nama} <span className="font-normal text-slate-600">— {t.dpt} pemilih terdaftar{t.tambahan ? ` (termasuk ${t.tambahan} Pemilih Tambahan)` : ""}{t.diisi ? " · sudah diisi" : ""}</span>
               </summary>
               <form action={simpanSuaraTps} className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -187,7 +188,7 @@ export default async function HasilPage({ searchParams }) {
                   Isi 0 bila tidak ada. Jumlah hadir tidak boleh melebihi pemilih terdaftar di TPS ini ({t.dpt}), dan suara sah + tidak sah tidak boleh melebihi jumlah hadir.
                 </p>
                 <div className="sm:col-span-2">
-                  <button className={t.diisi ? tombol.sekunder : tombol.utama}>{t.diisi ? "Simpan perubahan" : "Simpan hasil TPS ini"}</button>
+                  <TombolKirim className={t.diisi ? tombol.sekunder : tombol.utama}>{t.diisi ? "Simpan perubahan" : "Simpan hasil TPS ini"}</TombolKirim>
                 </div>
               </form>
             </details>
@@ -212,7 +213,7 @@ export default async function HasilPage({ searchParams }) {
                     <input type="hidden" name="periode_id" value={periode.id} />
                     <label className={labelKolom}>
                       Alasan pembatalan <span className="font-normal text-slate-600">(minimal 5 huruf, tercatat di Riwayat)</span>
-                      <input name="alasan" required minLength={5} maxLength={300} className={`${kolomKecil} mt-1 w-full font-normal`} />
+                      <input name="alasan" required minLength={5} maxLength={300} className={`${kolomKecil} mt-1 w-full min-w-0 font-normal`} />
                     </label>
                     <TombolKonfirmasi pesan="Batalkan penetapan calon terpilih? Suara akan bisa diubah lagi." className={tombol.bahaya}>Batalkan penetapan</TombolKonfirmasi>
                   </form>

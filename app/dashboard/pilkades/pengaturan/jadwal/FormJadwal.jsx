@@ -9,7 +9,7 @@ import { TAHAPAN_STANDAR, KET_OTOMATIS, MAKS_TAHAPAN, formatRentang } from "@/li
 function TombolSimpan() {
   const { pending } = useFormStatus();
   return (
-    <button disabled={pending} className={`${tombol.utama} text-base`}>
+    <button type="submit" disabled={pending} className={`${tombol.utama} w-full text-base sm:w-auto`}>
       {pending ? "Menyimpan..." : "Simpan jadwal"}
     </button>
   );
@@ -27,7 +27,7 @@ const baru = (r = {}) => ({
 });
 
 const tombolMini =
-  "inline-flex h-9 min-w-9 items-center justify-center rounded-lg border border-slate-300 bg-white px-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-35";
+  "inline-flex h-11 min-w-11 sm:h-9 sm:min-w-9 items-center justify-center rounded-lg border border-slate-300 bg-white px-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 disabled:cursor-not-allowed disabled:opacity-35";
 
 /**
  * Daftar tahapan yang bisa diatur: ganti nama, ubah urutan, tambah, hapus.
@@ -53,6 +53,11 @@ export default function FormJadwal({ periodeId, awal, tanggalPemungutan, adminTa
       return salin;
     });
   const hapus = (key) => ubahBaris((b) => b.filter((r) => r.key !== key));
+  const hapusDenganCek = (r, i) => {
+    const terisi = r.nama || r.mulai || r.selesai || r.catatan;
+    if (terisi && !window.confirm(`Hapus tahap ${i + 1}${r.nama ? ` “${r.nama}”` : ""}? (Belum tersimpan sebelum Anda menekan Simpan jadwal.)`)) return;
+    hapus(r.key);
+  };
   const tambah = () => ubahBaris((b) => [...b, baru()]);
   const standar = () => {
     if (window.confirm("Kembalikan ke daftar standar? Nama, urutan, dan tanggal di layar ini akan diganti (belum tersimpan sebelum Anda menekan Simpan jadwal).")) {
@@ -64,7 +69,7 @@ export default function FormJadwal({ periodeId, awal, tanggalPemungutan, adminTa
   const payload = JSON.stringify(baris.map(({ key, ...r }) => r));
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} onKeyDown={(e) => { if (e.key === "Enter" && e.target.tagName === "INPUT") e.preventDefault(); }} className="space-y-4">
       <input type="hidden" name="periode_id" value={periodeId} />
       <input type="hidden" name="data" value={payload} />
 
@@ -73,29 +78,31 @@ export default function FormJadwal({ periodeId, awal, tanggalPemungutan, adminTa
           const pemungutan = r.jenis === "pemungutan";
           const salah = !pemungutan && r.mulai && r.selesai && r.selesai < r.mulai;
           return (
-            <li key={r.key} className={`rounded-xl border bg-white p-4 ${salah ? "border-red-300" : "border-sky-100"}`}>
-              <div className="flex items-start gap-3">
-                <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-bold text-sky-800">{i + 1}</span>
-                <div className="min-w-0 flex-1">
-                  <label className="block text-sm font-semibold text-slate-800">
-                    Nama tahapan
-                    <input
-                      value={r.nama}
-                      onChange={(e) => ubah(r.key, "nama", e.target.value)}
-                      maxLength={80}
-                      placeholder="Contoh: Sosialisasi kepada warga"
-                      className={`${kolomKecil} mt-1 block w-full text-base font-semibold`}
-                    />
-                  </label>
-                  {r.jenis && (
-                    <p className="mt-1 text-sm font-medium text-emerald-800">⚙ {KET_OTOMATIS[r.jenis]}</p>
-                  )}
+            <li key={r.key} className={`rounded-xl border bg-white p-3 sm:p-4 ${salah ? "border-red-300" : "border-sky-100"}`}>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+                <div className="flex min-w-0 flex-1 items-start gap-3">
+                  <span className="mt-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-bold text-sky-800">{i + 1}</span>
+                  <div className="min-w-0 flex-1">
+                    <label className="block text-sm font-semibold text-slate-800">
+                      Nama tahapan
+                      <input
+                        value={r.nama}
+                        onChange={(e) => ubah(r.key, "nama", e.target.value)}
+                        maxLength={80}
+                        placeholder="Contoh: Sosialisasi kepada warga"
+                        className={`${kolomKecil} mt-1 block w-full min-w-0 text-base font-semibold`}
+                      />
+                    </label>
+                    {r.jenis && (
+                      <p className="mt-1 text-sm font-medium text-emerald-800">⚙ {KET_OTOMATIS[r.jenis]}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex shrink-0 gap-1.5">
+                <div className="flex shrink-0 justify-end gap-2 sm:gap-1.5">
                   <button type="button" onClick={() => pindah(i, -1)} disabled={i === 0} aria-label="Naikkan urutan" title="Naikkan" className={tombolMini}>↑</button>
                   <button type="button" onClick={() => pindah(i, 1)} disabled={i === baris.length - 1} aria-label="Turunkan urutan" title="Turunkan" className={tombolMini}>↓</button>
                   {!pemungutan && (
-                    <button type="button" onClick={() => hapus(r.key)} aria-label={`Hapus tahap ${r.nama || i + 1}`} title="Hapus tahap ini" className={`${tombolMini} text-red-700 hover:bg-red-50`}>🗑</button>
+                    <button type="button" onClick={() => hapusDenganCek(r, i)} aria-label={`Hapus tahap ${r.nama || i + 1}`} title="Hapus tahap ini" className={`${tombolMini} text-red-700 hover:bg-red-50`}>🗑</button>
                   )}
                 </div>
               </div>
@@ -109,11 +116,11 @@ export default function FormJadwal({ periodeId, awal, tanggalPemungutan, adminTa
                 <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1.4fr]">
                   <label className="block text-sm font-semibold text-slate-800">
                     Mulai
-                    <input type="date" value={r.mulai} onChange={(e) => ubah(r.key, "mulai", e.target.value)} className={`${kolomKecil} mt-1 block w-full font-normal`} />
+                    <input type="date" value={r.mulai} onChange={(e) => ubah(r.key, "mulai", e.target.value)} className={`${kolomKecil} mt-1 block w-full min-w-0 font-normal`} />
                   </label>
                   <label className="block text-sm font-semibold text-slate-800">
                     Selesai <span className="font-normal text-slate-500">(kosong = 1 hari)</span>
-                    <input type="date" value={r.selesai} min={r.mulai || undefined} onChange={(e) => ubah(r.key, "selesai", e.target.value)} className={`${kolomKecil} mt-1 block w-full font-normal`} />
+                    <input type="date" value={r.selesai} min={r.mulai || undefined} onChange={(e) => ubah(r.key, "selesai", e.target.value)} className={`${kolomKecil} mt-1 block w-full min-w-0 font-normal`} />
                   </label>
                   <label className="block text-sm font-semibold text-slate-800 sm:col-span-2 lg:col-span-1">
                     Catatan <span className="font-normal text-slate-500">(boleh kosong)</span>
@@ -128,17 +135,17 @@ export default function FormJadwal({ periodeId, awal, tanggalPemungutan, adminTa
       </ol>
 
       <div className="flex flex-wrap items-center gap-3">
-        <button type="button" onClick={tambah} disabled={baris.length >= MAKS_TAHAPAN} className={tombol.sekunder}>
+        <button type="button" onClick={tambah} disabled={baris.length >= MAKS_TAHAPAN} className={`${tombol.sekunder} w-full sm:w-auto`}>
           + Tambah tahapan
         </button>
-        <button type="button" onClick={standar} className="text-sm font-semibold text-slate-600 underline hover:text-slate-900">
+        <button type="button" onClick={standar} className="py-2 text-sm font-semibold text-slate-600 underline hover:text-slate-900">
           Kembalikan ke daftar standar
         </button>
       </div>
 
       {state?.error && <Pesan jenis="bahaya" judul="Jadwal belum tersimpan">{state.error}</Pesan>}
 
-      <div className="sticky bottom-3 flex flex-wrap items-center gap-3 rounded-xl border border-sky-100 bg-white/95 p-3 shadow-md backdrop-blur">
+      <div className="sticky bottom-2 z-10 flex flex-col gap-2 rounded-xl border border-sky-100 bg-white/95 p-3 shadow-md backdrop-blur sm:bottom-3 sm:flex-row sm:items-center sm:gap-3">
         <TombolSimpan />
         <p className={`text-sm ${berubah ? "font-semibold text-amber-800" : "text-slate-700"}`}>
           {berubah ? "Ada perubahan yang belum disimpan. " : ""}

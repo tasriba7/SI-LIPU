@@ -1,3 +1,4 @@
+import TombolKirim from "@/components/pilkades/TombolKirim";
 import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
@@ -53,7 +54,7 @@ function FormCalon({ periodeId, calon }) {
         <textarea name="visi_misi" rows={4} maxLength={2000} defaultValue={calon?.visi_misi ?? ""} className={`${kolom} mt-1 font-normal`} />
       </label>
       <div className="sm:col-span-2">
-        <button className={calon ? tombol.sekunder : tombol.utama}>{calon ? "Simpan perubahan" : "+ Tambah calon"}</button>
+        <TombolKirim className={calon ? tombol.sekunder : tombol.utama}>{calon ? "Simpan perubahan" : "+ Tambah calon"}</TombolKirim>
       </div>
     </form>
   );
@@ -113,12 +114,12 @@ export default async function CalonPage({ searchParams }) {
         {calon.map((c) => (
           <Kartu key={c.id}>
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="flex items-center gap-4">
+              <div className="flex min-w-0 items-center gap-4">
                 <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-sky-100 text-2xl font-extrabold text-sky-900">
                   {c.nomor_urut ?? "–"}
                 </span>
                 <div>
-                  <p className="text-lg font-bold text-slate-900">{c.nama}</p>
+                  <p className="break-words text-lg font-bold text-slate-900">{c.nama}</p>
                   <span className={`mt-1 inline-block rounded-full px-3 py-0.5 text-sm font-semibold ${STATUS_CALON_BADGE[c.status]}`}>
                     {STATUS_CALON[c.status]}
                   </span>
@@ -129,7 +130,7 @@ export default async function CalonPage({ searchParams }) {
                   <input type="hidden" name="id" value={c.id} />
                   <TombolKonfirmasi
                     pesan={`Hapus calon ${c.nama}? Tindakan ini tercatat di Riwayat.`}
-                    className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-semibold text-red-700 hover:bg-red-50"
+                    className="min-h-11 rounded-lg border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 sm:min-h-0 sm:px-3 sm:py-1.5"
                   >
                     Hapus
                   </TombolKonfirmasi>

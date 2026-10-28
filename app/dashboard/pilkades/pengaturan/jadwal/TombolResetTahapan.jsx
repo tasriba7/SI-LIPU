@@ -7,10 +7,11 @@ import { Pesan, Kartu, tombol, kolomKecil } from "@/components/pilkades/UI";
 import { formatRentang } from "@/lib/pilkadesJadwal";
 
 function Kirim({ mode, children, disabled, className, onClick }) {
-  const { pending } = useFormStatus();
+  const { pending, data } = useFormStatus();
+  const sayaYangDiklik = pending && data?.get("mode") === mode;
   return (
-    <button name="mode" value={mode} disabled={pending || disabled} className={className} onClick={onClick}>
-      {pending ? "Memproses..." : children}
+    <button type="submit" name="mode" value={mode} disabled={pending || disabled} className={className} onClick={onClick}>
+      {sayaYangDiklik ? "Memproses..." : children}
     </button>
   );
 }
@@ -70,11 +71,11 @@ export default function TombolResetTahapan({ periodeId, tahap, tersimpan, ringka
       </p>
 
       {!buka ? (
-        <button type="button" onClick={() => setBuka(true)} className={`${tombol.sekunder} mt-3 !border-red-300 !text-red-700`}>
+        <button type="button" onClick={() => setBuka(true)} className={`${tombol.sekunder} mt-3 w-full !border-red-300 !text-red-700 sm:w-auto`}>
           Reset tahapan...
         </button>
       ) : (
-        <form action={formAction} className="mt-3 space-y-4 rounded-xl border border-red-200 bg-red-50 p-4">
+        <form action={formAction} onKeyDown={(e) => { if (e.key === "Enter" && e.target.tagName === "INPUT" && e.target.type !== "checkbox") e.preventDefault(); }} className="mt-3 space-y-4 rounded-xl border border-red-200 bg-red-50 p-3 sm:p-4">
           <input type="hidden" name="periode_id" value={periodeId} />
           <input type="hidden" name="jumlah" value={tahap.length} />
 
@@ -85,7 +86,7 @@ export default function TombolResetTahapan({ periodeId, tahap, tersimpan, ringka
           )}
 
           <div>
-            <label className="flex items-center gap-2 text-sm font-bold text-red-950">
+            <label className="flex items-center gap-3 py-1 text-sm font-bold text-red-950">
               <input type="checkbox" checked={semuaTerpilih} onChange={pilihSemua} disabled={!tersimpan} className="h-5 w-5" />
               Pilih semua tahapan
             </label>
@@ -95,7 +96,7 @@ export default function TombolResetTahapan({ periodeId, tahap, tersimpan, ringka
                 const tgl = !pemungutan && t.mulai ? formatRentang(t.mulai, t.selesai || undefined) : null;
                 return (
                   <li key={i}>
-                    <label className={`flex items-start gap-2 rounded-lg bg-white px-3 py-2 text-sm ${pemungutan || !tersimpan ? "opacity-60" : ""}`}>
+                    <label className={`flex items-start gap-3 rounded-lg bg-white px-3 py-3 text-sm ${pemungutan || !tersimpan ? "opacity-60" : ""}`}>
                       <input
                         type="checkbox"
                         name="pilih"
@@ -105,7 +106,7 @@ export default function TombolResetTahapan({ periodeId, tahap, tersimpan, ringka
                         disabled={pemungutan || !tersimpan}
                         className="mt-0.5 h-5 w-5 shrink-0"
                       />
-                      <span className="min-w-0">
+                      <span className="min-w-0 break-words">
                         <span className="font-semibold text-slate-900">{i + 1}. {t.nama}</span>
                         <span className="block text-slate-600">
                           {pemungutan ? "Tanggal mengikuti menu Periode Pilkades (tidak bisa direset di sini)" : tgl ?? "Belum bertanggal"}
@@ -121,14 +122,14 @@ export default function TombolResetTahapan({ periodeId, tahap, tersimpan, ringka
 
           {state?.error && <Pesan jenis="bahaya" judul="Tahapan belum direset">{state.error}</Pesan>}
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Kirim mode="pilihan" onClick={konfirmasiPilihan} disabled={dipilih.size === 0} className={`${tombol.bahaya} disabled:cursor-not-allowed disabled:opacity-40`}>
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <Kirim mode="pilihan" onClick={konfirmasiPilihan} disabled={dipilih.size === 0} className={`${tombol.bahaya} w-full disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto`}>
               Reset {dipilih.size > 0 ? `${dipilih.size} tahapan terpilih` : "tahapan terpilih"}
             </Kirim>
-            <button type="button" onClick={() => setBukaSemua((v) => !v)} className={tombol.sekunder}>
+            <button type="button" onClick={() => setBukaSemua((v) => !v)} className={`${tombol.sekunder} w-full sm:w-auto`}>
               Reset semua (hapus semua data)...
             </button>
-            <button type="button" onClick={tutup} className="text-sm font-semibold text-slate-700 underline">Batal</button>
+            <button type="button" onClick={tutup} className="py-2 text-sm font-semibold text-slate-700 underline">Batal</button>
           </div>
 
           {bukaSemua && (
@@ -155,9 +156,9 @@ export default function TombolResetTahapan({ periodeId, tahap, tersimpan, ringka
               </p>
               <label className="block text-sm font-semibold text-red-950">
                 Ketik <span className="font-mono">RESET</span> untuk melanjutkan
-                <input name="konfirmasi" value={teks} onChange={(e) => setTeks(e.target.value)} autoComplete="off" className={`${kolomKecil} mt-1 block w-full max-w-xs font-mono`} />
+                <input name="konfirmasi" value={teks} onChange={(e) => setTeks(e.target.value)} autoComplete="off" autoCapitalize="characters" autoCorrect="off" spellCheck={false} className={`${kolomKecil} mt-1 block w-full max-w-xs font-mono`} />
               </label>
-              <Kirim mode="semua" onClick={konfirmasiSemua} disabled={teks !== "RESET"} className={`${tombol.bahaya} disabled:cursor-not-allowed disabled:opacity-40`}>
+              <Kirim mode="semua" onClick={konfirmasiSemua} disabled={teks !== "RESET"} className={`${tombol.bahaya} w-full disabled:cursor-not-allowed disabled:opacity-40 sm:w-auto`}>
                 Ya, hapus semua data periode ini
               </Kirim>
             </div>
