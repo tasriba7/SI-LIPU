@@ -17,7 +17,7 @@ const PESAN_HASIL = {
   ok: (sp) => ["sukses", "Jadwal tersimpan", `${sp.n} tahapan tersimpan. Progres dan garis waktu di beranda ikut diperbarui.`],
   reset: (sp) =>
     sp.mode === "semua"
-      ? ["sukses", "Semua data periode ini sudah direset", "Pemilih, TPS, DPS/DPT, calon, rekap suara, susunan panitia, dan jadwal sudah dihapus. Periode dan data penduduk tetap ada."]
+      ? ["sukses", "Semua data periode ini sudah direset", "Pemilih, TPS, DPS/DPT, calon, rekap suara, susunan panitia, jadwal, dan riwayat sudah dihapus. Periode dan data penduduk tetap ada. Semua menu tahapan kembali terkunci."]
       : ["sukses", "Tahapan terpilih sudah direset", "Tanggal dan catatan tahapan yang dicentang sudah dikosongkan. Nama dan urutan tahapan tidak berubah."],
 };
 
@@ -43,11 +43,11 @@ export default async function JadwalPage({ searchParams }) {
   // Ringkasan data yang akan terhapus pada "Reset semua" (hanya dibutuhkan panitia).
   let ringkas = {};
   if (bisaUbah) {
-    const [pemilih, tps, arsip, tambahan, hadir, calon, rekapTps, hasil, panitia, logo] = await Promise.all([
+    const [pemilih, tps, arsip, tambahan, hadir, calon, rekapTps, hasil, panitia, logo, riwayat] = await Promise.all([
       "pilkades_pemilih", "pilkades_tps", "pilkades_daftar_tetap", "pilkades_pemilih_tambahan", "pilkades_hadir",
-      "pilkades_calon", "pilkades_suara_tps", "pilkades_hasil", "pilkades_panitia", "pilkades_logo",
+      "pilkades_calon", "pilkades_suara_tps", "pilkades_hasil", "pilkades_panitia", "pilkades_logo", "pilkades_log",
     ].map((t) => hitung(supabase, t, periode.id)));
-    ringkas = { pemilih, tps, arsip, tambahan, hadir, calon, rekapTps, hasil, panitia, logo };
+    ringkas = { pemilih, tps, arsip, tambahan, hadir, calon, rekapTps, hasil, panitia, logo, riwayat };
   }
 
   return (
