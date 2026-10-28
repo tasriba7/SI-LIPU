@@ -20,13 +20,20 @@ const BATAS = 200;
  * @param {string=} labelLihat bila diisi (mis. "Lihat isi aduan"), kode tracking jadi teks biasa dan
  *                             tautan ke detail memakai label ini (kolom "Aksi")
  * @param {string[]=} statusTampil status yang ditampilkan di kartu/filter (bawaan: semua)
+ * @param {{key:string,label:string,status:string[],badge:string}[]=} kelompok bila diisi, kartu/filter/label
+ *                             memakai kelompok ini (mis. Diajukan | Selesai diproses), bukan status mentah
  */
 export default async function PantauLayanan({
   sp, basePath, judul, deskripsi, kategori,
   sumber = "pengajuan_layanan_pantau", detailBase = "/dashboard/layanan", catatan = null,
-  labelLihat = null, statusTampil = STATUS_SEMUA,
+  labelLihat = null, statusTampil = STATUS_SEMUA, kelompok = null,
 }) {
-  const STATUS_PANTAU = statusTampil;
+  const STATUS_PANTAU = kelompok ? kelompok.map((k) => k.key) : statusTampil;
+  const daftarStatus = (key) => kelompok?.find((k) => k.key === key)?.status ?? [key];
+  const labelStatus = (st) =>
+    kelompok ? kelompok.find((k) => k.status.includes(st))?.label ?? STATUS_LABELS[st] : STATUS_LABELS[st];
+  const badgeStatus = (st) =>
+    kelompok ? kelompok.find((k) => k.status.includes(st))?.badge ?? STATUS_BADGE_CLASS[st] : STATUS_BADGE_CLASS[st];
   const supabase = await createClient();
   const status = STATUS_PANTAU.includes(sp?.status) ? sp.status : "semua";
   // Buang karakter yang bisa merusak filter PostgREST.
@@ -41,11 +48,11 @@ export default async function PantauLayanan({
     .order("created_at", { ascending: false })
     .limit(BATAS);
   if (kategori) query = query.eq("kategori", kategori);
-  if (status !== "semua") query = query.eq("status", status);
+  if (status !== "semua") query = query.in("status", daftarStatus(status));
   if (q) query = query.ilike("kode_tracking", `%${q}%`);
 
   const hitung = (s) => {
-    let c = dasar().select("id", { count: "exact", head: true }).eq("status", s);
+    let c = dasar().select("id", { count: "exact", head: true }).in("status", daftarStatus(s));
     if (kategori) c = c.eq("kategori", kategori);
     return c;
   };
@@ -53,7 +60,9 @@ export default async function PantauLayanan({
   const [{ data: daftar }, ...counts] = await Promise.all([query, ...STATUS_PANTAU.map(hitung)]);
   const jumlah = Object.fromEntries(STATUS_PANTAU.map((s, i) => [s, counts[i].count ?? 0]));
   const total = Object.values(jumlah).reduce((a, b) => a + b, 0);
-  const selesaiTolak = (jumlah.selesai ?? 0) + (jumlah.ditolak ?? 0);
+  const selesaiTolak = kelompok
+    ? jumlah[STATUS_PANTAU[STATUS_PANTAU.length - 1]] ?? 0
+    : (jumlah.selesai ?? 0) + (jumlah.ditolak ?? 0);
   const persenTuntas = total ? Math.round((selesaiTolak / total) * 100) : 0;
 
   const href = (f) => {
@@ -75,11 +84,11 @@ export default async function PantauLayanan({
         {catatan}
       </div>
 
-      <div className={`grid grid-cols-2 gap-3 ${STATUS_PANTAU.length === 3 ? "sm:grid-cols-4" : "sm:grid-cols-5"}`}>
+      <div className={`grid grid-cols-2 gap-3 ${STATUS_PANTAU.length <= 2 ? "sm:grid-cols-3" : STATUS_PANTAU.length === 3 ? "sm:grid-cols-4" : "sm:grid-cols-5"}`}>
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
           <p className="text-2xl font-bold text-slate-800">{total}</p>
           <p className="mt-1 text-xs text-slate-500">Total masuk</p>
-          <p className="mt-1 text-[11px] text-emerald-600">{persenTuntas}% sudah tuntas</p>
+          <p className="mt-1 text-[11px] text-emerald-600">{persenTuntas}% {kelompok ? "sudah dibalas" : "sudah tuntas"}</p>
         </div>
         {STATUS_PANTAU.map((s) => (
           <Link
@@ -89,9 +98,9 @@ export default async function PantauLayanan({
           >
             <p className="text-2xl font-bold text-slate-800">{jumlah[s]}</p>
             <span
-              className={`mt-1 inline-block rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASS[s]}`}
+              className={`mt-1 inline-block rounded px-2 py-0.5 text-xs font-medium ${badgeStatus(daftarStatus(s)[0])}`}
             >
-              {STATUS_LABELS[s]}
+              {kelompok ? kelompok.find((k) => k.key === s).label : STATUS_LABELS[s]}
             </span>
           </Link>
         ))}
@@ -129,7 +138,7 @@ export default async function PantauLayanan({
                 : "border border-slate-200 bg-white text-slate-500 hover:border-navy-light/40"
             }`}
           >
-            {f === "semua" ? "Semua" : STATUS_LABELS[f]}
+            {f === "semua" ? "Semua" : kelompok ? kelompok.find((k) => k.key === f).label : STATUS_LABELS[f]}
           </Link>
         ))}
       </div>
@@ -180,9 +189,9 @@ export default async function PantauLayanan({
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASS[r.status]}`}
+                    className={`rounded px-2 py-0.5 text-xs font-medium ${badgeStatus(r.status)}`}
                   >
-                    {STATUS_LABELS[r.status]}
+                    {labelStatus(r.status)}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-slate-400">
@@ -206,7 +215,7 @@ export default async function PantauLayanan({
               <tr>
                 <td colSpan={labelLihat ? 8 : 7} className="px-4 py-10 text-center text-slate-400">
                   Belum ada data
-                  {status !== "semua" ? ` dengan status "${STATUS_LABELS[status]}"` : ""}
+                  {status !== "semua" ? ` dengan status "${kelompok ? kelompok.find((k) => k.key === status).label : STATUS_LABELS[status]}"` : ""}
                   {q ? ` untuk "${q}"` : ""}.
                 </td>
               </tr>

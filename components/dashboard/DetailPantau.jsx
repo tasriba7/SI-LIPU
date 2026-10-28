@@ -19,6 +19,8 @@ export default async function DetailPantau({
   kembali = null,
   // Slot aksi (mis. formulir "Balas Aduan"); menerima data aduan agar bisa menyesuaikan tampilan.
   aksi = null,
+  // true: badge status disederhanakan jadi "Diajukan" / "Selesai diproses" (halaman Pilkades)
+  statusSederhana = false,
 }) {
   const supabase = await createClient();
   const { data: p } = await supabase
@@ -68,8 +70,14 @@ export default async function DetailPantau({
       <div className="rounded-2xl border border-slate-200 bg-white p-6">
         <div className="flex items-center justify-between gap-3">
           <p className="font-mono text-xs text-slate-400">{p.kode_tracking}</p>
-          <span className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASS[p.status]}`}>
-            {STATUS_LABELS[p.status]}
+          <span
+            className={`rounded px-2 py-0.5 text-xs font-medium ${
+              statusSederhana && p.status !== "diajukan"
+                ? "bg-emerald-100 text-emerald-700"
+                : STATUS_BADGE_CLASS[p.status]
+            }`}
+          >
+            {statusSederhana && p.status !== "diajukan" ? "Selesai diproses" : STATUS_LABELS[p.status]}
           </span>
         </div>
         <h1 className="mt-1 text-lg font-bold text-slate-800">{p.nama_layanan}</h1>

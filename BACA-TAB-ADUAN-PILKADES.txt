@@ -1,0 +1,7 @@
+Tab Aduan Warga (akun Pilkades) disederhanakan: Semua | Diajukan | Selesai diproses
+TIDAK ada migrasi SQL. Timpa 4 file lalu restart npm run dev.
+- Belum dibalas (status diajukan)  -> tab/kartu "Diajukan"
+- Sudah dibalas (diproses/selesai) -> tab/kartu "Selesai diproses"
+Label badge di daftar dan di halaman isi aduan juga ikut "Diajukan" / "Selesai diproses".
+Halaman BPD, Pengajuan Layanan, dan Pengaduan biasa tidak berubah (tetap memakai status lengkap).
+FILE: components/dashboard/{PantauLayanan,DetailPantau}.jsx, app/dashboard/pilkades/aduan/page.js, app/dashboard/pilkades/aduan/[id]/page.js

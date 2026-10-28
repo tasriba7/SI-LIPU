@@ -21,6 +21,7 @@ export default async function DetailAduanPilkadesPage({ params }) {
         id={id}
         sumber="pilkades_aduan_pantau"
         kembali="/dashboard/pilkades/aduan"
+        statusSederhana
         aksi={(p) =>
           panitia &&
           (p.status === "diajukan" ? (

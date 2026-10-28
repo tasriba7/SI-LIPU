@@ -23,7 +23,15 @@ export default async function AduanPilkadesPage({ searchParams }) {
         sumber="pilkades_aduan_pantau"
         detailBase="/dashboard/pilkades/aduan"
         labelLihat="Lihat isi aduan"
-        statusTampil={["diajukan", "diproses", "selesai"]}
+        kelompok={[
+          { key: "diajukan", label: "Diajukan", status: ["diajukan"], badge: "bg-slate-100 text-slate-600" },
+          {
+            key: "selesai_diproses",
+            label: "Selesai diproses",
+            status: ["diproses", "selesai", "ditolak"],
+            badge: "bg-emerald-100 text-emerald-700",
+          },
+        ]}
         judul="Aduan Warga seputar Pilkades"
         deskripsi="Aduan dari warga yang berjenis Pilkades dan bagaimana desa menanganinya. Klik tombol Lihat isi aduan untuk membaca isinya, lalu balas."
         catatan={
