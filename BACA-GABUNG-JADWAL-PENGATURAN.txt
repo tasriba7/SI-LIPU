@@ -1,0 +1,12 @@
+Menu "Jadwal Tahapan" + "Pengaturan Panitia" digabung jadi satu menu: "Jadwal & Pengaturan"
+TIDAK ada migrasi SQL.
+LANGKAH:
+1. HAPUS dulu 2 file lama (sudah pindah folder):
+     app/dashboard/pilkades/jadwal/FormJadwal.jsx
+     app/dashboard/pilkades/jadwal/TombolResetTahapan.jsx
+2. Timpa semua file di zip (termasuk app/dashboard/pilkades/jadwal/page.js yang kini hanya pengalih), restart npm run dev.
+HASIL
+- Sidebar: satu menu "Jadwal & Pengaturan" dengan 4 tab: Jadwal Tahapan | Susunan Panitia | Logo | Periode.
+- Jadwal Tahapan pindah ke /dashboard/pilkades/pengaturan/jadwal. Alamat lama /dashboard/pilkades/jadwal tetap jalan (dialihkan).
+- Menu ini terbuka ke tab Jadwal Tahapan untuk panitia (admin tetap ke Periode).
+- Semua tautan di halaman lain, pesan terkunci, dan pesan pengingat diarahkan ke alamat baru. Isi dan hak akses tiap tab tidak berubah.
