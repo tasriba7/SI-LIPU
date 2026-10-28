@@ -7,6 +7,7 @@ import { ambilCalonPemilih, sinkronPenduduk } from "../actions";
 import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
 import { JudulHalaman, Kartu, KosongPandu, tombol } from "@/components/pilkades/UI";
 import PesanSekali from "@/components/pilkades/PesanSekali";
+import TombolAmbilWarga from "@/components/pilkades/TombolAmbilWarga";
 import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Ambil Data Warga" };
@@ -51,7 +52,7 @@ export default async function AmbilPage({ searchParams }) {
           {bisaUbah && (
             <form action={ambilCalonPemilih} className="mt-5">
               <input type="hidden" name="periode_id" value={periode.id} />
-              <button className={`${tombol.utama} text-base`}>Ambil Data Warga Sekarang</button>
+              <TombolAmbilWarga className={`${tombol.utama} text-base`}>Ambil Data Warga Sekarang</TombolAmbilWarga>
             </form>
           )}
         </KosongPandu>
@@ -76,7 +77,7 @@ export default async function AmbilPage({ searchParams }) {
             {bisaUbah && (
               <form action={ambilCalonPemilih}>
                 <input type="hidden" name="periode_id" value={periode.id} />
-                <button className={tombol.sekunder}>Tambah warga baru</button>
+                <TombolAmbilWarga className={tombol.sekunder}>Tambah warga baru</TombolAmbilWarga>
               </form>
             )}
           </div>
