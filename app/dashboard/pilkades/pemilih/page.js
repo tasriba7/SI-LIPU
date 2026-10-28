@@ -13,7 +13,7 @@ import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
 import { JudulHalaman, Catatan, Kartu, KosongPandu, tombol, kolomKecil } from "@/components/pilkades/UI";
 import PesanSekali from "@/components/pilkades/PesanSekali";
-import { teknis } from "@/lib/pilkadesPesan";
+import { teknis, COBA_LAGI } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Periksa Pemilih" };
 const PER_HALAMAN = 30;
@@ -35,6 +35,17 @@ function pesanFilterUsia(sp) {
     };
   }
   return null;
+}
+
+// Pesan bila "Simpan" satu pemilih gagal (alamat: ?simpan=kode&nama=...). Berhasil tidak diberi pesan.
+function pesanSimpan(sp) {
+  const nama = sp.nama ? ` untuk ${sp.nama}` : "";
+  const peta = {
+    terkunci: { jenis: "perhatian", judul: "Daftar sudah terkunci", isi: `Perubahan${nama} tidak disimpan karena DPT sudah ditetapkan. Pemilih yang terlewat dicatat lewat menu Pemilih Tambahan.` },
+    izin: { jenis: "bahaya", judul: "Tidak diizinkan", isi: "Hanya Panitia Pilkades yang dapat mengubah status pemilih." },
+    gagal: { jenis: "bahaya", judul: "Perubahan belum tersimpan", isi: `Perubahan${nama} belum tersimpan. ${COBA_LAGI}` },
+  };
+  return peta[sp.simpan] ?? null;
 }
 
 export default async function PemilihPage({ searchParams }) {
@@ -113,6 +124,7 @@ export default async function PemilihPage({ searchParams }) {
       />
 
       <PesanSekali pesan={pesanFilterUsia(sp)} bersihkan={["filter", "m", "t", "p", "b"]} />
+      <PesanSekali pesan={pesanSimpan(sp)} bersihkan={["simpan", "nama"]} />
       <Catatan
         butir={[
           error && { jenis: "bahaya", judul: "Daftar gagal dimuat", isi: `Muat ulang halaman ini.${teknis(role, "0051")}` },
@@ -267,6 +279,8 @@ export default async function PemilihPage({ searchParams }) {
                     {bisaUbah && (
                       <form id={formId} action={simpanPemilih}>
                         <input type="hidden" name="id" value={r.id} />
+                        <input type="hidden" name="nama" value={r.nama_lengkap} />
+                        <input type="hidden" name="kembali" value={`/dashboard/pilkades/pemilih${qs({ hal: halaman })}`} />
                         <button className={tombol.kecil}>Simpan</button>
                       </form>
                     )}
