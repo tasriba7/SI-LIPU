@@ -1,0 +1,8 @@
+Usia minimal pemilih bisa diatur di menu Periksa Pemilih
+1. Jalankan supabase/migrations/0068_pilkades_usia_bisa_diatur.sql di Supabase SQL Editor (setelah 0065).
+   WAJIB: tanpa ini, database tetap memaksa usia kembali ke 17.
+2. Timpa: lib/pilkades.js, app/dashboard/pilkades/actions.js, app/dashboard/pilkades/pemilih/page.js
+3. Restart npm run dev.
+4. Atur di: Periksa Pemilih > "Cara cepat: saring otomatis berdasarkan usia" > isi "Usia minimal (tahun)"
+   > "Hitung dulu" > "Terapkan Saringan Usia". Nilai disimpan untuk periode itu dan dipakai juga
+   oleh penjaga saat DPS/DPT ditetapkan serta saat daftar dicetak. Rentang 15-30, bawaan 17.

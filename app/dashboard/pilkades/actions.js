@@ -7,7 +7,7 @@ import { pastikanAdmin, pastikanKelolaPilkades } from "@/lib/akses";
 import { adalahUuid } from "@/lib/validasiPengajuan";
 import {
   STATUS_VERIFIKASI, STATUS_CALON, JABATAN_PANITIA, ambilDaftarPemilih,
-  BUCKET_LOGO_PILKADES, EKSTENSI_LOGO, MAKS_LOGO_MB, USIA_MINIMUM_PEMILIH, MAKS_CALON, MIN_CALON,
+  BUCKET_LOGO_PILKADES, EKSTENSI_LOGO, MAKS_LOGO_MB, USIA_ATUR_MIN, USIA_ATUR_MAKS, MAKS_CALON, MIN_CALON,
 } from "@/lib/pilkades";
 import { JENIS_OTOMATIS, MAKS_TAHAPAN } from "@/lib/pilkadesJadwal";
 import { tundaSebelumJadwal } from "@/lib/pilkadesTanggal";
@@ -263,7 +263,10 @@ export async function terapkanFilterUsia(formData) {
   const cek = await pastikanKelolaPilkades(supabase);
   if (cek.error) return;
   const periodeId = String(formData.get("periode_id") ?? "");
-  const usia = USIA_MINIMUM_PEMILIH; // dikunci 17 tahun, nilai kiriman form diabaikan
+  const usia = Number(formData.get("usia"));
+  if (!Number.isInteger(usia) || usia < USIA_ATUR_MIN || usia > USIA_ATUR_MAKS) {
+    redirect("/dashboard/pilkades/pemilih?filter=usia");
+  }
   const kawin = formData.get("kawin") === "1";
   const tandai = formData.get("tandai") === "1";
   if (!adalahUuid(periodeId)) return;

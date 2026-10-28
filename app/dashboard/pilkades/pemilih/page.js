@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
 import {
-  dptTerkunci,
+  dptTerkunci, usiaBerlaku, USIA_ATUR_MIN, USIA_ATUR_MAKS, USIA_MINIMUM_PEMILIH,
   ambilPeriode, ambilDaftarPemilih, hitungUmur, formatTanggal, terlaluMuda, STATUS_VERIFIKASI, STATUS_BADGE_CLASS,
 } from "@/lib/pilkades";
 import { simpanPemilih, terapkanFilterUsia } from "../actions";
@@ -25,6 +25,13 @@ function pesanFilterUsia(sp) {
       jenis: "sukses",
       judul: "Saringan usia sudah diterapkan",
       isi: `${sp.m ?? 0} memenuhi syarat · ${sp.t ?? 0} tidak memenuhi syarat (kurang usia) · ${sp.p ?? 0} perlu dicek · ${sp.b ?? 0} belum diperiksa.`,
+    };
+  }
+  if (sp.filter === "usia") {
+    return {
+      jenis: "perhatian",
+      judul: "Usia minimal tidak valid",
+      isi: `Isi usia minimal berupa angka bulat antara ${USIA_ATUR_MIN} dan ${USIA_ATUR_MAKS} tahun.`,
     };
   }
   if (sp.filter === "gagal") {
@@ -80,8 +87,12 @@ export default async function PemilihPage({ searchParams }) {
   }
 
   // Pratinjau saringan usia (hanya menghitung, tidak mengubah data).
-  // Usia minimum pemilih dikunci 17 tahun (juga dipaksa di server dan database).
-  const usiaForm = 17;
+  // Usia minimum diatur panitia di panel "saring otomatis berdasarkan usia" di bawah.
+  // Isi form (sp.usia) dipakai untuk pratinjau; bila kosong, memakai nilai periode (bawaan 17).
+  const usiaDiForm = Number(sp.usia);
+  const usiaForm = Number.isInteger(usiaDiForm) && usiaDiForm >= USIA_ATUR_MIN && usiaDiForm <= USIA_ATUR_MAKS
+    ? usiaDiForm
+    : usiaBerlaku(periode);
   const kawinForm = sp.usia === undefined ? periode.termasuk_pernah_kawin !== false : sp.kawin === "1";
   let pratinjau = null;
   if (sp.usia !== undefined) {
@@ -148,10 +159,29 @@ export default async function PemilihPage({ searchParams }) {
             {!bisaUbah && ` Aturan: minimal ${usiaForm} tahun${periode.termasuk_pernah_kawin === false ? "" : " atau sudah/pernah kawin"}.`}
           </p>
           <form className="flex flex-wrap items-end gap-4">
-            <input type="hidden" name="usia" value={usiaForm} />
-            <p className="pb-2 text-sm font-semibold text-slate-800">
-              Usia minimal: {usiaForm} tahun <span className="font-normal text-slate-600">(ditetapkan aturan, tidak bisa diubah)</span>
-            </p>
+            {bisaUbah ? (
+              <label className="text-sm font-semibold text-slate-800">
+                Usia minimal (tahun)
+                <input
+                  type="number"
+                  name="usia"
+                  min={USIA_ATUR_MIN}
+                  max={USIA_ATUR_MAKS}
+                  step={1}
+                  required
+                  defaultValue={usiaForm}
+                  className={`${kolomKecil} mt-1 block w-28`}
+                />
+                <span className="mt-1 block text-xs font-normal text-slate-600">
+                  Umumnya {USIA_MINIMUM_PEMILIH} tahun. Ubah hanya bila aturan daerah menetapkan lain ({USIA_ATUR_MIN}–{USIA_ATUR_MAKS}).
+                </span>
+              </label>
+            ) : (
+              <>
+                <input type="hidden" name="usia" value={usiaForm} />
+                <p className="pb-2 text-sm font-semibold text-slate-800">Usia minimal: {usiaForm} tahun</p>
+              </>
+            )}
             <label className="flex items-center gap-2 pb-2 text-sm text-slate-800">
               <input type="checkbox" name="kawin" value="1" defaultChecked={kawinForm} className="h-5 w-5" />
               Yang sudah/pernah menikah tetap boleh
