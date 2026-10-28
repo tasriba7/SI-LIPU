@@ -44,7 +44,7 @@ const simpanMulai = (n) => {
   }
 };
 
-export default function AnimasiAmbilWarga({ renderId }) {
+export default function AnimasiAmbilWarga({ renderId, batal = false }) {
   const [tampil, setTampil] = useState(false);
   const [persen, setPersen] = useState(0);
   const mulai = useRef(0);
@@ -55,7 +55,13 @@ export default function AnimasiAmbilWarga({ renderId }) {
   idTerbaru.current = renderId;
 
   // Mulai: dari klik tombol, atau lanjut setelah halaman dimuat ulang (redirect).
+  // batal = halaman menampilkan gerbang (aksi ditolak karena belum waktunya): hapus sisa penanda, jangan tampil.
   useEffect(() => {
+    if (batal) {
+      simpanMulai(0);
+      setTampil(false);
+      return undefined;
+    }
     const awal = bacaMulai();
     if (awal) {
       mulai.current = awal;
@@ -74,7 +80,7 @@ export default function AnimasiAmbilWarga({ renderId }) {
     };
     window.addEventListener(EVENT_AMBIL_WARGA, saatKlik);
     return () => window.removeEventListener(EVENT_AMBIL_WARGA, saatKlik);
-  }, []);
+  }, [batal]);
 
   // Halaman dirender ulang oleh server setelah klik = data sudah tiba.
   useEffect(() => {

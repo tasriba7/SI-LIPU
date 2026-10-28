@@ -1,0 +1,30 @@
+Tahapan Pilkades hanya bisa dijalankan setelah pengaturan + jadwal disiapkan
+TIDAK ada migrasi SQL baru untuk bagian ini.
+
+PASANG: timpa file di zip (struktur folder sama dengan proyek), lalu restart npm run dev.
+
+ATURAN BARU
+Sebelum tahapan apa pun dijalankan, ini harus beres (berurutan):
+  1. Tanggal pemungutan suara sudah diisi (menu Periode Pilkades; hanya Administrator yang bisa mengisi)
+  2. Susunan Panitia sudah diisi
+  3. Jadwal Tahapan: tahap "Penyusunan Daftar Pemilih" sudah punya tanggal mulai
+  4. Tanggal mulai itu sudah tiba (acuan hari ini = WITA)
+Tahap "Penyusunan Daftar Pemilih" mencakup: 1. Ambil Data Warga, 2. Periksa Pemilih, 3. Atur TPS,
+4. Tempatkan ke TPS, dan Tetapkan DPS. Tahap lain mengikuti tanggal tahapnya sendiri:
+  DPT -> Tetapkan DPT | Penetapan Calon -> status calon "Ditetapkan"
+  Pemungutan -> rekap suara | Penetapan Calon Terpilih -> tetapkan calon terpilih
+Tahap yang belum punya tanggal sekarang DITAHAN (dulu dibiarkan lolos).
+
+YANG BERUBAH
+- Menu "1. Ambil Data Warga" dan "3. Atur TPS" kini bisa terkunci (dulu tidak pernah). Pemilih, Tempatkan,
+  Tetapkan DPS/DPT, dan Cetak juga terkunci sampai 1-4 di atas beres.
+- Halaman terkunci menampilkan daftar syarat + pesan relevan + tombol ke pekerjaan yang harus dilakukan dulu.
+- Aksi di server ikut menolak (bukan cuma tampilan): ambil data, samakan penduduk, simpan pemilih,
+  saringan usia, tambah/hapus TPS, tempatkan ke TPS, tetapkan DPS/DPT, calon ditetapkan, rekap suara.
+- Periode LAMA yang DPS-nya sudah ditetapkan tidak dikunci mundur untuk langkah persiapan.
+- Gagal membaca jadwal dari database = tidak menahan (sama seperti penjaga lama).
+
+TETAP TIDAK DIKUNCI (dipakai untuk menyiapkan): Mulai di Sini, Jadwal Tahapan, Periode, Susunan Panitia,
+Logo, Calon Kepala Desa (mendaftar), Riwayat.
+Mengubah aturan: lib/pilkadesKunci.js (tabel ATURAN, daftar SIAP) dan lib/pilkadesTanggal.js (alasanTertahan).
+Catatan: penjaga ini ada di lapisan aplikasi (tampilan + server action), bukan trigger database.

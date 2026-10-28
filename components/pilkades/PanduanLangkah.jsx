@@ -5,6 +5,7 @@ import { IconCheck } from "@/components/icons";
 import { IconKunci, tombol } from "./UI";
 import TombolTerkunci from "./TombolTerkunci";
 import { hitungKunci } from "@/lib/pilkadesKunci";
+import { ambilKesiapan } from "@/lib/pilkadesTanggal";
 
 // Warna ikon tiap langkah (class ditulis utuh agar terbaca Tailwind).
 const WARNA_LANGKAH = [
@@ -153,5 +154,6 @@ export default async function PanduanLangkah({ aktif }) {
   const s = await ambilLangkah(supabase, periode);
   // Daftar pemilih sudah final: tidak perlu menampilkan 6 langkah lagi.
   if (s.adaDpt) return <BilahSelesai hanyaLihat={aktif !== "cetak"} />;
-  return <DaftarLangkah langkah={s.langkah} aktif={aktif} kunciPeta={hitungKunci(s)} />;
+  const kes = await ambilKesiapan(supabase, periode.id, periode.tanggal_pemungutan ?? null);
+  return <DaftarLangkah langkah={s.langkah} aktif={aktif} kunciPeta={hitungKunci(s, null, {}, kes)} />;
 }

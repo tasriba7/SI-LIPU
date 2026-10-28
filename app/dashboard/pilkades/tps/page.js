@@ -8,6 +8,8 @@ import PanduanLangkah from "@/components/pilkades/PanduanLangkah";
 import TombolKonfirmasi from "@/components/pilkades/TombolKonfirmasi";
 import { JudulHalaman, Kartu, KosongPandu, tombol, kolom, labelKolom } from "@/components/pilkades/UI";
 import PesanSekali from "@/components/pilkades/PesanSekali";
+import TahapTerkunci from "@/components/pilkades/TahapTerkunci";
+import { kunciHalaman } from "@/lib/pilkadesKunci";
 import { pesanDari, COBA_LAGI } from "@/lib/pilkadesPesan";
 
 export const metadata = { title: "Atur TPS" };
@@ -33,6 +35,10 @@ export default async function TpsPage({ searchParams }) {
   if (!periode) {
     return <KosongPandu judul="Belum ada periode Pilkades" href="/dashboard/pilkades/pengaturan/periode" label="Buka Periode Pilkades" />;
   }
+
+  // Gerbang: pengaturan + jadwal harus diisi dulu, dan tanggal mulai tahapnya harus sudah tiba.
+  const kunci = await kunciHalaman(supabase, periode, "/dashboard/pilkades/tps");
+  if (kunci) return <TahapTerkunci kunci={kunci} />;
 
   const terkunciDpt = await dptTerkunci(supabase, periode.id);
   const bisaUbah = bisaUbahAwal && !terkunciDpt;

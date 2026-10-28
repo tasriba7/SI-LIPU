@@ -5,6 +5,7 @@ import { bisaUbahPilkades } from "@/lib/roles";
 import { ambilPeriode, ambilLangkah, ambilSusunanPanitia, formatTanggal } from "@/lib/pilkades";
 import { ambilJadwalLengkap } from "@/lib/pilkadesJadwal";
 import { hitungKunci } from "@/lib/pilkadesKunci";
+import { ambilKesiapan } from "@/lib/pilkadesTanggal";
 import { KartuProgres, GarisWaktu } from "@/components/pilkades/GarisWaktu";
 import { DaftarLangkah } from "@/components/pilkades/PanduanLangkah";
 import { JudulHalaman, KosongPandu, Kartu, tombol } from "@/components/pilkades/UI";
@@ -68,6 +69,8 @@ export default async function BerandaPilkades() {
 
   const s = await ambilLangkah(supabase, periode);
   const j = await ambilJadwalLengkap(supabase, periode, { arsip: s.arsip });
+  const kes = await ambilKesiapan(supabase, periode.id, periode.tanggal_pemungutan ?? null);
+  const kunciPeta = hitungKunci(s, null, {}, kes);
   const susunan = await ambilSusunanPanitia(supabase, periode.id);
   const ttdKosong = ["ketua", "sekretaris"].filter((k) => !susunan[k]);
   const { role } = await ambilRole(supabase);
@@ -179,7 +182,7 @@ export default async function BerandaPilkades() {
             <span className="hidden font-bold text-emerald-800 underline group-open:inline">Tutup</span>
           </summary>
           <div className="border-t border-emerald-200 bg-white p-4">
-            <DaftarLangkah langkah={s.langkah} varian="lengkap" kunciPeta={hitungKunci(s)} />
+            <DaftarLangkah langkah={s.langkah} varian="lengkap" kunciPeta={kunciPeta} />
           </div>
         </details>
       ) : (
@@ -188,7 +191,7 @@ export default async function BerandaPilkades() {
           <p className="mb-3 text-sm text-slate-600">
             <b className="text-emerald-700">{langkahSelesai}</b> dari {s.langkah.length} langkah selesai. Ini rincian tahap “Penyusunan Daftar Pemilih” sampai “Penetapan DPT” pada jadwal di atas; tahap calon, hari pemungutan, dan hasil suara dihitung di progres pelaksanaan.
           </p>
-          <DaftarLangkah langkah={s.langkah} varian="lengkap" kunciPeta={hitungKunci(s)} />
+          <DaftarLangkah langkah={s.langkah} varian="lengkap" kunciPeta={kunciPeta} />
         </section>
       )}
 

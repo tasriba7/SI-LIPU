@@ -7,15 +7,28 @@ import { pastikanAdmin, pastikanKelolaPilkades } from "@/lib/akses";
 import { adalahUuid } from "@/lib/validasiPengajuan";
 import {
   STATUS_VERIFIKASI, STATUS_CALON, JABATAN_PANITIA, ambilDaftarPemilih,
-  BUCKET_LOGO_PILKADES, EKSTENSI_LOGO, MAKS_LOGO_MB, USIA_ATUR_MIN, USIA_ATUR_MAKS, MAKS_CALON, MIN_CALON,
+  ambilPeriode, BUCKET_LOGO_PILKADES, EKSTENSI_LOGO, MAKS_LOGO_MB, USIA_ATUR_MIN, USIA_ATUR_MAKS, MAKS_CALON, MIN_CALON,
 } from "@/lib/pilkades";
 import { JENIS_OTOMATIS, MAKS_TAHAPAN } from "@/lib/pilkadesJadwal";
-import { tundaSebelumJadwal } from "@/lib/pilkadesTanggal";
+import { tundaSebelumJadwal, tundaPersiapan } from "@/lib/pilkadesTanggal";
 
 // Semua action di sini memakai sesi login pemanggil (RLS tetap berlaku),
 // bukan kunci service_role. Cek role di server + RLS di database.
 
 const ALAMAT_PERIODE = "/dashboard/pilkades/pengaturan/periode";
+
+/**
+ * Penjaga pekerjaan PERSIAPAN (ambil data warga, periksa, TPS, tempatkan): pengaturan dan jadwal
+ * harus sudah diisi dan tanggal mulainya sudah tiba. Bila belum, kembali ke halaman asal; halaman itu
+ * menampilkan gerbang berisi alasan dan tombol menuju pekerjaan yang harus dilakukan dulu.
+ */
+async function tahanPersiapan(supabase, periodeId, kembali) {
+  const tunda = await tundaPersiapan(supabase, periodeId);
+  if (tunda) redirect(kembali);
+}
+async function idPeriodeAktif(supabase) {
+  return (await ambilPeriode(supabase))?.id ?? "";
+}
 
 export async function buatPeriode(formData) {
   const supabase = await createClient();
@@ -75,6 +88,7 @@ export async function ambilCalonPemilih(formData) {
   if (cek.error) redirect("/dashboard/pilkades/ambil?hasil=ditolak");
   const periodeId = String(formData.get("periode_id") ?? "");
   if (!adalahUuid(periodeId)) return;
+  await tahanPersiapan(supabase, periodeId, "/dashboard/pilkades/ambil");
   const { data, error } = await supabase.rpc("pilkades_ambil_calon_pemilih", { p_periode: periodeId });
   revalidatePath("/dashboard/pilkades", "layout");
   if (error) redirect(`/dashboard/pilkades/ambil?hasil=${/terkunci|DPT sudah/i.test(error.message ?? "") ? "terkunci" : "gagal"}`);
@@ -93,6 +107,7 @@ export async function sinkronPenduduk(formData) {
   if (cek.error) return;
   const periodeId = String(formData.get("periode_id") ?? "");
   if (!adalahUuid(periodeId)) return;
+  await tahanPersiapan(supabase, periodeId, "/dashboard/pilkades/ambil");
   const { data, error } = await supabase.rpc("pilkades_sinkron_penduduk", { p_periode: periodeId });
   revalidatePath("/dashboard/pilkades", "layout");
   const h = Array.isArray(data) ? data[0] : data;
@@ -158,6 +173,7 @@ export async function simpanPemilih(formData) {
 
   const cek = await pastikanKelolaPilkades(supabase);
   if (cek.error) gagal("izin");
+  await tahanPersiapan(supabase, await idPeriodeAktif(supabase), "/dashboard/pilkades/pemilih");
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status_verifikasi") ?? "");
   const catatan = String(formData.get("catatan") ?? "").trim().slice(0, 300) || null;
@@ -188,6 +204,7 @@ export async function tambahTps(formData) {
   const nama = String(formData.get("nama") ?? "").trim();
   const lokasi = String(formData.get("lokasi") ?? "").trim() || null;
   if (!adalahUuid(periodeId) || !nama) return;
+  await tahanPersiapan(supabase, periodeId, "/dashboard/pilkades/tps");
   const { error } = await supabase.from("pilkades_tps").insert({ periode_id: periodeId, nama, lokasi });
   revalidatePath("/dashboard/pilkades", "layout");
   if (error) redirect(`/dashboard/pilkades/tps?hasil=${error.code === "23505" ? "kembar" : error.code === "P0001" ? "terkunci" : "gagal"}`);
@@ -200,6 +217,7 @@ export async function hapusTps(formData) {
   if (cek.error) redirect("/dashboard/pilkades/tps?hasil=gagal");
   const id = String(formData.get("id") ?? "");
   if (!adalahUuid(id)) redirect("/dashboard/pilkades/tps?hasil=gagal");
+  await tahanPersiapan(supabase, await idPeriodeAktif(supabase), "/dashboard/pilkades/tps");
   // Catat dulu nama TPS dan jumlah pemilihnya, supaya hasil penghapusan bisa dijelaskan.
   const { data: tps } = await supabase.from("pilkades_tps").select("nama").eq("id", id).maybeSingle();
   const { count } = await supabase
@@ -270,6 +288,7 @@ export async function terapkanFilterUsia(formData) {
   const kawin = formData.get("kawin") === "1";
   const tandai = formData.get("tandai") === "1";
   if (!adalahUuid(periodeId)) return;
+  await tahanPersiapan(supabase, periodeId, "/dashboard/pilkades/pemilih");
   const { data, error } = await supabase.rpc("pilkades_terapkan_usia", {
     p_periode: periodeId,
     p_usia: usia,
@@ -300,6 +319,7 @@ export async function masukkanKeTps(formData) {
   const mode = String(formData.get("mode") ?? "terpilih");
   const dusun = String(formData.get("dusun") ?? "");
   if (!adalahUuid(periodeId) || !adalahUuid(tpsId)) redirect(`${kembali}?hasil=tps`);
+  await tahanPersiapan(supabase, periodeId, kembali);
 
   const { data: tps } = await supabase
     .from("pilkades_tps")
