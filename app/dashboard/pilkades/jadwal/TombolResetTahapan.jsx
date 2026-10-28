@@ -50,6 +50,7 @@ export default function TombolResetTahapan({ periodeId, tahap, tersimpan, ringka
     [ringkas.hasil, "penetapan calon terpilih"],
     [ringkas.panitia, "pengurus susunan panitia"],
     [ringkas.logo, "logo panitia"],
+    [ringkas.riwayat, "catatan Riwayat Aktivitas"],
   ].filter(([n]) => Number(n) > 0);
 
   const konfirmasiSemua = (e) => {
@@ -149,8 +150,8 @@ export default function TombolResetTahapan({ periodeId, tahap, tersimpan, ringka
                 <p className="text-sm text-red-950">Yang akan dihapus: jadwal tahapan (kembali ke 10 tahapan standar, tanggal kosong).</p>
               )}
               <p className="text-sm text-slate-800">
-                Yang tetap ada: periode ini (nama, tanggal pemungutan, status aktif), data penduduk/warga, dan Riwayat Aktivitas
-                (reset ini ikut dicatat di sana).
+                Yang tetap ada: periode ini (nama, tanggal pemungutan, status aktif) dan data penduduk/warga.
+                Setelah reset, semua menu tahapan kembali terkunci seperti belum pernah dipakai.
               </p>
               <label className="block text-sm font-semibold text-red-950">
                 Ketik <span className="font-mono">RESET</span> untuk melanjutkan
