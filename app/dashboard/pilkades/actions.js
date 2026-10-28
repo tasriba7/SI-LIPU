@@ -15,42 +15,58 @@ import { tundaSebelumJadwal } from "@/lib/pilkadesTanggal";
 // Semua action di sini memakai sesi login pemanggil (RLS tetap berlaku),
 // bukan kunci service_role. Cek role di server + RLS di database.
 
+const ALAMAT_PERIODE = "/dashboard/pilkades/pengaturan/periode";
+
 export async function buatPeriode(formData) {
   const supabase = await createClient();
   const cek = await pastikanAdmin(supabase);
-  if (cek.error) return;
-  const nama = String(formData.get("nama") ?? "").trim();
-  const tanggal = String(formData.get("tanggal_pemungutan") ?? "") || null;
-  if (!nama) return;
-  await supabase
+  if (cek.error) redirect(`${ALAMAT_PERIODE}?hasil=izin`);
+  const nama = String(formData.get("nama") ?? "").trim().replace(/\s+/g, " ").slice(0, 100);
+  const tanggal = String(formData.get("tanggal_pemungutan") ?? "").trim() || null;
+  if (nama.length < 3) redirect(`${ALAMAT_PERIODE}?hasil=nama`);
+  if (tanggal && !(/^\d{4}-\d{2}-\d{2}$/.test(tanggal) && !Number.isNaN(Date.parse(`${tanggal}T00:00:00Z`)))) {
+    redirect(`${ALAMAT_PERIODE}?hasil=tanggal`);
+  }
+  const { error } = await supabase
     .from("pilkades_periode")
     .insert({ nama, tanggal_pemungutan: tanggal, dibuat_oleh: cek.user.id });
-  revalidatePath("/dashboard/pilkades", "layout");
+  revalidatePath("/dashboard", "layout");
+  if (error) redirect(`${ALAMAT_PERIODE}?hasil=gagal`);
+  redirect(`${ALAMAT_PERIODE}?hasil=dibuat&nama=${encodeURIComponent(nama)}`);
 }
 
 /** Ubah tanggal pemungutan suara periode (hanya Administrator). Kosong = hapus tanggal. */
 export async function ubahTanggalPemungutan(formData) {
   const supabase = await createClient();
   const cek = await pastikanAdmin(supabase);
-  if (cek.error) return;
+  if (cek.error) redirect(`${ALAMAT_PERIODE}?hasil=izin`);
   const id = String(formData.get("id") ?? "");
-  if (!adalahUuid(id)) return;
+  if (!adalahUuid(id)) redirect(`${ALAMAT_PERIODE}?hasil=gagal`);
   const t = String(formData.get("tanggal_pemungutan") ?? "").trim();
-  if (t && !(/^\d{4}-\d{2}-\d{2}$/.test(t) && !Number.isNaN(Date.parse(`${t}T00:00:00Z`)))) return;
-  await supabase.from("pilkades_periode").update({ tanggal_pemungutan: t || null }).eq("id", id);
-  revalidatePath("/dashboard/pilkades", "layout");
+  if (t && !(/^\d{4}-\d{2}-\d{2}$/.test(t) && !Number.isNaN(Date.parse(`${t}T00:00:00Z`)))) {
+    redirect(`${ALAMAT_PERIODE}?hasil=tanggal`);
+  }
+  const { data, error } = await supabase
+    .from("pilkades_periode").update({ tanggal_pemungutan: t || null }).eq("id", id).select("id");
+  revalidatePath("/dashboard", "layout");
+  if (error || !data?.length) redirect(`${ALAMAT_PERIODE}?hasil=gagal`);
+  redirect(`${ALAMAT_PERIODE}?hasil=${t ? "tanggal_ok" : "tanggal_hapus"}`);
 }
 
+/** Jadikan satu periode aktif (hanya Administrator). Lewat fungsi database supaya atomik. */
 export async function aktifkanPeriode(formData) {
   const supabase = await createClient();
   const cek = await pastikanAdmin(supabase);
-  if (cek.error) return;
+  if (cek.error) redirect(`${ALAMAT_PERIODE}?hasil=izin`);
   const id = String(formData.get("id") ?? "");
-  if (!adalahUuid(id)) return;
-  // nonaktifkan yang lain dulu (indeks unik: hanya satu yang aktif)
-  await supabase.from("pilkades_periode").update({ aktif: false }).eq("aktif", true);
-  await supabase.from("pilkades_periode").update({ aktif: true }).eq("id", id);
-  revalidatePath("/dashboard/pilkades", "layout");
+  if (!adalahUuid(id)) redirect(`${ALAMAT_PERIODE}?hasil=gagal`);
+  const { error } = await supabase.rpc("pilkades_aktifkan_periode", { p_id: id });
+  revalidatePath("/dashboard", "layout");
+  if (error) {
+    if (error.code === "PGRST202" || error.code === "42883") redirect(`${ALAMAT_PERIODE}?hasil=migrasi`);
+    redirect(`${ALAMAT_PERIODE}?hasil=gagal`);
+  }
+  redirect(`${ALAMAT_PERIODE}?hasil=aktif`);
 }
 
 export async function ambilCalonPemilih(formData) {
@@ -127,14 +143,25 @@ export async function batalPemilihTambahan(formData) {
   redirect(`${ALAMAT_TAMBAHAN}?hasil=batal`);
 }
 
+/**
+ * Simpan status satu pemilih. Berhasil = halaman tampil ulang dengan status baru (tanpa pesan,
+ * supaya menyimpan banyak baris tidak berisik). Gagal = kembali ke halaman yang SAMA (saringan dan
+ * nomor halaman tetap) dengan pesan yang menjelaskan sebabnya.
+ */
 export async function simpanPemilih(formData) {
   const supabase = await createClient();
+  const mentah = String(formData.get("kembali") ?? "");
+  const dasar = mentah.startsWith("/dashboard/pilkades/pemilih?") ? mentah : "/dashboard/pilkades/pemilih?";
+  const nama = String(formData.get("nama") ?? "").trim().slice(0, 100);
+  const gagal = (kode) =>
+    redirect(`${dasar}${dasar.endsWith("?") ? "" : "&"}simpan=${kode}${nama ? `&nama=${encodeURIComponent(nama)}` : ""}`);
+
   const cek = await pastikanKelolaPilkades(supabase);
-  if (cek.error) return;
+  if (cek.error) gagal("izin");
   const id = String(formData.get("id") ?? "");
   const status = String(formData.get("status_verifikasi") ?? "");
   const catatan = String(formData.get("catatan") ?? "").trim().slice(0, 300) || null;
-  if (!adalahUuid(id) || !(status in STATUS_VERIFIKASI)) return;
+  if (!adalahUuid(id) || !(status in STATUS_VERIFIKASI)) gagal("gagal");
   const perubahan = {
     status_verifikasi: status,
     status_otomatis: false, // keputusan manual tidak ditimpa filter usia
@@ -147,8 +174,10 @@ export async function simpanPemilih(formData) {
     const tpsRaw = String(formData.get("tps_id") ?? "");
     perubahan.tps_id = adalahUuid(tpsRaw) ? tpsRaw : null;
   }
-  await supabase.from("pilkades_pemilih").update(perubahan).eq("id", id);
+  const { data, error } = await supabase.from("pilkades_pemilih").update(perubahan).eq("id", id).select("id");
   revalidatePath("/dashboard/pilkades", "layout");
+  if (error) gagal(error.code === "P0001" ? "terkunci" : "gagal");
+  if (!data?.length) gagal("gagal");
 }
 
 export async function tambahTps(formData) {
@@ -168,12 +197,17 @@ export async function tambahTps(formData) {
 export async function hapusTps(formData) {
   const supabase = await createClient();
   const cek = await pastikanKelolaPilkades(supabase);
-  if (cek.error) return;
+  if (cek.error) redirect("/dashboard/pilkades/tps?hasil=gagal");
   const id = String(formData.get("id") ?? "");
-  if (!adalahUuid(id)) return;
+  if (!adalahUuid(id)) redirect("/dashboard/pilkades/tps?hasil=gagal");
+  // Catat dulu nama TPS dan jumlah pemilihnya, supaya hasil penghapusan bisa dijelaskan.
+  const { data: tps } = await supabase.from("pilkades_tps").select("nama").eq("id", id).maybeSingle();
+  const { count } = await supabase
+    .from("pilkades_pemilih").select("id", { count: "exact", head: true }).eq("tps_id", id);
   const { error } = await supabase.from("pilkades_tps").delete().eq("id", id);
   revalidatePath("/dashboard/pilkades", "layout");
   if (error) redirect(`/dashboard/pilkades/tps?hasil=${error.code === "P0001" ? "terkunci" : "gagal"}`);
+  redirect(`/dashboard/pilkades/tps?hasil=hapus&n=${count ?? 0}&nama=${encodeURIComponent(tps?.nama ?? "")}`);
 }
 
 /**
