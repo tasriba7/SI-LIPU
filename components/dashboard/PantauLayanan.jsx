@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { STATUS_LABELS, STATUS_BADGE_CLASS } from "@/lib/statusSurat";
-import { STATUS_PANTAU, lamaTunggu, lamaPenanganan, formatWaktu } from "@/lib/pantauLayanan";
+import { STATUS_PANTAU as STATUS_SEMUA, lamaTunggu, lamaPenanganan, formatWaktu } from "@/lib/pantauLayanan";
 
 const BATAS = 200;
 
@@ -17,11 +17,16 @@ const BATAS = 200;
  * @param {string=} sumber     nama view (bawaan: pengajuan_layanan_pantau untuk BPD)
  * @param {string=} detailBase awal alamat halaman detail (bawaan: /dashboard/layanan)
  * @param {*=}      catatan    pesan tambahan di bawah deskripsi
+ * @param {string=} labelLihat bila diisi (mis. "Lihat isi aduan"), kode tracking jadi teks biasa dan
+ *                             tautan ke detail memakai label ini (kolom "Aksi")
+ * @param {string[]=} statusTampil status yang ditampilkan di kartu/filter (bawaan: semua)
  */
 export default async function PantauLayanan({
   sp, basePath, judul, deskripsi, kategori,
   sumber = "pengajuan_layanan_pantau", detailBase = "/dashboard/layanan", catatan = null,
+  labelLihat = null, statusTampil = STATUS_SEMUA,
 }) {
+  const STATUS_PANTAU = statusTampil;
   const supabase = await createClient();
   const status = STATUS_PANTAU.includes(sp?.status) ? sp.status : "semua";
   // Buang karakter yang bisa merusak filter PostgREST.
@@ -48,7 +53,7 @@ export default async function PantauLayanan({
   const [{ data: daftar }, ...counts] = await Promise.all([query, ...STATUS_PANTAU.map(hitung)]);
   const jumlah = Object.fromEntries(STATUS_PANTAU.map((s, i) => [s, counts[i].count ?? 0]));
   const total = Object.values(jumlah).reduce((a, b) => a + b, 0);
-  const selesaiTolak = jumlah.selesai + jumlah.ditolak;
+  const selesaiTolak = (jumlah.selesai ?? 0) + (jumlah.ditolak ?? 0);
   const persenTuntas = total ? Math.round((selesaiTolak / total) * 100) : 0;
 
   const href = (f) => {
@@ -70,7 +75,7 @@ export default async function PantauLayanan({
         {catatan}
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+      <div className={`grid grid-cols-2 gap-3 ${STATUS_PANTAU.length === 3 ? "sm:grid-cols-4" : "sm:grid-cols-5"}`}>
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
           <p className="text-2xl font-bold text-slate-800">{total}</p>
           <p className="mt-1 text-xs text-slate-500">Total masuk</p>
@@ -130,7 +135,7 @@ export default async function PantauLayanan({
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
-        <table className="w-full min-w-[820px] text-sm">
+        <table className="w-full min-w-[900px] text-sm">
           <thead className="bg-slate-50 text-left text-xs uppercase text-slate-400">
             <tr>
               <th className="px-4 py-3 font-medium">Kode</th>
@@ -140,18 +145,23 @@ export default async function PantauLayanan({
               <th className="px-4 py-3 font-medium">Masuk</th>
               <th className="px-4 py-3 font-medium">Lama penanganan</th>
               <th className="px-4 py-3 font-medium">Ditangani oleh</th>
+              {labelLihat && <th className="px-4 py-3 font-medium">Aksi</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
             {(daftar ?? []).map((r) => (
               <tr key={r.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3">
-                  <Link
-                    href={`${detailBase}/${r.id}`}
-                    className="font-mono text-navy hover:underline"
-                  >
-                    {r.kode_tracking}
-                  </Link>
+                  {labelLihat ? (
+                    <span className="font-mono text-slate-700">{r.kode_tracking}</span>
+                  ) : (
+                    <Link
+                      href={`${detailBase}/${r.id}`}
+                      className="font-mono text-navy hover:underline"
+                    >
+                      {r.kode_tracking}
+                    </Link>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-slate-700">
                   {r.nama_layanan}
@@ -180,11 +190,21 @@ export default async function PantauLayanan({
                 </td>
                 <td className="px-4 py-3 text-slate-600">{lamaPenanganan(r)}</td>
                 <td className="px-4 py-3 text-slate-500">{r.diproses_oleh_nama || "-"}</td>
+                {labelLihat && (
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`${detailBase}/${r.id}`}
+                      className="whitespace-nowrap rounded-lg border border-navy/30 px-3 py-1.5 text-xs font-medium text-navy transition hover:bg-navy hover:text-white"
+                    >
+                      {labelLihat}
+                    </Link>
+                  </td>
+                )}
               </tr>
             ))}
             {(daftar ?? []).length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-slate-400">
+                <td colSpan={labelLihat ? 8 : 7} className="px-4 py-10 text-center text-slate-400">
                   Belum ada data
                   {status !== "semua" ? ` dengan status "${STATUS_LABELS[status]}"` : ""}
                   {q ? ` untuk "${q}"` : ""}.

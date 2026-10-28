@@ -13,7 +13,13 @@ import { formatWaktu, lamaPenanganan } from "@/lib/pantauLayanan";
  * terakhir memperbarui, bukan riwayat tiap perubahan status. Alur di bawah
  * dibuat dari data itu.
  */
-export default async function DetailPantau({ id, sumber = "pengajuan_layanan_pantau", kembali = null }) {
+export default async function DetailPantau({
+  id,
+  sumber = "pengajuan_layanan_pantau",
+  kembali = null,
+  // Slot aksi (mis. formulir "Balas Aduan"); menerima data aduan agar bisa menyesuaikan tampilan.
+  aksi = null,
+}) {
   const supabase = await createClient();
   const { data: p } = await supabase
     .from(sumber)
@@ -140,6 +146,8 @@ export default async function DetailPantau({ id, sumber = "pengajuan_layanan_pan
           </p>
         </div>
       </div>
+
+      {typeof aksi === "function" ? aksi(p) : aksi}
     </div>
   );
 }

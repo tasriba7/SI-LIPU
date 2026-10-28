@@ -1,0 +1,10 @@
+Balas Aduan di akun Panitia Pilkades
+1. Supabase SQL Editor: jalankan supabase/migrations/0070_pilkades_balas_aduan.sql (setelah 0069).
+2. Timpa file di zip, restart npm run dev.
+3. Login Panitia Pilkades > Aduan Warga: kolom Aksi berisi tombol "Lihat isi aduan" (kode tidak lagi tautan).
+   Di halaman isi aduan ada kotak balasan + tombol "Balas Aduan". Setelah dibalas, status jadi Diproses.
+   Tidak ada tombol/opsi Tolak; kartu & filter "Ditolak" disembunyikan di halaman ini.
+KEAMANAN: panitia tetap tidak bisa update tabel langsung; balasan lewat fungsi balas_aduan_pilkades
+(hanya aduan Pilkades yang boleh ditangani panitia, hanya yang masih "diajukan").
+FILE: supabase/migrations/0070..., app/dashboard/pilkades/aduan/{page.js,actions.js,[id]/page.js,[id]/BalasAduanForm.jsx},
+components/dashboard/{PantauLayanan,DetailPantau}.jsx
