@@ -9,7 +9,7 @@ import {
   STATUS_VERIFIKASI, STATUS_CALON, JABATAN_PANITIA, ambilDaftarPemilih,
   BUCKET_LOGO_PILKADES, EKSTENSI_LOGO, MAKS_LOGO_MB, USIA_MINIMUM_PEMILIH, MAKS_CALON, MIN_CALON,
 } from "@/lib/pilkades";
-import { JENIS_OTOMATIS, MAKS_TAHAPAN, TAHAPAN_STANDAR } from "@/lib/pilkadesJadwal";
+import { JENIS_OTOMATIS, MAKS_TAHAPAN } from "@/lib/pilkadesJadwal";
 import { tundaSebelumJadwal } from "@/lib/pilkadesTanggal";
 
 // Semua action di sini memakai sesi login pemanggil (RLS tetap berlaku),
@@ -685,10 +685,11 @@ export async function simpanJadwal(_state, formData) {
  * RESET TAHAPAN (dua mode, keduanya langsung TERSIMPAN):
  *  - mode "pilihan": tahapan yang dicentang dikosongkan tanggal mulai, tanggal selesai, dan catatannya.
  *    Nama dan urutan tahapan tidak berubah. Tahap "Pemungutan" tidak punya tanggal sendiri
- *    (mengikuti menu Periode) sehingga tidak bisa direset di sini.
- *  - mode "semua": seluruh jadwal kembali ke 10 tahapan standar, tanggal kosong (perlu ketik RESET).
- * Hanya jadwal yang berubah; data pemilih, TPS, DPS/DPT, calon, dan hasil suara TIDAK tersentuh.
- * Memakai fungsi database pilkades_simpan_jadwal, jadi tetap tercatat di Riwayat Aktivitas.
+ *    (mengikuti menu Periode) sehingga tidak bisa direset di sini. Hanya jadwal yang berubah.
+ *  - mode "semua": BERSIHKAN SEMUA data periode (perlu ketik RESET) lewat fungsi database
+ *    pilkades_reset_bersih (migrasi 0068): pemilih, TPS, arsip DPS/DPT, pemilih tambahan, daftar hadir,
+ *    calon, rekap suara, hasil, susunan panitia, logo, dan jadwal. Periode, data warga, dan Riwayat
+ *    Aktivitas tetap ada. Satu transaksi: gagal berarti tidak ada yang terhapus.
  */
 export async function resetTahapan(_state, formData) {
   const supabase = await createClient();
@@ -698,15 +699,28 @@ export async function resetTahapan(_state, formData) {
   if (!adalahUuid(periodeId)) return { error: "Periode tidak dikenali. Muat ulang halaman ini." };
   const mode = String(formData.get("mode") ?? "");
 
-  let data;
   if (mode === "semua") {
     if (String(formData.get("konfirmasi") ?? "") !== "RESET") {
       return { error: "Ketik RESET (huruf besar) pada kotak konfirmasi untuk mereset semua tahapan." };
     }
-    data = TAHAPAN_STANDAR.map((r) => ({
-      jenis: r.jenis ?? "", nama: r.nama, arti: r.arti ?? "", mulai: "", selesai: "", catatan: "",
-    }));
-  } else if (mode === "pilihan") {
+    // Catat lokasi berkas logo dulu: setelah baris datanya terhapus, jalurnya tidak bisa dicari lagi.
+    const { data: logo } = await supabase
+      .from("pilkades_logo").select("logo_path").eq("periode_id", periodeId).maybeSingle();
+    const { error: errReset } = await supabase.rpc("pilkades_reset_bersih", { p_periode: periodeId });
+    if (errReset) {
+      if (errReset.code === "P0001") return { error: errReset.message };
+      if (errReset.code === "PGRST202" || errReset.code === "42883") {
+        return { error: "Fitur reset total belum dipasang di database. Jalankan migrasi 0068_pilkades_reset_bersih.sql di Supabase SQL Editor, lalu coba lagi." };
+      }
+      return { error: "Reset gagal dan tidak ada data yang berubah. Silakan coba lagi. Bila tetap gagal, hubungi Administrator desa." };
+    }
+    if (logo?.logo_path) await supabase.storage.from(BUCKET_LOGO_PILKADES).remove([logo.logo_path]);
+    revalidatePath("/dashboard/pilkades", "layout");
+    redirect("/dashboard/pilkades/jadwal?hasil=reset&mode=semua");
+  }
+
+  let data;
+  if (mode === "pilihan") {
     const { data: baris, error: errBaca } = await supabase
       .from("pilkades_jadwal")
       .select("jenis, nama, arti, mulai, selesai, catatan")
