@@ -735,7 +735,7 @@ export async function simpanJadwal(_state, formData) {
     return { error: error.code === "P0001" ? error.message : "Jadwal gagal disimpan. Silakan coba lagi. Bila tetap gagal, hubungi Administrator desa." };
   }
   revalidatePath("/dashboard/pilkades", "layout");
-  redirect(`/dashboard/pilkades/jadwal?hasil=ok&n=${data.length}`);
+  redirect(`/dashboard/pilkades/pengaturan/jadwal?hasil=ok&n=${data.length}`);
 }
 
 /**
@@ -775,7 +775,7 @@ export async function resetTahapan(_state, formData) {
     if (logo?.logo_path) await supabase.storage.from(BUCKET_LOGO_PILKADES).remove([logo.logo_path]);
     // Menu samping (gembok tahapan) ada di layout /dashboard, jadi segarkan dari sana.
     revalidatePath("/dashboard", "layout");
-    redirect("/dashboard/pilkades/jadwal?hasil=reset&mode=semua");
+    redirect("/dashboard/pilkades/pengaturan/jadwal?hasil=reset&mode=semua");
   }
 
   let data;
@@ -816,5 +816,5 @@ export async function resetTahapan(_state, formData) {
     return { error: error.code === "P0001" ? error.message : "Tahapan gagal direset. Silakan coba lagi. Bila tetap gagal, hubungi Administrator desa." };
   }
   revalidatePath("/dashboard/pilkades", "layout");
-  redirect(`/dashboard/pilkades/jadwal?hasil=reset&mode=${mode}`);
+  redirect(`/dashboard/pilkades/pengaturan/jadwal?hasil=reset&mode=${mode}`);
 }

@@ -108,7 +108,7 @@ export default async function BerandaPilkades() {
             <b className="text-sky-950">Jadwal tahapan belum diisi.</b>{" "}
             {bisaUbah ? "Isi tanggal tiap tahapan agar progres dan garis waktu terlihat jelas." : "Jadwal akan tampil di sini setelah diisi oleh Panitia Pilkades."}
           </p>
-          {bisaUbah && <Link href="/dashboard/pilkades/jadwal" className={tombol.utama}>Isi jadwal tahapan</Link>}
+          {bisaUbah && <Link href="/dashboard/pilkades/pengaturan/jadwal" className={tombol.utama}>Isi jadwal tahapan</Link>}
         </div>
       )}
 
@@ -166,7 +166,7 @@ export default async function BerandaPilkades() {
       <section aria-labelledby="judul-garis-waktu">
         <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
           <h2 id="judul-garis-waktu" className="text-lg font-bold text-sky-950">Jadwal tahapan Pilkades</h2>
-          <Link href="/dashboard/pilkades/jadwal" className="text-sm font-bold text-sky-800 underline">
+          <Link href="/dashboard/pilkades/pengaturan/jadwal" className="text-sm font-bold text-sky-800 underline">
             {bisaUbah ? "Isi / ubah jadwal →" : "Lihat rincian →"}
           </Link>
         </div>

@@ -32,7 +32,7 @@ export default async function CetakJadwal({ searchParams }) {
     ambilSusunanPanitia(supabase, periode.id),
     ambilLogoPanitia(supabase, periode.id),
   ]);
-  if (j.error || !j.tahap.length) redirect("/dashboard/pilkades/jadwal");
+  if (j.error || !j.tahap.length) redirect("/dashboard/pilkades/pengaturan/jadwal");
 
   const denganStatus = sp.status === "1";
   await supabase.rpc("pilkades_catat", {

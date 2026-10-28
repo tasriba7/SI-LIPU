@@ -235,7 +235,7 @@ export default async function HasilPage({ searchParams }) {
             {lengkap && calonMenang && bisaUbah && tundaTerpilih && (
               <Pesan jenis="perhatian" judul="Calon terpilih belum bisa ditetapkan">
                 {tundaTerpilih.pesan}{" "}
-                <Link href="/dashboard/pilkades/jadwal" className="font-bold underline">Lihat Jadwal Tahapan →</Link>
+                <Link href="/dashboard/pilkades/pengaturan/jadwal" className="font-bold underline">Lihat Jadwal Tahapan →</Link>
               </Pesan>
             )}
             {lengkap && calonMenang && bisaUbah && !tundaTerpilih && (

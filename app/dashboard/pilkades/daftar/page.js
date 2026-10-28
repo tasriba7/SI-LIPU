@@ -39,7 +39,7 @@ export default async function DaftarPage() {
   // (Ingin melonggarkan? Ubah `s.alasanTetapkan` di bawah menjadi `null` untuk DPS.)
   // Penjaga tanggal: DPS/DPT baru bisa ditetapkan mulai tanggal tahapnya (Jadwal Tahapan).
   const tertunda = hitungTertunda(await ambilBatasTahap(supabase, periode.id, periode.tanggal_pemungutan ?? null));
-  const tautanJadwal = { href: "/dashboard/pilkades/jadwal", label: "Lihat Jadwal Tahapan" };
+  const tautanJadwal = { href: "/dashboard/pilkades/pengaturan/jadwal", label: "Lihat Jadwal Tahapan" };
   const alasanDps = s.alasanTetapkan;
   const alasanDpsFinal = alasanDps ?? tertunda.dps?.pesan ?? null;
   const tautanDps = s.memenuhi === 0
