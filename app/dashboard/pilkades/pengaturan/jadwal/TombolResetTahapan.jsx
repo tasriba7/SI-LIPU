@@ -2,7 +2,7 @@
 
 import { useState, useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { resetTahapan } from "../actions";
+import { resetTahapan } from "../../actions";
 import { Pesan, Kartu, tombol, kolomKecil } from "@/components/pilkades/UI";
 import { formatRentang } from "@/lib/pilkadesJadwal";
 

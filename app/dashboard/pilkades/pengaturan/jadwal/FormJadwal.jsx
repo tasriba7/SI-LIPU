@@ -2,7 +2,7 @@
 
 import { useState, useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { simpanJadwal } from "../actions";
+import { simpanJadwal } from "../../actions";
 import { Pesan, tombol, kolomKecil } from "@/components/pilkades/UI";
 import { TAHAPAN_STANDAR, KET_OTOMATIS, MAKS_TAHAPAN, formatRentang } from "@/lib/pilkadesJadwal";
 
