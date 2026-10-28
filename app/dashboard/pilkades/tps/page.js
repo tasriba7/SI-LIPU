@@ -14,6 +14,11 @@ export const metadata = { title: "Atur TPS" };
 
 const PESAN_HASIL = {
   ok: (sp) => ["sukses", "Berhasil", sp.nama ? `“${sp.nama}” sudah ditambahkan.` : "TPS ditambahkan."],
+  hapus: (sp) => [
+    "sukses",
+    "TPS dihapus",
+    `${sp.nama ? `“${sp.nama}”` : "TPS"} sudah dihapus.${Number(sp.n) > 0 ? ` ${sp.n} pemilih di TPS itu kembali “belum punya TPS”. Tempatkan lagi di Langkah 4.` : ""}`,
+  ],
   kembar: ["perhatian", "Nama TPS sudah dipakai", "Gunakan nama lain, misalnya TPS 2."],
   terkunci: ["perhatian", "TPS terkunci", "DPT sudah ditetapkan, jadi TPS tidak bisa ditambah, diubah, atau dihapus lagi."],
   gagal: ["bahaya", "TPS belum berhasil diproses", COBA_LAGI],
