@@ -2,6 +2,7 @@ import PantauLayanan from "@/components/dashboard/PantauLayanan";
 import { createClient } from "@/lib/supabase/server";
 import { ambilRole } from "@/lib/akses";
 import { bisaUbahPilkades } from "@/lib/roles";
+import TabelAduan from "./TabelAduan";
 
 export const metadata = { title: "Aduan Warga (Pilkades)" };
 
@@ -23,6 +24,8 @@ export default async function AduanPilkadesPage({ searchParams }) {
         sumber="pilkades_aduan_pantau"
         detailBase="/dashboard/pilkades/aduan"
         labelLihat="Lihat isi aduan"
+        Tabel={TabelAduan}
+        bolehHapus={panitia}
         kelompok={[
           { key: "diajukan", label: "Diajukan", status: ["diajukan"], badge: "bg-slate-100 text-slate-600" },
           {
@@ -37,7 +40,7 @@ export default async function AduanPilkadesPage({ searchParams }) {
         catatan={
           <p className="mt-2 max-w-3xl text-xs text-slate-500">
             {panitia
-              ? "Aduan yang mengadukan panitia sendiri (ketidaknetralan, kinerja panitia) tidak tampil di sini; itu ditangani Administrator desa. Panitia cukup membalas aduan; balasan otomatis menandai aduan Diproses."
+              ? "Aduan yang mengadukan panitia sendiri (ketidaknetralan, kinerja panitia) tidak tampil di sini; itu ditangani Administrator desa. Panitia cukup membalas aduan; yang sudah Selesai diproses boleh dihapus."
               : "Sebagai Administrator, Anda melihat semua aduan Pilkades, termasuk yang mengadukan panitia. Penanganan dilakukan di menu Pengajuan Layanan."}
           </p>
         }

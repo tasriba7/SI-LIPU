@@ -33,3 +33,38 @@ export async function balasAduanPilkades(prevState, formData) {
   revalidatePath(`/dashboard/pilkades/aduan/${id}`);
   return { success: true };
 }
+
+const BATAS_MASSAL = 500;
+
+/** Hapus permanen aduan terpilih yang sudah "Selesai diproses". Yang belum dibalas dilewati database. */
+export async function hapusAduanPilkades(ids) {
+  const daftar = Array.isArray(ids)
+    ? [...new Set(ids.map(String).filter((i) => UUID.test(i)))].slice(0, BATAS_MASSAL)
+    : [];
+  if (daftar.length === 0) return { error: "Pilih minimal satu aduan." };
+
+  const supabase = await createClient();
+  const akses = await pastikanKelolaPilkades(supabase);
+  if (akses.error) return { error: akses.error };
+
+  const { data, error } = await supabase.rpc("hapus_aduan_pilkades", { p_ids: daftar });
+  if (error) return { error: "Gagal menghapus aduan. Pastikan migrasi 0071 sudah dijalankan." };
+  if (!data) return { error: "Tidak ada aduan yang bisa dihapus. Hanya aduan yang sudah dibalas yang bisa dihapus." };
+
+  revalidatePath("/dashboard/pilkades/aduan");
+  return { success: true, jumlah: data, dilewati: daftar.length - data };
+}
+
+/** Hapus permanen SEMUA aduan Pilkades yang sudah "Selesai diproses". */
+export async function hapusSemuaAduanPilkades() {
+  const supabase = await createClient();
+  const akses = await pastikanKelolaPilkades(supabase);
+  if (akses.error) return { error: akses.error };
+
+  const { data, error } = await supabase.rpc("hapus_semua_aduan_pilkades");
+  if (error) return { error: "Gagal menghapus aduan. Pastikan migrasi 0071 sudah dijalankan." };
+  if (!data) return { error: "Tidak ada aduan Selesai diproses yang bisa dihapus." };
+
+  revalidatePath("/dashboard/pilkades/aduan");
+  return { success: true, jumlah: data };
+}

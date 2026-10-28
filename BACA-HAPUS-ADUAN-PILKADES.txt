@@ -1,0 +1,10 @@
+Hapus aduan "Selesai diproses" di akun Panitia Pilkades
+1. Supabase SQL Editor: jalankan supabase/migrations/0071_pilkades_hapus_aduan.sql (setelah 0070).
+2. Timpa file di zip, restart npm run dev.
+FITUR
+- Baris Selesai diproses punya kotak centang; ada centang "pilih semua" di kepala tabel.
+- "Hapus (N)" menghapus yang dicentang; "Hapus semua Selesai diproses (N)" menghapus semuanya (bukan hanya yang tampil).
+- Selalu ada dialog konfirmasi. Penghapusan PERMANEN; kode tracking warga tak bisa dicek lagi.
+- Aduan Diajukan (belum dibalas) tidak punya kotak centang dan ditolak oleh database bila dipaksa.
+- Hanya Panitia Pilkades; Administrator tetap hanya melihat di halaman ini.
+FILE: supabase/migrations/0071..., app/dashboard/pilkades/aduan/{page.js,actions.js,TabelAduan.jsx}, components/dashboard/PantauLayanan.jsx

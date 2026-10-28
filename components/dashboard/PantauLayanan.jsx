@@ -20,6 +20,9 @@ const BATAS = 200;
  * @param {string=} labelLihat bila diisi (mis. "Lihat isi aduan"), kode tracking jadi teks biasa dan
  *                             tautan ke detail memakai label ini (kolom "Aksi")
  * @param {string[]=} statusTampil status yang ditampilkan di kartu/filter (bawaan: semua)
+ * @param {*=} Tabel       komponen tabel pengganti (mis. tabel dengan kotak centang hapus); menerima
+ *                         rows, labelLihat, bolehHapus, totalBisaDihapus
+ * @param {boolean=} bolehHapus tampilkan kotak centang/hapus (hanya dipakai bila Tabel diisi)
  * @param {{key:string,label:string,status:string[],badge:string}[]=} kelompok bila diisi, kartu/filter/label
  *                             memakai kelompok ini (mis. Diajukan | Selesai diproses), bukan status mentah
  */
@@ -27,6 +30,7 @@ export default async function PantauLayanan({
   sp, basePath, judul, deskripsi, kategori,
   sumber = "pengajuan_layanan_pantau", detailBase = "/dashboard/layanan", catatan = null,
   labelLihat = null, statusTampil = STATUS_SEMUA, kelompok = null,
+  Tabel = null, bolehHapus = false,
 }) {
   const STATUS_PANTAU = kelompok ? kelompok.map((k) => k.key) : statusTampil;
   const daftarStatus = (key) => kelompok?.find((k) => k.key === key)?.status ?? [key];
@@ -143,6 +147,30 @@ export default async function PantauLayanan({
         ))}
       </div>
 
+      {Tabel ? (
+        <Tabel
+          labelLihat={labelLihat}
+          bolehHapus={bolehHapus}
+          totalBisaDihapus={kelompok ? jumlah[STATUS_PANTAU[STATUS_PANTAU.length - 1]] ?? 0 : 0}
+          rows={(daftar ?? []).map((r) => ({
+            id: r.id,
+            kode: r.kode_tracking,
+            layanan: r.nama_layanan,
+            jenis: r.jenis_pengaduan,
+            anonim: r.anonim,
+            pemohon: r.pemohon_samar,
+            status: r.status,
+            label: labelStatus(r.status),
+            badge: badgeStatus(r.status),
+            masuk: lamaTunggu(r.created_at),
+            masukLengkap: formatWaktu(r.created_at),
+            lama: lamaPenanganan(r),
+            penanganan: r.diproses_oleh_nama,
+            href: `${detailBase}/${r.id}`,
+            bisaDihapus: r.status !== "diajukan",
+          }))}
+        />
+      ) : (
       <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white">
         <table className="w-full min-w-[900px] text-sm">
           <thead className="bg-slate-50 text-left text-xs uppercase text-slate-400">
@@ -223,6 +251,7 @@ export default async function PantauLayanan({
           </tbody>
         </table>
       </div>
+      )}
       {(daftar ?? []).length === BATAS && (
         <p className="text-xs text-slate-400">
           Menampilkan {BATAS} terbaru. Gunakan pencarian atau filter untuk mempersempit.
