@@ -107,6 +107,8 @@ export default function FormPengajuan({ jenisLayanan }) {
   const [tahap, setTahap] = useState(
     bolehAnonim || butuhLookup ? "lookup" : "isi"
   );
+  // Khusus pengaduan: penjelasan syarat verifikasi harus dibaca dulu sebelum mengisi NIK.
+  const [sudahPaham, setSudahPaham] = useState(false);
   const [wargaTerpilih, setWargaTerpilih] = useState(null); // { warga_id, nama_lengkap, dusun, rt, rw }
   const [nikDicoba, setNikDicoba] = useState("");
   const [bukti, setBukti] = useState(""); // bukti verifikasi dari server (khusus pengaduan)
@@ -153,6 +155,73 @@ export default function FormPengajuan({ jenisLayanan }) {
 
   function ubahFieldTambahan(key, value) {
     setDataTambahan((prev) => ({ ...prev, [key]: value }));
+  }
+
+  // --- Tahap 0 (khusus pengaduan): penjelasan syarat & konsekuensi sebelum input ---
+  if (tahap === "lookup" && bolehAnonim && !sudahPaham) {
+    return (
+      <div className="w-full max-w-lg rounded-2xl bg-white p-8 shadow-sm">
+        <h1 className="text-xl font-bold text-navy">{jenisLayanan.nama_layanan}</h1>
+        <p className="mb-5 mt-1 text-sm text-slate-500">
+          Baca dulu syarat berikut sebelum mengisi data.
+        </p>
+
+        <div className="space-y-4 text-sm text-slate-700">
+          <div>
+            <p className="font-semibold text-slate-800">
+              Untuk mengirim aduan, Anda wajib membuktikan bahwa Anda warga desa:
+            </p>
+            <ol className="mt-2 list-decimal space-y-1 pl-5">
+              <li>Memasukkan <strong>NIK</strong> (16 digit).</li>
+              <li>Memasukkan <strong>tanggal lahir</strong> sesuai KTP/KK.</li>
+              <li>
+                <strong>Menebak tempat lahir</strong> dengan benar dari beberapa pilihan yang
+                ditampilkan (sebagian hurufnya disamarkan).
+              </li>
+            </ol>
+            <p className="mt-2 text-slate-500">
+              Aduan baru bisa dikirim setelah ketiganya benar, baik Anda memilih anonim maupun
+              menampilkan identitas. Siapkan KTP/KK Anda.
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+            <p className="font-semibold">Jika salah memasukkan:</p>
+            <ul className="mt-2 list-disc space-y-1 pl-5">
+              <li>
+                NIK atau tanggal lahir tidak cocok: data tidak ditemukan. Setelah 5 kali gagal
+                dalam 15 menit, pencarian diblokir sementara. Tunggu beberapa menit.
+              </li>
+              <li>
+                Tempat lahir salah dipilih <strong>3 kali</strong>: verifikasi dibatalkan dan data
+                tersebut <strong>dikunci selama 24 jam</strong>. Anda tidak bisa mengirim aduan
+                sampai kunci berakhir. Alternatifnya, datang ke kantor desa membawa KTP/KK.
+              </li>
+            </ul>
+            <p className="mt-2">Isilah dengan teliti dan jangan menebak asal-asalan.</p>
+          </div>
+
+          <p className="text-xs text-slate-500">
+            Data ini hanya dipakai untuk verifikasi. Jika Anda memilih anonim, nama, NIK, dan No.
+            HP tidak disimpan bersama aduan.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setSudahPaham(true)}
+          className="mt-6 w-full rounded-lg bg-navy py-2.5 font-medium text-white transition hover:bg-navy-light"
+        >
+          Saya mengerti, lanjutkan
+        </button>
+        <Link
+          href="/layanan"
+          className="mt-4 block text-center text-xs text-slate-400 hover:text-slate-600"
+        >
+          Kembali ke daftar layanan
+        </Link>
+      </div>
+    );
   }
 
   // --- Tahap 1: cari data warga ---
