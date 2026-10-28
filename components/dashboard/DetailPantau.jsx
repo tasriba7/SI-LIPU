@@ -13,10 +13,10 @@ import { formatWaktu, lamaPenanganan } from "@/lib/pantauLayanan";
  * terakhir memperbarui, bukan riwayat tiap perubahan status. Alur di bawah
  * dibuat dari data itu.
  */
-export default async function DetailPantau({ id }) {
+export default async function DetailPantau({ id, sumber = "pengajuan_layanan_pantau", kembali = null }) {
   const supabase = await createClient();
   const { data: p } = await supabase
-    .from("pengajuan_layanan_pantau")
+    .from(sumber)
     .select("*")
     .eq("id", id)
     .maybeSingle();
@@ -53,7 +53,7 @@ export default async function DetailPantau({ id }) {
   return (
     <div className="max-w-2xl space-y-6">
       <Link
-        href={p.kategori === "pengaduan" ? "/dashboard/pengaduan" : "/dashboard/layanan"}
+        href={kembali ?? (p.kategori === "pengaduan" ? "/dashboard/pengaduan" : "/dashboard/layanan")}
         className="text-sm text-slate-400 hover:text-slate-600"
       >
         &larr; Kembali ke daftar

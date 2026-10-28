@@ -1,0 +1,22 @@
+Aduan warga bertema Pilkades di menu Panitia Pilkades (hanya lihat)
+1. Supabase SQL Editor: jalankan supabase/migrations/0069_pilkades_aduan_panitia.sql (setelah 0045, 0051, 0055).
+   Lakukan SEBELUM menimpa file; tanpa migrasi, daftar aduan akan kosong.
+2. Timpa file di zip, restart npm run dev.
+3. Login sebagai Panitia Pilkades > menu "Aduan Warga" (kelompok "Aduan warga").
+
+YANG TAMPIL
+- Hanya pengaduan berjenis "Pilkades: ..." (lihat lib/jenisPengaduan.js), tanpa NIK dan No. HP;
+  nama pelapor jadi inisial; aduan anonim tetap tanpa identitas.
+- Panitia TIDAK melihat 2 jenis yang mengadukan panitia sendiri (ketidaknetralan perangkat desa atau panitia,
+  kinerja panitia) karena benturan kepentingan. Administrator melihat semua aduan Pilkades.
+  Mengubah aturan ini: bagian "not like" di view pilkades_aduan_pantau pada 0069.
+- Hanya lihat. Status dan catatan penanganan tetap diisi petugas desa di Pengajuan Layanan.
+
+CELAH YANG IKUT DITUTUP (penting)
+Policy baca pengajuan_layanan, pengajuan_surat, surat_terbit memakai adalah_staf() = "punya profil apa saja",
+jadi akun Panitia Pilkades sebenarnya bisa membaca NIK/No. HP lewat API Supabase walau menunya tersembunyi.
+0069 mengeluarkan panitia dari ketiga policy itu (seperti BPD di 0045).
+Uji: login panitia, jalankan di konsol browser/REST: select dari pengajuan_layanan -> harus kosong.
+
+FILE: supabase/migrations/0069..., components/dashboard/{PantauLayanan,DetailPantau}.jsx, lib/menuDashboard.js,
+app/dashboard/pilkades/aduan/page.js, app/dashboard/pilkades/aduan/[id]/page.js

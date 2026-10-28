@@ -14,14 +14,20 @@ const BATAS = 200;
  * @param {string}  judul
  * @param {string}  deskripsi
  * @param {string=} kategori   mis. "pengaduan" -> hanya kategori itu
+ * @param {string=} sumber     nama view (bawaan: pengajuan_layanan_pantau untuk BPD)
+ * @param {string=} detailBase awal alamat halaman detail (bawaan: /dashboard/layanan)
+ * @param {*=}      catatan    pesan tambahan di bawah deskripsi
  */
-export default async function PantauLayanan({ sp, basePath, judul, deskripsi, kategori }) {
+export default async function PantauLayanan({
+  sp, basePath, judul, deskripsi, kategori,
+  sumber = "pengajuan_layanan_pantau", detailBase = "/dashboard/layanan", catatan = null,
+}) {
   const supabase = await createClient();
   const status = STATUS_PANTAU.includes(sp?.status) ? sp.status : "semua";
   // Buang karakter yang bisa merusak filter PostgREST.
   const q = (sp?.q ?? "").trim().replace(/[,()%*]/g, " ").slice(0, 40);
 
-  const dasar = () => supabase.from("pengajuan_layanan_pantau");
+  const dasar = () => supabase.from(sumber);
 
   let query = dasar()
     .select(
@@ -61,6 +67,7 @@ export default async function PantauLayanan({ sp, basePath, judul, deskripsi, ka
         <p className="mt-2 inline-block rounded-full bg-teal-50 px-3 py-1 text-xs font-medium text-teal-700">
           Mode lihat — data pribadi pemohon (NIK, No. HP) tidak ditampilkan
         </p>
+        {catatan}
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
@@ -140,7 +147,7 @@ export default async function PantauLayanan({ sp, basePath, judul, deskripsi, ka
               <tr key={r.id} className="hover:bg-slate-50">
                 <td className="px-4 py-3">
                   <Link
-                    href={`/dashboard/layanan/${r.id}`}
+                    href={`${detailBase}/${r.id}`}
                     className="font-mono text-navy hover:underline"
                   >
                     {r.kode_tracking}
